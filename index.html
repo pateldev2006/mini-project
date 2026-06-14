@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinSight AI — Smart Expenses. Smarter Future.</title>
+  <meta name="description" content="FinSight AI is a modern AI-powered personal finance dashboard for budgeting, investing, reports, and insights." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="sidebar-top">
+        <a href="#home" class="brand-link" data-page="home">
+          <img src="assets/logo.png" alt="FinSight AI logo" class="brand-logo" />
+          <div>
+            <span class="brand-name">FinSight AI</span>
+            <span class="brand-tagline">Smart Expenses. Smarter Future.</span>
+          </div>
+        </a>
+        <button class="sidebar-toggle" aria-label="Collapse sidebar" id="sidebarToggle">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6L16 12L10 18" /></svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="sidebar-link active" data-page="dashboard">
+          <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13H21" /><path d="M3 6H21" /><path d="M3 20H21" /></svg></span>
+          Dashboard
+        </a>
+        <a href="#budget" class="sidebar-link" data-page="budget">
+          <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6V12L15 15" /><path d="M3.5 19.5L3.5 4.5H20.5V19.5H3.5Z" /></svg></span>
+          Budget
+        </a>
+        <a href="#stocks" class="sidebar-link" data-page="stocks">
+          <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17L9 11L13 15L21 7" /></svg></span>
+          Stock Analyzer
+        </a>
+        <a href="#advisor" class="sidebar-link" data-page="advisor">
+          <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3C7.58 3 4 6.58 4 11C4 14.09 5.64 16.85 8.29 18.43L12 21L15.71 18.43C18.36 16.85 20 14.09 20 11C20 6.58 16.42 3 12 3Z" /><path d="M9 11.5H15" /><path d="M12 8.5V14.5" /></svg></span>
+          AI Advisor
+        </a>
+        <a href="#savings" class="sidebar-link" data-page="savings">
+          <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4H20V20H4V4Z" /><path d="M8 14H16" /><path d="M12 10V18" /></svg></span>
+          AI Savings
+        </a>
+        <a href="#reports" class="sidebar-link" data-page="reports">
+          <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19H20" /><path d="M4 5H20" /><path d="M8 5V19" /><path d="M16 5V19" /></svg></span>
+          Reports
+        </a>
+        <a href="#import" class="sidebar-link" data-page="import">
+          <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3V15" /><path d="M8 11L12 15L16 11" /><path d="M4 21H20" /></svg></span>
+          Bank Import
+        </a>
+        <a href="#profile" class="sidebar-link" data-page="profile">
+          <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" /><path d="M4 22C4 17.5817 7.58172 14 12 14C16.4183 14 20 17.5817 20 22" /></svg></span>
+          Profile
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-label">Live Insights</span>
+        <div class="status-chip success">AI Active</div>
+      </div>
+    </aside>
+
+    <div class="main-panel">
+      <header class="topbar">
+        <div class="search-field">
+          <label class="sr-only" for="globalSearch">Search app</label>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21L16.65 16.65" /></svg>
+          <input id="globalSearch" type="search" placeholder="Search reports, stocks, insights..." />
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+            <svg class="theme-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79Z" /></svg>
+          </button>
+          <div class="notifications-wrapper">
+            <button class="icon-btn" id="notificationsButton" aria-label="Notifications" aria-controls="notifPanel" aria-expanded="false">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8C6 14 3 16 3 16H21S18 14 18 8" /><path d="M13.73 21A2 2 0 0 1 10.27 21" /></svg>
+              <span class="badge" id="notifBadge">3</span>
+            </button>
+            <div id="notifPanel" class="notif-panel" hidden>
+              <div class="notif-header">
+                <strong>Notifications</strong>
+                <div class="notif-actions">
+                  <button id="markAllRead" class="small btn btn-outline" type="button">Mark all read</button>
+                  <button id="clearNotifications" class="small btn btn-outline" type="button">Clear</button>
+                </div>
+              </div>
+              <ul id="notifList" class="notif-list"></ul>
+              <div id="notifEmpty" class="notif-empty">You're all caught up.</div>
+              <div class="notif-footer">
+                <button id="simulateNotif" class="btn btn-primary small" type="button">Simulate notification</button>
+              </div>
+            </div>
+          </div>
+          <div class="profile-wrapper">
+            <button class="profile-btn" id="profileMenuButton" aria-label="Open profile menu" aria-controls="profileMenu" aria-expanded="false">
+              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80" alt="User avatar" />
+              <div>
+                <span>Alex Rivera</span>
+                <small>Premium Client</small>
+              </div>
+            </button>
+            <div class="profile-menu" id="profileMenu" hidden>
+              <button data-page="profile" class="panel-btn" type="button">View Profile</button>
+              <button data-page="reports" class="panel-btn" type="button">Financial Reports</button>
+              <button id="logoutButton" class="panel-btn" type="button">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div id="menuOverlay" class="menu-overlay" hidden></div>
+
+      <main class="content-area">
+        <section id="home" class="page page-active">
+          <section class="hero-section">
+            <div class="hero-copy">
+              <span class="eyebrow">FinSight AI</span>
+              <h1>Smart finance decisions with intuitive AI-powered insights.</h1>
+              <p>Turn everyday spending into intelligent planning, visual forecasts, and smarter savings with a premium finance dashboard built for modern life.</p>
+              <div class="hero-actions">
+                <button class="btn btn-primary" data-page="dashboard">Get Started</button>
+                <button class="btn btn-outline" id="watchDemoBtn">Watch Demo</button>
+              </div>
+              <div class="hero-metrics">
+                <article>
+                  <strong>$382K</strong>
+                  <span>Managed assets</span>
+                </article>
+                <article>
+                  <strong>96%</strong>
+                  <span>Client retention</span>
+                </article>
+                <article>
+                  <strong>24/7</strong>
+                  <span>AI insights</span>
+                </article>
+              </div>
+            </div>
+            <div class="hero-visual">
+              <div class="hero-card glass-card">
+                <div class="hero-card-title">
+                  <span>Monthly snapshot</span>
+                  <span class="status-chip success">Optimized</span>
+                </div>
+                <div class="hero-card-body">
+                  <div class="stat">
+                    <span>Total Income</span>
+                    <strong>$12,450</strong>
+                  </div>
+                  <div class="stat">
+                    <span>Total Expenses</span>
+                    <strong>$4,820</strong>
+                  </div>
+                  <div class="chart-preview"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-grid">
+            <article class="feature-card">
+              <h3>Adaptive Budgeting</h3>
+              <p>AI-driven budget recommendations that adapt to your monthly habits and goals.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Automatic Insights</h3>
+              <p>Receive alerts for overspending, investment opportunities, and cash flow gaps instantly.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Smart Forecasts</h3>
+              <p>Visualize next quarter projections and cash runway with clean interactive charts.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Portfolio Intelligence</h3>
+              <p>Analyze stock health, risk, and recommendations with AI-backed clarity.</p>
+            </article>
+          </section>
+
+          <section class="feature-highlight">
+            <div class="highlight-copy">
+              <span class="eyebrow">AI-powered finance</span>
+              <h2>Speed up your planning with intelligent recommendations.</h2>
+              <p>FinSight AI combines spending trends, savings behavior, and investment signals into one intelligent dashboard.</p>
+              <div class="highlight-list">
+                <div>
+                  <strong>Automated Categorization</strong>
+                  <p>Track every transaction with smart labels and categories.</p>
+                </div>
+                <div>
+                  <strong>Cash Flow Alerts</strong>
+                  <p>Stay ahead of overdue bills, low balances, and surplus opportunities.</p>
+                </div>
+              </div>
+            </div>
+            <div class="highlight-visual glass-card">
+              <div class="chip">AI Recommendation</div>
+              <h3>Expense optimization available</h3>
+              <p>Switch from routine budgets to dynamic strategies for higher savings.</p>
+              <div class="mini-chart"></div>
+              <div class="tile-row">
+                <div>
+                  <span>Credit efficiency</span>
+                  <strong>+18%</strong>
+                </div>
+                <div>
+                  <span>Savings increase</span>
+                  <strong>+32%</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="stats-section">
+            <h2>Trusted by modern spenders and growth investors.</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span>1.2M</span>
+                <p>Transactions analyzed monthly</p>
+              </div>
+              <div class="stat-card">
+                <span>4.8%</span>
+                <p>Average expense reduction</p>
+              </div>
+              <div class="stat-card">
+                <span>97%</span>
+                <p>Satisfaction score from clients</p>
+              </div>
+              <div class="stat-card">
+                <span>42%</span>
+                <p>Average increase in savings</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="how-it-works">
+            <h2>How FinSight AI helps your money work smarter</h2>
+            <div class="steps-grid">
+              <article>
+                <span class="step-number">1</span>
+                <h3>Connect accounts</h3>
+                <p>Securely link your spending and investment accounts with one-click import.</p>
+              </article>
+              <article>
+                <span class="step-number">2</span>
+                <h3>Analyze behavior</h3>
+                <p>AI identifies patterns, recurring payments, and saving opportunities automatically.</p>
+              </article>
+              <article>
+                <span class="step-number">3</span>
+                <h3>Act confidently</h3>
+                <p>Follow tailored recommendations, adjust budgets, and monitor portfolio health.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="testimonials-section">
+            <h2>What users are saying</h2>
+            <div class="testimonial-grid">
+              <div class="testimonial-card glass-card">
+                <p>"FinSight AI made it easy to understand my spending. The dashboard is clean and the suggestions feel smart and reliable."</p>
+                <strong>Jordan Miles</strong>
+                <span>Product Manager</span>
+              </div>
+              <div class="testimonial-card glass-card">
+                <p>"I love the stock analyzer. It gives me a clear picture of what to hold and what to sell without clutter."</p>
+                <strong>Priya Chand</strong>
+                <span>Investor</span>
+              </div>
+              <div class="testimonial-card glass-card">
+                <p>"The savings recommendations helped me build an emergency fund quickly and confidently."</p>
+                <strong>Samuel Lee</strong>
+                <span>Freelancer</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="cta-section glass-card">
+            <div>
+              <h2>Ready to make smarter financial decisions?</h2>
+              <p>Explore FinSight AI’s complete dashboard and see your future finances with clarity.</p>
+            </div>
+            <div class="cta-buttons">
+              <button class="btn btn-primary" data-page="dashboard">Start Free Trial</button>
+              <button class="btn btn-outline" data-page="reports">View Reports</button>
+            </div>
+          </section>
+
+          <footer class="landing-footer">
+            <div>© 2026 FinSight AI. Built for modern financial clarity.</div>
+            <div class="footer-links">
+              <a href="#home">Home</a>
+              <a href="#reports">Reports</a>
+              <a href="#profile">Support</a>
+            </div>
+          </footer>
+        </section>
+
+        <section id="dashboard" class="page">
+          <div class="page-head">
+            <div>
+              <span class="eyebrow">Dashboard</span>
+              <h1>Overview of your financial performance</h1>
+            </div>
+            <button class="btn btn-primary">Generate Report</button>
+          </div>
+
+          <div class="overview-grid">
+            <article class="summary-card">
+              <span>Total Income</span>
+              <strong>$23,840</strong>
+              <p class="summary-meta"><span class="trend up">+12.4%</span> since last month</p>
+            </article>
+            <article class="summary-card">
+              <span>Total Expenses</span>
+              <strong>$10,520</strong>
+              <p class="summary-meta"><span class="trend down">-4.1%</span> since last month</p>
+            </article>
+            <article class="summary-card">
+              <span>Current Balance</span>
+              <strong>$74,600</strong>
+              <p class="summary-meta">Available for upcoming plans</p>
+            </article>
+            <article class="summary-card">
+              <span>Investable Surplus</span>
+              <strong>$8,470</strong>
+              <p class="summary-meta">Ready for new opportunities</p>
+            </article>
+            <article class="summary-card wide-card">
+              <span>Financial Health Score</span>
+              <div class="health-score">
+                <strong>89</strong>
+                <span>Excellent</span>
+              </div>
+              <p class="summary-meta">Balanced spending and savings.</p>
+            </article>
+          </div>
+
+          <div class="charts-grid">
+            <section class="chart-card">
+              <div class="card-head">
+                <h3>Expense Breakdown</h3>
+                <span>Live category analysis</span>
+              </div>
+              <canvas id="expenseDoughnut"></canvas>
+            </section>
+            <section class="chart-card">
+              <div class="card-head">
+                <h3>Monthly Expense</h3>
+                <span>Recent spending trend</span>
+              </div>
+              <canvas id="expenseBar"></canvas>
+            </section>
+            <section class="chart-card">
+              <div class="card-head">
+                <h3>Income vs Expense</h3>
+                <span>Cash flow comparison</span>
+              </div>
+              <canvas id="incomeLine"></canvas>
+            </section>
+            <section class="chart-card">
+              <div class="card-head">
+                <h3>Savings Growth</h3>
+                <span>Projected savings path</span>
+              </div>
+              <canvas id="savingsArea"></canvas>
+            </section>
+            <section class="chart-card full-width">
+              <div class="card-head">
+                <h3>Portfolio Performance</h3>
+                <span>Market opportunities</span>
+              </div>
+              <canvas id="portfolioRadar"></canvas>
+            </section>
+          </div>
+
+          <section class="transactions-panel glass-card">
+            <div class="panel-header">
+              <div>
+                <span class="eyebrow">Recent Activity</span>
+                <h2>Recent Transactions</h2>
+              </div>
+              <div class="table-actions">
+                <input type="search" id="transactionSearch" placeholder="Search transactions" />
+                <select id="transactionFilter">
+                  <option value="all">All Categories</option>
+                  <option value="Food">Food</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Bills">Bills</option>
+                  <option value="Health">Health</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Investment">Investment</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="transaction-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination" id="transactionPagination"></div>
+          </section>
+        </section>
+
+        <section id="budget" class="page">
+          <div class="page-head split">
+            <div>
+              <span class="eyebrow">Budget Management</span>
+              <h1>Track your category budgets with confidence</h1>
+            </div>
+            <button class="btn btn-primary" id="openBudgetModalBtn">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: -2px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Create Budget
+            </button>
+          </div>
+          <div class="budget-grid" id="budgetCards"></div>
+        </section>
+
+        <section id="stocks" class="page">
+          <div class="page-head split">
+            <div>
+              <span class="eyebrow">Stock Analyzer</span>
+              <h1>Analyze stocks and get AI-backed recommendations</h1>
+            </div>
+            <div class="stock-search">
+              <input type="search" id="stockSearchInput" placeholder="Search ticker or company" />
+              <button class="btn btn-primary" id="stockSearchButton">Analyze</button>
+            </div>
+          </div>
+          <div class="stock-grid">
+            <section class="stock-panel glass-card">
+              <div class="stock-summary">
+                <div>
+                  <span>Acme Dynamics</span>
+                  <strong id="stockTicker">ACME</strong>
+                </div>
+                <span class="status-chip success" id="tradeBadge">BUY</span>
+              </div>
+              <div class="stock-metrics">
+                <div><span>Price</span><strong id="stockPrice">$148.72</strong></div>
+                <div><span>Market Cap</span><strong id="stockMarketCap">$176B</strong></div>
+                <div><span>Volume</span><strong id="stockVolume">2.1M</strong></div>
+                <div><span>52W High</span><strong id="stockHigh">$162.30</strong></div>
+                <div><span>52W Low</span><strong id="stockLow">$103.15</strong></div>
+                <div><span>P/E Ratio</span><strong id="stockPE">24.8</strong></div>
+              </div>
+            </section>
+            <section class="stock-panel glass-card stock-chart-panel">
+              <div class="card-head">
+                <h3>Stock Chart</h3>
+                <span>Trend analysis</span>
+              </div>
+              <canvas id="stockChart"></canvas>
+            </section>
+            <section class="stock-panel glass-card ai-panel">
+              <div class="card-head">
+                <h3>AI Recommendation</h3>
+                <span>Actionable insight</span>
+              </div>
+              <p id="stockRecommendation">Strong growth signal with moderate volatility. Hold current shares and consider adding on dips.</p>
+              <div class="ai-metrics">
+                <div>
+                  <span>Risk Level</span>
+                  <strong>Medium</strong>
+                </div>
+                <div>
+                  <span>Confidence</span>
+                  <strong>86%</strong>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="advisor" class="page">
+          <div class="page-head">
+            <div>
+              <span class="eyebrow">AI Advisor</span>
+              <h1>Ask your finance assistant anything.</h1>
+            </div>
+          </div>
+          <section class="chat-grid">
+            <div class="chat-panel glass-card">
+              <div class="chat-header">
+                <div>
+                  <strong>FinSight Advisor</strong>
+                  <span>AI is ready to help</span>
+                </div>
+              </div>
+              <div class="chat-history" id="chatHistory"></div>
+              <form class="chat-form" id="chatForm">
+                <input id="chatInput" type="text" placeholder="Ask about budgets, investments, or reports..." required />
+                <button class="btn btn-primary" type="submit">Send</button>
+              </form>
+            </div>
+            <aside class="chat-sidebar glass-card">
+              <h3>Suggested Prompts</h3>
+              <button class="prompt-btn">Show my monthly savings plan</button>
+              <button class="prompt-btn">How can I reduce expenses?</button>
+              <button class="prompt-btn">Recommend a growth portfolio</button>
+              <button class="prompt-btn">Explain my financial health score</button>
+            </aside>
+          </section>
+        </section>
+
+        <section id="savings" class="page">
+          <div class="page-head">
+            <div>
+              <span class="eyebrow">AI Savings</span>
+              <h1>Personalized savings products mapped to your goals</h1>
+            </div>
+          </div>
+          <div class="savings-grid">
+            <article class="savings-card glass-card">
+              <div class="card-top"><span>Emergency Fund</span><strong>Low Risk</strong></div>
+              <strong>$12,000</strong>
+              <p>Recommended</p>
+              <div class="savings-meta"><span>80%</span><span>Return 3.5%</span></div>
+            </article>
+            <article class="savings-card glass-card">
+              <div class="card-top"><span>Mutual Funds</span><strong>Moderate Risk</strong></div>
+              <strong>$8,500</strong>
+              <p>Recommended</p>
+              <div class="savings-meta"><span>58%</span><span>Return 8.8%</span></div>
+            </article>
+            <article class="savings-card glass-card">
+              <div class="card-top"><span>SIP</span><strong>Balanced</strong></div>
+              <strong>$7,200</strong>
+              <p>Monthly plan</p>
+              <div class="savings-meta"><span>65%</span><span>Return 10.2%</span></div>
+            </article>
+            <article class="savings-card glass-card">
+              <div class="card-top"><span>Stocks</span><strong>High Risk</strong></div>
+              <strong>$14,900</strong>
+              <p>Long-term gain</p>
+              <div class="savings-meta"><span>42%</span><span>Return 13.7%</span></div>
+            </article>
+            <article class="savings-card glass-card">
+              <div class="card-top"><span>Fixed Deposit</span><strong>Secure</strong></div>
+              <strong>$5,000</strong>
+              <p>Stable yield</p>
+              <div class="savings-meta"><span>90%</span><span>Return 5.1%</span></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="reports" class="page">
+          <div class="page-head split">
+            <div>
+              <span class="eyebrow">AI Report</span>
+              <h1>Monthly financial intelligence at a glance</h1>
+            </div>
+            <div class="report-actions">
+              <button class="btn btn-outline">Download PDF</button>
+              <button class="btn btn-primary">Export Excel</button>
+            </div>
+          </div>
+          <div class="report-grid">
+            <article class="report-card glass-card">
+              <span>Financial Health</span>
+              <strong>89 / 100</strong>
+              <p>Excellent stability with optimized cash flow.</p>
+            </article>
+            <article class="report-card glass-card">
+              <span>Expense Analysis</span>
+              <strong>4 categories</strong>
+              <p>Travel and shopping saw the largest improvement.</p>
+            </article>
+            <article class="report-card glass-card">
+              <span>Savings Analysis</span>
+              <strong>+$2,800</strong>
+              <p>Savings grew by 23% compared to previous month.</p>
+            </article>
+            <article class="report-card glass-card">
+              <span>AI Insights</span>
+              <ul>
+                <li>Review bills every 10 days</li>
+                <li>Shift 15% to growth portfolio</li>
+                <li>Use cash reserve for upcoming travel</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="import" class="page">
+          <div class="page-head">
+            <div>
+              <span class="eyebrow">Bank Statement Import</span>
+              <h1>Upload and import statements effortlessly</h1>
+            </div>
+          </div>
+          <div class="import-grid">
+            <div class="upload-panel glass-card">
+              <div id="dropZone" class="drop-zone">
+                <div>
+                  <span class="icon-upload">📄</span>
+                  <strong>Drag & drop bank statements here</strong>
+                  <p>Supported formats: CSV, XLSX</p>
+                </div>
+              </div>
+              <label class="btn btn-outline upload-label">
+                Upload file
+                <input type="file" id="fileInput" accept=".csv,.xlsx" hidden />
+              </label>
+              <div id="importStatus" class="import-status">Ready to import your latest statement.</div>
+              <div class="progress-bar" id="importProgress"><span></span></div>
+            </div>
+            <div class="preview-panel glass-card">
+              <div class="card-head">
+                <h3>File Preview</h3>
+                <span>Imported rows</span>
+              </div>
+              <div class="table-wrap">
+                <table class="preview-table">
+                  <thead>
+                    <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>
+                  </thead>
+                  <tbody id="previewTableBody">
+                    <tr><td>2026-05-02</td><td>Electricity bill</td><td>-$120.00</td><td>Ready</td></tr>
+                    <tr><td>2026-05-05</td><td>Salary deposit</td><td>+$5,200.00</td><td>Ready</td></tr>
+                    <tr><td>2026-05-07</td><td>Groceries</td><td>-$78.20</td><td>Ready</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="profile" class="page">
+          <div class="page-head">
+            <div>
+              <span class="eyebrow">Profile</span>
+              <h1>Manage account preferences and security.</h1>
+            </div>
+          </div>
+          <div class="profile-grid">
+            <section class="profile-card glass-card">
+              <div class="profile-avatar">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80" alt="Alex Rivera" />
+              </div>
+              <h2>Alex Rivera</h2>
+              <p>alex.rivera@email.com</p>
+              <p>+1 (555) 238-1124</p>
+              <div class="profile-meta">
+                <span>Accounts linked</span>
+                <strong>5</strong>
+              </div>
+            </section>
+            <section class="settings-card glass-card">
+              <h3>Preferences</h3>
+              <div class="settings-row">
+                <span>Theme</span>
+                <select id="themeSelect" class="theme-select">
+                  <option value="light">Light Theme</option>
+                  <option value="dark">Dark Theme</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <span>Notifications</span>
+                <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
+              </div>
+              <div class="settings-row">
+                <span>Email updates</span>
+                <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
+              </div>
+            </section>
+            <section class="settings-card glass-card">
+              <h3>Security</h3>
+              <div class="security-item">
+                <span>Two-factor authentication</span>
+                <button class="btn btn-outline small">Manage</button>
+              </div>
+              <div class="security-item">
+                <span>Change password</span>
+                <button class="btn btn-outline small">Update</button>
+              </div>
+              <div class="security-item">
+                <span>Connected devices</span>
+                <button class="btn btn-outline small">View</button>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Create Budget Modal -->
+  <div id="budgetModal" class="modal-backdrop" hidden>
+    <div class="modal-dialog glass-card">
+      <div class="modal-header">
+        <h2>Create Custom Budget</h2>
+        <button type="button" id="closeBudgetModalBtn" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="budgetForm" class="modal-form">
+        <div class="form-group">
+          <label for="budgetName">Category Name</label>
+          <input type="text" id="budgetName" placeholder="e.g. Travel, Subscriptions, Gifts" required />
+        </div>
+        <div class="form-group">
+          <label for="budgetLimit">Monthly Budget Limit ($)</label>
+          <input type="number" id="budgetLimit" min="1" step="any" placeholder="e.g. 300" required />
+        </div>
+        <div class="form-group">
+          <label for="budgetSpent">Amount Already Spent ($)</label>
+          <input type="number" id="budgetSpent" min="0" step="any" placeholder="e.g. 0" value="0" />
+        </div>
+        <div id="budgetFormError" class="form-error" hidden></div>
+        <div class="modal-actions">
+          <button type="button" id="cancelBudgetBtn" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Budget</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
