@@ -831,13 +831,91 @@ async function handleStockSearch() {
   searchBtn.textContent = 'Analyzing...';
   searchBtn.disabled = true;
   
+  let data;
+  let useFallbackScraper = false;
+  
   try {
     const apiBase = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
-    const response = await fetch(`${apiBase}/api/stock?symbol=${encodeURIComponent(query)}`);
-    if (!response.ok) throw new Error('Symbol not found');
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     
-    const data = await response.json();
-    if (data.error || !data.price) {
+    if (isLocal || window.location.protocol === 'file:') {
+      try {
+        const response = await fetch(`${apiBase}/api/stock?symbol=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error('Symbol not found');
+        data = await response.json();
+        if (data.error || !data.price) {
+          throw new Error('Stock data unavailable');
+        }
+      } catch (localErr) {
+        console.warn("Local server connection failed, using public CORS proxy fallback:", localErr);
+        useFallbackScraper = true;
+      }
+    } else {
+      useFallbackScraper = true;
+    }
+    
+    if (useFallbackScraper) {
+      // 1. Fetch Chart Data via AllOrigins CORS proxy
+      const chartUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(query).toUpperCase()}?range=1mo&interval=1d`;
+      const proxyChartUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(chartUrl)}`;
+      
+      const chartRes = await fetch(proxyChartUrl);
+      if (!chartRes.ok) throw new Error('Symbol not found');
+      const chartWrapper = await chartRes.json();
+      const chartJson = JSON.parse(chartWrapper.contents);
+      
+      if (!chartJson.chart || !chartJson.chart.result || chartJson.chart.result.length === 0) {
+        const errDescription = chartJson.chart?.error?.description || 'Symbol not found';
+        throw new Error(errDescription);
+      }
+      
+      const c = chartJson.chart.result[0];
+      const meta = c.meta || {};
+      
+      data = {
+        symbol: meta.symbol || query.toUpperCase(),
+        companyName: meta.longName || meta.shortName || query.toUpperCase(),
+        price: meta.regularMarketPrice,
+        volume: meta.regularMarketVolume,
+        high52: meta.fiftyTwoWeekHigh,
+        low52: meta.fiftyTwoWeekLow,
+        currency: meta.currency || 'USD',
+        history: (c.indicators?.quote?.[0]?.close || []).filter(x => x !== null),
+        marketCap: null,
+        peRatio: null
+      };
+      
+      // 2. Fetch HTML page to scrape Market Cap & PE Ratio
+      try {
+        const htmlUrl = `https://finance.yahoo.com/quote/${encodeURIComponent(query).toUpperCase()}`;
+        const proxyHtmlUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(htmlUrl)}`;
+        
+        const htmlRes = await fetch(proxyHtmlUrl);
+        if (htmlRes.ok) {
+          const htmlWrapper = await htmlRes.json();
+          const htmlData = htmlWrapper.contents;
+          
+          // Scrape Market Cap
+          const m_cap = htmlData.match(/"marketCap"[^>]*>([^<]+)/);
+          if (m_cap) {
+            data.marketCap = m_cap[1].trim();
+          }
+          
+          // Scrape PE
+          const m_pe = htmlData.match(/"trailingPE"[^>]*>([^<]+)/);
+          if (m_pe) {
+            const peVal = m_pe[1].trim();
+            if (peVal !== '--') {
+              data.peRatio = parseFloat(peVal.replace(',', ''));
+            }
+          }
+        }
+      } catch (scrapeErr) {
+        console.warn("Scraper fallback error:", scrapeErr);
+      }
+    }
+    
+    if (!data || !data.price) {
       throw new Error('Stock data unavailable');
     }
     
