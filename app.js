@@ -802,7 +802,8 @@ function initCharts() {
         borderWidth: 0,
         cutout: '78%',
         spacing: 4,
-        borderRadius: 8
+        borderRadius: 8,
+        hoverOffset: 8
       }],
     },
     options: {

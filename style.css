@@ -876,14 +876,43 @@ button {
 
 .doughnut-chart-container {
   position: relative;
-  width: 230px;
-  height: 230px;
+  width: 290px;
+  height: 290px;
   margin: 0 auto;
 }
 
 .doughnut-chart-container canvas {
   width: 100% !important;
   height: 100% !important;
+}
+
+.doughnut-center-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.doughnut-center-label {
+  font-size: 0.8rem;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.doughnut-center-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
 }
 
 .radar-chart-container {
