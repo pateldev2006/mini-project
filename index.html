@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=10" />
+  <link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body>
   <div class="app-shell">
@@ -681,56 +681,154 @@
         <section id="profile" class="page">
           <div class="page-head">
             <div>
-              <span class="eyebrow">Profile</span>
-              <h1>Manage account preferences and security.</h1>
+              <span class="eyebrow">Settings</span>
+              <h1>Manage your preferences and security</h1>
             </div>
           </div>
-          <div class="profile-grid">
-            <section class="profile-card glass-card">
-              <div class="profile-avatar">
-                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80" alt="Alex Rivera" />
+          <div class="profile-layout-grid">
+            <!-- Left Column: Profile Summary -->
+            <div class="profile-left-panel">
+              <div class="profile-card glass-card">
+                <div class="profile-cover-banner"></div>
+                <div class="profile-card-content">
+                  <div class="profile-avatar-wrapper">
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80" alt="Alex Rivera" />
+                    <button class="avatar-edit-badge" aria-label="Edit Avatar">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                    </button>
+                  </div>
+                  <h2>Alex Rivera</h2>
+                  <span class="profile-tier-badge">Premium Client</span>
+                  
+                  <div class="profile-stats-row">
+                    <div class="stat-item">
+                      <strong>5</strong>
+                      <span>Linked Accounts</span>
+                    </div>
+                    <div class="stat-item">
+                      <strong>12</strong>
+                      <span>AI Reports</span>
+                    </div>
+                    <div class="stat-item">
+                      <strong>Active</strong>
+                      <span>Membership</span>
+                    </div>
+                  </div>
+                  
+                  <div class="profile-contact-details">
+                    <div class="contact-item">
+                      <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg></span>
+                      <span>alex.rivera@email.com</span>
+                    </div>
+                    <div class="contact-item">
+                      <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg></span>
+                      <span>+1 (555) 238-1124</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h2>Alex Rivera</h2>
-              <p>alex.rivera@email.com</p>
-              <p>+1 (555) 238-1124</p>
-              <div class="profile-meta">
-                <span>Accounts linked</span>
-                <strong>5</strong>
+            </div>
+            
+            <!-- Right Column: Settings & Security -->
+            <div class="profile-right-panel">
+              <!-- Preferences Card -->
+              <div class="settings-card glass-card">
+                <h3>Preferences</h3>
+                <p class="settings-card-desc">Customize your interface and notification alerts.</p>
+                
+                <div class="settings-section">
+                  <span class="settings-section-title">Visual Mode</span>
+                  <div class="theme-cards-wrapper">
+                    <!-- Light Theme Card -->
+                    <div class="theme-card-option" id="themeOptionLight" data-theme="light">
+                      <div class="theme-preview light-preview">
+                        <div class="preview-sidebar"></div>
+                        <div class="preview-content">
+                          <div class="preview-line"></div>
+                          <div class="preview-line short"></div>
+                        </div>
+                      </div>
+                      <span>Light Mode</span>
+                    </div>
+                    <!-- Dark Theme Card -->
+                    <div class="theme-card-option" id="themeOptionDark" data-theme="dark">
+                      <div class="theme-preview dark-preview">
+                        <div class="preview-sidebar"></div>
+                        <div class="preview-content">
+                          <div class="preview-line"></div>
+                          <div class="preview-line short"></div>
+                        </div>
+                      </div>
+                      <span>Dark Mode</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="settings-toggles">
+                  <div class="toggle-row">
+                    <div class="toggle-info">
+                      <strong>Push Notifications</strong>
+                      <p>Receive live alerts on budget warnings and surpluses.</p>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" id="pushNotificationsToggle" checked />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  <div class="toggle-row">
+                    <div class="toggle-info">
+                      <strong>Email Newsletters</strong>
+                      <p>Weekly financial summaries and AI advisor recommendations.</p>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" id="emailUpdatesToggle" checked />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
               </div>
-            </section>
-            <section class="settings-card glass-card">
-              <h3>Preferences</h3>
-              <div class="settings-row">
-                <span>Theme</span>
-                <select id="themeSelect" class="theme-select">
-                  <option value="light">Light Theme</option>
-                  <option value="dark">Dark Theme</option>
-                </select>
+              
+              <!-- Security Controls Card -->
+              <div class="settings-card glass-card">
+                <h3>Security & Privacy</h3>
+                <p class="settings-card-desc">Manage your account authentication and devices.</p>
+                
+                <div class="security-list">
+                  <div class="security-row-item">
+                    <div class="security-info">
+                      <div class="icon-box"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></div>
+                      <div>
+                        <strong>Two-Factor Authentication</strong>
+                        <p>Secure your account with an extra verification layer.</p>
+                      </div>
+                    </div>
+                    <button class="btn btn-outline small" id="btnConfigure2fa">Configure</button>
+                  </div>
+                  
+                  <div class="security-row-item">
+                    <div class="security-info">
+                      <div class="icon-box"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg></div>
+                      <div>
+                        <strong>Change Password</strong>
+                        <p>Regularly update your password to keep access secure.</p>
+                      </div>
+                    </div>
+                    <button class="btn btn-outline small" id="btnUpdatePassword">Update</button>
+                  </div>
+                  
+                  <div class="security-row-item">
+                    <div class="security-info">
+                      <div class="icon-box"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg></div>
+                      <div>
+                        <strong>Connected Devices</strong>
+                        <p>Review and log out of other active browser sessions.</p>
+                      </div>
+                    </div>
+                    <button class="btn btn-outline small" id="btnManageDevices">Manage</button>
+                  </div>
+                </div>
               </div>
-              <div class="settings-row">
-                <span>Notifications</span>
-                <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
-              </div>
-              <div class="settings-row">
-                <span>Email updates</span>
-                <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
-              </div>
-            </section>
-            <section class="settings-card glass-card">
-              <h3>Security</h3>
-              <div class="security-item">
-                <span>Two-factor authentication</span>
-                <button class="btn btn-outline small">Manage</button>
-              </div>
-              <div class="security-item">
-                <span>Change password</span>
-                <button class="btn btn-outline small">Update</button>
-              </div>
-              <div class="security-item">
-                <span>Connected devices</span>
-                <button class="btn btn-outline small">View</button>
-              </div>
-            </section>
+            </div>
           </div>
         </section>
       </main>
@@ -825,6 +923,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="app.js?v=10" defer></script>
+  <script src="app.js?v=11" defer></script>
 </body>
 </html>

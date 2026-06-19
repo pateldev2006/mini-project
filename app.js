@@ -226,6 +226,47 @@ function simulateNotification() {
   updateNotificationBadge();
 }
 
+function showToast(message, type = 'success') {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = `toast-item ${type}`;
+  
+  let iconSvg = '';
+  if (type === 'success') {
+    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toast-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>`;
+  } else if (type === 'info') {
+    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toast-icon"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>`;
+  } else {
+    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toast-icon"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>`;
+  }
+  
+  toast.innerHTML = `
+    ${iconSvg}
+    <span class="toast-message">${message}</span>
+  `;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 3500);
+}
+
 function renderThemeIcon() {
   const icon = themeToggle.querySelector('.theme-icon');
   if (!icon) return;
@@ -249,6 +290,16 @@ function setTheme(theme) {
   
   if (themeSelect) {
     themeSelect.value = theme;
+  }
+
+  // Toggle active class on visual theme options
+  const themeOptionLight = document.getElementById('themeOptionLight');
+  const themeOptionDark = document.getElementById('themeOptionDark');
+  if (themeOptionLight) {
+    themeOptionLight.classList.toggle('active', theme === 'light');
+  }
+  if (themeOptionDark) {
+    themeOptionDark.classList.toggle('active', theme === 'dark');
   }
   
   renderThemeIcon();
@@ -468,6 +519,101 @@ function bindUIControls() {
   if (themeSelect) {
     themeSelect.addEventListener('change', (e) => {
       setTheme(e.target.value);
+    });
+  }
+
+  // Profile Page Visual Theme Option Listeners
+  const themeOptionLight = document.getElementById('themeOptionLight');
+  const themeOptionDark = document.getElementById('themeOptionDark');
+  if (themeOptionLight) {
+    themeOptionLight.addEventListener('click', () => {
+      setTheme('light');
+    });
+  }
+  if (themeOptionDark) {
+    themeOptionDark.addEventListener('click', () => {
+      setTheme('dark');
+    });
+  }
+
+  // Preference Toggle Listeners
+  const pushNotificationsToggle = document.getElementById('pushNotificationsToggle');
+  const emailUpdatesToggle = document.getElementById('emailUpdatesToggle');
+  
+  if (pushNotificationsToggle) {
+    pushNotificationsToggle.addEventListener('change', (e) => {
+      const status = e.target.checked ? 'enabled' : 'disabled';
+      showToast(`Push notifications ${status}!`, 'info');
+      state.notificationsList.push({
+        id: Date.now(),
+        text: `Push notifications have been ${status}.`,
+        time: 'now',
+        read: false
+      });
+      updateNotificationBadge();
+      renderNotificationsPanel();
+    });
+  }
+  
+  if (emailUpdatesToggle) {
+    emailUpdatesToggle.addEventListener('change', (e) => {
+      const status = e.target.checked ? 'subscribed' : 'unsubscribed';
+      showToast(`Email newsletter subscription: ${status}!`, 'info');
+      state.notificationsList.push({
+        id: Date.now(),
+        text: `Email newsletter subscription: ${status}.`,
+        time: 'now',
+        read: false
+      });
+      updateNotificationBadge();
+      renderNotificationsPanel();
+    });
+  }
+
+  // Security Actions Listeners
+  const btnConfigure2fa = document.getElementById('btnConfigure2fa');
+  const btnUpdatePassword = document.getElementById('btnUpdatePassword');
+  const btnManageDevices = document.getElementById('btnManageDevices');
+  
+  if (btnConfigure2fa) {
+    btnConfigure2fa.addEventListener('click', () => {
+      showToast('Two-Factor Authentication setup initiated!', 'success');
+      state.notificationsList.push({
+        id: Date.now(),
+        text: '2FA configuration wizard opened.',
+        time: 'now',
+        read: false
+      });
+      updateNotificationBadge();
+      renderNotificationsPanel();
+    });
+  }
+  
+  if (btnUpdatePassword) {
+    btnUpdatePassword.addEventListener('click', () => {
+      showToast('Password update request sent to your email!', 'success');
+      state.notificationsList.push({
+        id: Date.now(),
+        text: 'Password recovery verification email sent.',
+        time: 'now',
+        read: false
+      });
+      updateNotificationBadge();
+      renderNotificationsPanel();
+    });
+  }
+  
+  if (btnManageDevices) {
+    btnManageDevices.addEventListener('click', () => {
+      showToast('Active session list updated.', 'info');
+      state.notificationsList.push({
+        id: Date.now(),
+        text: 'Connected devices log audited.',
+        time: 'now',
+        read: false
+      });
+      updateNotificationBadge();
+      renderNotificationsPanel();
     });
   }
 
