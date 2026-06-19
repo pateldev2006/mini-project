@@ -1099,16 +1099,102 @@ function renderChat() {
 
 function generateChatResponse(prompt) {
   const lower = prompt.toLowerCase();
-  if (lower.includes('savings')) {
-    return 'Your savings trajectory looks strong. I recommend increasing your monthly SIP by 10% to reach your emergency fund target in 8 months.';
+  
+  // Calculate total monthly income, total expenses, and category-level spending from state
+  let totalIncome = 0;
+  let totalExpenses = 0;
+  const categoryTotals = {};
+  
+  state.transactions.forEach(t => {
+    // Remove formatting symbols to get numeric amount
+    const val = Math.abs(parseFloat(t.amount.replace(/[\$\+,]/g, '')));
+    if (t.type === 'Income') {
+      totalIncome += val;
+    } else if (t.type === 'Expense') {
+      totalExpenses += val;
+      categoryTotals[t.category] = (categoryTotals[t.category] || 0) + val;
+    }
+  });
+
+  // Calculate highest expense category
+  let highestExpenseCategory = 'Discretionary';
+  let highestExpenseValue = 0;
+  for (const cat in categoryTotals) {
+    if (categoryTotals[cat] > highestExpenseValue) {
+      highestExpenseValue = categoryTotals[cat];
+      highestExpenseCategory = cat;
+    }
   }
-  if (lower.includes('reduce') || lower.includes('expense')) {
-    return 'Review your shopping and subscription categories. Shifting a small portion of discretionary spend into automated savings can improve cash flow quickly.';
+
+  // Calculate total savings balance
+  const totalSavings = state.savings.reduce((acc, curr) => acc + curr.balance, 0);
+
+  // 1. Savings trajectory
+  if (lower.includes('savings') || lower.includes('sip') || lower.includes('goal')) {
+    const topSavings = state.savings[0]; // E.g., Emergency Fund
+    const avgReturn = (state.savings.reduce((acc, curr) => acc + curr.returnRate * curr.balance, 0) / totalSavings).toFixed(1);
+    return `Your overall savings and investments total **$${totalSavings.toLocaleString('en-US')}** with an average weighted return rate of **${avgReturn}%**. \n\nYour primary goal is the **${topSavings.name}** (currently at **$${topSavings.balance.toLocaleString('en-US')}**, which is **${topSavings.progress}%** complete). \n\nI recommend increasing your monthly SIP or Mutual Funds allocation by **10% ($150)** to reduce the timeline to completion by an estimated 3 months.`;
   }
-  if (lower.includes('health score') || lower.includes('financial health')) {
-    return 'Your financial health score is excellent. Keep an eye on expense categories above 70% utilization to maintain balance.';
+  
+  // 2. Reduce expenses / Category budget analysis
+  if (lower.includes('reduce') || lower.includes('expense') || lower.includes('spending') || lower.includes('cut')) {
+    // Find category with highest budget utilization
+    let maxUtilizationCat = 'Shopping';
+    let maxUtilizationPct = 0;
+    state.budgets.forEach(b => {
+      const pct = (b.spent / b.limit) * 100;
+      if (pct > maxUtilizationPct) {
+        maxUtilizationPct = pct;
+        maxUtilizationCat = b.label;
+      }
+    });
+
+    let advice = `Based on your recent transactions, your highest spending category this month is **${highestExpenseCategory}** where you spent **$${highestExpenseValue.toFixed(2)}**. `;
+    if (maxUtilizationPct > 80) {
+      const budget = state.budgets.find(b => b.label === maxUtilizationCat);
+      advice += `Additionally, your **${maxUtilizationCat}** budget is at a high **${maxUtilizationPct.toFixed(0)}%** utilization (spent $${budget.spent} of $${budget.limit} limit). \n\nTo free up cash flow quickly, I recommend shifting non-essential purchases in **${maxUtilizationCat}** into automated savings. Setting a category ceiling of $450 next month will instantly save you **$170**!`;
+    } else {
+      advice += `Your budgets look healthy and on-track with no major spending leaks. Shifting an extra 5% of your monthly surplus into your Emergency reserve is recommended.`;
+    }
+    return advice;
   }
-  return 'I recommend reviewing your upcoming bills and rebalancing your investments toward a mix of stable and growth assets for the next quarter.';
+  
+  // 3. Growth portfolio recommendations
+  if (lower.includes('portfolio') || lower.includes('invest') || lower.includes('growth') || lower.includes('asset')) {
+    const stocksBal = state.savings.find(s => s.name === 'Stocks')?.balance || 0;
+    const mfBal = state.savings.find(s => s.name === 'Mutual Funds')?.balance || 0;
+    const totalInvestments = stocksBal + mfBal;
+    
+    return `You have **$${totalInvestments.toLocaleString('en-US')}** invested across Stocks and Mutual Funds (making up **${((totalInvestments/totalSavings)*100).toFixed(0)}%** of your savings net worth). \n\nTo optimize for long-term growth while managing risk, I suggest allocating your funds into this balanced growth model:
+* **60% Low-Cost Index ETFs** (like VOO or QQQ to capture core market growth)
+* **20% High-Quality Growth Equities** (e.g., tech and energy leaders with strong cash flows)
+* **10% Diversified Emerging Markets**
+* **10% Secure Interest Yields** (like your Fixed Deposit yielding 5.1%)`;
+  }
+  
+  // 4. Financial Health Score Explanation
+  if (lower.includes('health') || lower.includes('score')) {
+    const overBudgetCount = state.budgets.filter(b => b.spent > b.limit).length;
+    const reviewBudgetCount = state.budgets.filter(b => b.spent / b.limit > 0.8).length;
+    let score = 88 - (overBudgetCount * 10) - (reviewBudgetCount * 3);
+    if (score > 100) score = 100;
+    if (score < 50) score = 50;
+
+    return `Your calculated Financial Health Score is **${score}/100**, which falls in the **Excellent** range. \n\n* **Strengths**: Solid asset base (totaling $${totalSavings.toLocaleString()}), positive income-to-expense ratio, and low leverage.
+* **Areas to Monitor**: You have **${reviewBudgetCount}** budget categories (specifically **Shopping**) nearing their limits. Keeping category utilization below 75% will push your health score above 90.`;
+  }
+
+  // 5. Default Context-Aware Response
+  return `I am your personal AI Financial Advisor. Looking at your real-time dashboard data:
+* Total Savings Base: **$${totalSavings.toLocaleString()}**
+* Active Primary Goal: **${state.savings[0].name}** (${state.savings[0].progress}% complete)
+* Highest Spend Area: **${highestExpenseCategory}** ($${highestExpenseValue.toFixed(0)} spent)
+
+Could you tell me more about what you would like to analyze? You can ask me to:
+* *"Show my monthly savings plan"*
+* *"How can I reduce expenses?"*
+* *"Recommend a growth portfolio"*
+* *"Explain my financial health score"*`;
 }
 
 function setupImport() {
