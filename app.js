@@ -944,7 +944,7 @@ function initCharts() {
       labels: ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Entertainment'],
       datasets: [{
         data: [18, 12, 24, 20, 10, 16],
-        backgroundColor: ['#1e88e5', '#00c896', '#2d5bf8', '#7d5fff', '#f4b400', '#ff6d6d'],
+        backgroundColor: ['#38bdf8', '#34d399', '#4f46e5', '#818cf8', '#fbbf24', '#fb7185'],
         borderWidth: 0,
         cutout: '78%',
         spacing: 4,
@@ -954,7 +954,30 @@ function initCharts() {
     },
     options: {
       animation: false,
+      onHover: (event, activeElements) => {
+        const centerLabel = document.querySelector('.doughnut-center-label');
+        const centerValue = document.querySelector('.doughnut-center-value');
+        if (!centerLabel || !centerValue) return;
+
+        if (activeElements && activeElements.length > 0) {
+          const index = activeElements[0].index;
+          const label = charts.expenseDoughnut.data.labels[index];
+          const val = charts.expenseDoughnut.data.datasets[0].data[index];
+          const calculatedAmount = (val / 100) * 10520;
+          
+          centerLabel.textContent = label;
+          centerValue.textContent = `$${Math.round(calculatedAmount).toLocaleString('en-US')}`;
+          centerLabel.style.color = charts.expenseDoughnut.data.datasets[0].backgroundColor[index];
+        } else {
+          centerLabel.textContent = 'Total Spent';
+          centerValue.textContent = '$10,520';
+          centerLabel.style.color = 'var(--subtext)';
+        }
+      },
       plugins: { 
+        tooltip: {
+          enabled: false // Disable the default overlapping tooltip popup box
+        },
         legend: { 
           position: 'bottom', 
           labels: { 

@@ -906,6 +906,7 @@ button {
   letter-spacing: 0.08em;
   font-weight: 600;
   margin-bottom: 2px;
+  transition: color 200ms ease;
 }
 
 .doughnut-center-value {
