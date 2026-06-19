@@ -1,23 +1,40 @@
 import os
 import sys
 import webview
+import socket
+import threading
+import time
+
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('127.0.0.1', port)) == 0
+
+def start_local_server(port):
+    # Change directory to the app's folder to serve files correctly
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(current_dir)
+    
+    from server import ThreadedHTTPServer, CustomRequestHandler
+    server = ThreadedHTTPServer(('127.0.0.1', port), CustomRequestHandler)
+    print(f"Starting local background server on port {port}...")
+    server.serve_forever()
 
 def main():
-    # Resolve absolute path to index.html in the same folder as this script
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    html_path = os.path.join(current_dir, 'index.html')
+    port = 3000
     
-    # Check if index.html exists
-    if not os.path.exists(html_path):
-        print(f"Error: Could not find index.html at {html_path}", file=sys.stderr)
-        sys.exit(1)
+    # Start the server if it's not already running
+    if not is_port_in_use(port):
+        t = threading.Thread(target=start_local_server, args=(port,))
+        t.daemon = True
+        t.start()
+        time.sleep(0.5)  # Give the server a split second to bind
         
-    print(f"Launching desktop app wrapper from: {html_path}")
+    print(f"Launching desktop app wrapper pointing to: http://localhost:{port}")
     
-    # Create the native desktop window
+    # Create the native desktop window pointing to the localhost server
     window = webview.create_window(
         title='FinSight AI — Desktop App',
-        url=html_path,
+        url=f'http://localhost:{port}',
         width=1280,
         height=800,
         min_size=(960, 600),
