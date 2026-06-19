@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <div class="app-shell">
@@ -29,35 +29,35 @@
       <nav class="sidebar-nav">
         <a href="#dashboard" class="sidebar-link active" data-page="dashboard">
           <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13H21" /><path d="M3 6H21" /><path d="M3 20H21" /></svg></span>
-          Dashboard
+          <span>Dashboard</span>
         </a>
         <a href="#budget" class="sidebar-link" data-page="budget">
           <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6V12L15 15" /><path d="M3.5 19.5L3.5 4.5H20.5V19.5H3.5Z" /></svg></span>
-          Budget
+          <span>Budget</span>
         </a>
         <a href="#stocks" class="sidebar-link" data-page="stocks">
           <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17L9 11L13 15L21 7" /></svg></span>
-          Stock Analyzer
+          <span>Stock Analyzer</span>
         </a>
         <a href="#advisor" class="sidebar-link" data-page="advisor">
           <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3C7.58 3 4 6.58 4 11C4 14.09 5.64 16.85 8.29 18.43L12 21L15.71 18.43C18.36 16.85 20 14.09 20 11C20 6.58 16.42 3 12 3Z" /><path d="M9 11.5H15" /><path d="M12 8.5V14.5" /></svg></span>
-          AI Advisor
+          <span>AI Advisor</span>
         </a>
         <a href="#savings" class="sidebar-link" data-page="savings">
           <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4H20V20H4V4Z" /><path d="M8 14H16" /><path d="M12 10V18" /></svg></span>
-          AI Savings
+          <span>AI Savings</span>
         </a>
         <a href="#reports" class="sidebar-link" data-page="reports">
           <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19H20" /><path d="M4 5H20" /><path d="M8 5V19" /><path d="M16 5V19" /></svg></span>
-          Reports
+          <span>Reports</span>
         </a>
         <a href="#import" class="sidebar-link" data-page="import">
           <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3V15" /><path d="M8 11L12 15L16 11" /><path d="M4 21H20" /></svg></span>
-          Bank Import
+          <span>Bank Import</span>
         </a>
         <a href="#profile" class="sidebar-link" data-page="profile">
           <span class="icon-wrapper"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" /><path d="M4 22C4 17.5817 7.58172 14 12 14C16.4183 14 20 17.5817 20 22" /></svg></span>
-          Profile
+          <span>Profile</span>
         </a>
       </nav>
 
@@ -69,6 +69,9 @@
 
     <div class="main-panel">
       <header class="topbar">
+        <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
         <div class="search-field">
           <label class="sr-only" for="globalSearch">Search app</label>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21L16.65 16.65" /></svg>
@@ -347,7 +350,9 @@
                 <h3>Expense Breakdown</h3>
                 <span>Live category analysis</span>
               </div>
-              <canvas id="expenseDoughnut"></canvas>
+              <div class="doughnut-chart-container">
+                <canvas id="expenseDoughnut"></canvas>
+              </div>
             </section>
             <section class="chart-card">
               <div class="card-head">
@@ -375,7 +380,9 @@
                 <h3>Portfolio Performance</h3>
                 <span>Market opportunities</span>
               </div>
-              <canvas id="portfolioRadar"></canvas>
+              <div class="radar-chart-container">
+                <canvas id="portfolioRadar"></canvas>
+              </div>
             </section>
           </div>
 
@@ -507,7 +514,12 @@
               <div class="chat-history" id="chatHistory"></div>
               <form class="chat-form" id="chatForm">
                 <input id="chatInput" type="text" placeholder="Ask about budgets, investments, or reports..." required />
-                <button class="btn btn-primary" type="submit">Send</button>
+                <button class="btn btn-primary chat-send-btn" type="submit" aria-label="Send message">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="send-icon-svg">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </button>
               </form>
             </div>
             <aside class="chat-sidebar glass-card">
@@ -521,43 +533,49 @@
         </section>
 
         <section id="savings" class="page">
-          <div class="page-head">
+          <div class="page-head split">
             <div>
               <span class="eyebrow">AI Savings</span>
               <h1>Personalized savings products mapped to your goals</h1>
             </div>
+            <div class="savings-actions">
+              <div class="filter-controls" id="savingsFilterControls">
+                <button class="btn btn-outline active" data-filter="all">All</button>
+                <button class="btn btn-outline" data-filter="low-secure">Low/Secure</button>
+                <button class="btn btn-outline" data-filter="balanced-moderate">Balanced/Moderate</button>
+                <button class="btn btn-outline" data-filter="high">High Risk</button>
+              </div>
+              <div class="sort-controls">
+                <select id="savingsSortSelect" class="select-input">
+                  <option value="balance-desc">Balance: High to Low</option>
+                  <option value="balance-asc">Balance: Low to High</option>
+                  <option value="return-desc">Return: High to Low</option>
+                  <option value="progress-desc">Progress: High to Low</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <div class="savings-grid">
-            <article class="savings-card glass-card">
-              <div class="card-top"><span>Emergency Fund</span><strong>Low Risk</strong></div>
-              <strong>$12,000</strong>
-              <p>Recommended</p>
-              <div class="savings-meta"><span>80%</span><span>Return 3.5%</span></div>
-            </article>
-            <article class="savings-card glass-card">
-              <div class="card-top"><span>Mutual Funds</span><strong>Moderate Risk</strong></div>
-              <strong>$8,500</strong>
-              <p>Recommended</p>
-              <div class="savings-meta"><span>58%</span><span>Return 8.8%</span></div>
-            </article>
-            <article class="savings-card glass-card">
-              <div class="card-top"><span>SIP</span><strong>Balanced</strong></div>
-              <strong>$7,200</strong>
-              <p>Monthly plan</p>
-              <div class="savings-meta"><span>65%</span><span>Return 10.2%</span></div>
-            </article>
-            <article class="savings-card glass-card">
-              <div class="card-top"><span>Stocks</span><strong>High Risk</strong></div>
-              <strong>$14,900</strong>
-              <p>Long-term gain</p>
-              <div class="savings-meta"><span>42%</span><span>Return 13.7%</span></div>
-            </article>
-            <article class="savings-card glass-card">
-              <div class="card-top"><span>Fixed Deposit</span><strong>Secure</strong></div>
-              <strong>$5,000</strong>
-              <p>Stable yield</p>
-              <div class="savings-meta"><span>90%</span><span>Return 5.1%</span></div>
-            </article>
+
+          <div class="savings-stats-grid">
+            <div class="stat-card glass-card">
+              <span class="stat-label">Total Savings Portfolio</span>
+              <strong id="savingsTotalBalance">$0.00</strong>
+              <span class="stat-meta">Active and growing</span>
+            </div>
+            <div class="stat-card glass-card">
+              <span class="stat-label">Avg. Annual Return</span>
+              <strong id="savingsAvgReturn">0.0%</strong>
+              <span class="stat-meta">Weighted performance</span>
+            </div>
+            <div class="stat-card glass-card">
+              <span class="stat-label">Savings Goals</span>
+              <strong id="savingsGoalCount">0</strong>
+              <span class="stat-meta">Active products</span>
+            </div>
+          </div>
+
+          <div class="savings-grid" id="savingsGrid">
+            <!-- Dynamic savings cards will be injected here -->
           </div>
         </section>
 
@@ -609,23 +627,36 @@
           <div class="import-grid">
             <div class="upload-panel glass-card">
               <div id="dropZone" class="drop-zone">
-                <div>
-                  <span class="icon-upload">📄</span>
+                <div class="drop-zone-content">
+                  <div class="icon-upload-container">
+                    <svg class="icon-upload-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="12" y1="18" x2="12" y2="12"></line>
+                      <polyline points="9 15 12 12 15 15"></polyline>
+                    </svg>
+                  </div>
                   <strong>Drag & drop bank statements here</strong>
-                  <p>Supported formats: CSV, XLSX</p>
+                  <div class="format-pills">
+                    <span class="pill pill-csv">CSV</span>
+                    <span class="pill pill-xlsx">XLSX</span>
+                    <span class="pill pill-pdf">PDF</span>
+                  </div>
                 </div>
               </div>
-              <label class="btn btn-outline upload-label">
-                Upload file
-                <input type="file" id="fileInput" accept=".csv,.xlsx" hidden />
-              </label>
-              <div id="importStatus" class="import-status">Ready to import your latest statement.</div>
+              <div class="upload-actions">
+                <label class="btn btn-outline upload-label">
+                  Upload file
+                  <input type="file" id="fileInput" accept=".csv,.xlsx,.pdf" hidden />
+                </label>
+                <div id="importStatus" class="import-status">Ready to import your latest statement.</div>
+              </div>
               <div class="progress-bar" id="importProgress"><span></span></div>
             </div>
             <div class="preview-panel glass-card">
               <div class="card-head">
                 <h3>File Preview</h3>
-                <span>Imported rows</span>
+                <span class="preview-count">3 rows loaded</span>
               </div>
               <div class="table-wrap">
                 <table class="preview-table">
@@ -633,9 +664,9 @@
                     <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>
                   </thead>
                   <tbody id="previewTableBody">
-                    <tr><td>2026-05-02</td><td>Electricity bill</td><td>-$120.00</td><td>Ready</td></tr>
-                    <tr><td>2026-05-05</td><td>Salary deposit</td><td>+$5,200.00</td><td>Ready</td></tr>
-                    <tr><td>2026-05-07</td><td>Groceries</td><td>-$78.20</td><td>Ready</td></tr>
+                    <tr><td>2026-05-02</td><td>Electricity bill</td><td>-$120.00</td><td><span class="status-pill ready">Ready</span></td></tr>
+                    <tr><td>2026-05-05</td><td>Salary deposit</td><td><span class="amount-positive">+$5,200.00</span></td><td><span class="status-pill ready">Ready</span></td></tr>
+                    <tr><td>2026-05-07</td><td>Groceries</td><td>-$78.20</td><td><span class="status-pill ready">Ready</span></td></tr>
                   </tbody>
                 </table>
               </div>
@@ -702,6 +733,64 @@
     </div>
   </div>
 
+  <!-- Edit Transaction Modal -->
+  <div id="transactionModal" class="modal-backdrop" hidden>
+    <div class="modal-dialog glass-card">
+      <div class="modal-header">
+        <h2>Edit Transaction</h2>
+        <button type="button" id="closeTransactionModalBtn" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="transactionForm" class="modal-form">
+        <input type="hidden" id="transactionEditId" />
+        <div class="form-group">
+          <label for="transactionDateInput">Date</label>
+          <input type="date" id="transactionDateInput" required />
+        </div>
+        <div class="form-group">
+          <label for="transactionDescriptionInput">Description</label>
+          <input type="text" id="transactionDescriptionInput" required />
+        </div>
+        <div class="form-group">
+          <label for="transactionCategoryInput">Category</label>
+          <select id="transactionCategoryInput" required>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Bills">Bills</option>
+            <option value="Health">Health</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Education">Education</option>
+            <option value="Investment">Investment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="transactionAmountInput">Amount</label>
+          <input type="text" id="transactionAmountInput" placeholder="-$84.20 or +$5,200.00" required />
+        </div>
+        <div class="form-group">
+          <label for="transactionTypeInput">Type</label>
+          <select id="transactionTypeInput" required>
+            <option value="Expense">Expense</option>
+            <option value="Income">Income</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="transactionStatusInput">Status</label>
+          <select id="transactionStatusInput" required>
+            <option value="Completed">Completed</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
+        <div id="transactionFormError" class="form-error" hidden></div>
+        <div class="modal-actions">
+          <button type="button" id="cancelTransactionBtn" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Create Budget Modal -->
   <div id="budgetModal" class="modal-backdrop" hidden>
     <div class="modal-dialog glass-card">
@@ -732,6 +821,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="app.js" defer></script>
+  <script src="app.js?v=9" defer></script>
 </body>
 </html>

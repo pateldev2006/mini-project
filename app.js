@@ -1,6 +1,15 @@
 const state = {
-  currentPage: 'home',
+  currentPage: 'dashboard',
   theme: 'light',
+  savings: [
+    { id: 1, name: 'Emergency Fund', risk: 'Low Risk', riskLevel: 'low', balance: 12000, purpose: 'Recommended', progress: 80, returnRate: 3.5, icon: 'shield' },
+    { id: 2, name: 'Mutual Funds', risk: 'Moderate Risk', riskLevel: 'moderate', balance: 8500, purpose: 'Recommended', progress: 58, returnRate: 8.8, icon: 'pie-chart' },
+    { id: 3, name: 'SIP', risk: 'Balanced', riskLevel: 'balanced', balance: 7200, purpose: 'Monthly plan', progress: 65, returnRate: 10.2, icon: 'clock' },
+    { id: 4, name: 'Stocks', risk: 'High Risk', riskLevel: 'high', balance: 14900, purpose: 'Long-term gain', progress: 42, returnRate: 13.7, icon: 'trending-up' },
+    { id: 5, name: 'Fixed Deposit', risk: 'Secure', riskLevel: 'secure', balance: 5000, purpose: 'Stable yield', progress: 90, returnRate: 5.1, icon: 'shield-check' }
+  ],
+  savingsFilter: 'all',
+  savingsSort: 'balance-desc',
   transactions: [
     { date: '2026-06-10', description: 'Coffee subscription', category: 'Bills', amount: '-$24.99', type: 'Expense', status: 'Completed' },
     { date: '2026-06-10', description: 'Grocery market', category: 'Food', amount: '-$84.20', type: 'Expense', status: 'Completed' },
@@ -30,6 +39,8 @@ const state = {
   ],
   chatMessages: [
     { role: 'ai', text: 'Hello Alex! How can I help you improve your financial plan today?' },
+    { role: 'user', text: 'How can I reduce expenses?' },
+    { role: 'ai', text: 'Review your shopping and subscription categories. Shifting a small portion of discretionary spend into automated savings can improve cash flow quickly.' }
   ],
   stockData: {
     ticker: 'ACME',
@@ -76,6 +87,12 @@ const themeSelect = document.getElementById('themeSelect');
 const themeToggle = document.getElementById('themeToggle');
 const menuOverlay = document.getElementById('menuOverlay');
 
+const savingsGrid = document.getElementById('savingsGrid');
+const savingsSortSelect = document.getElementById('savingsSortSelect');
+const savingsTotalBalance = document.getElementById('savingsTotalBalance');
+const savingsAvgReturn = document.getElementById('savingsAvgReturn');
+const savingsGoalCount = document.getElementById('savingsGoalCount');
+
 const charts = {};
 
 function init() {
@@ -101,6 +118,16 @@ function init() {
   setupImport();
   bindUIControls();
   updateNotificationBadge();
+  initializeSavings();
+
+  // Show default page on load, checking hash first
+  const hash = window.location.hash.substring(1);
+  const validPages = ['dashboard', 'budget', 'stocks', 'advisor', 'savings', 'reports', 'import', 'profile'];
+  if (hash && validPages.includes(hash)) {
+    showPage(hash);
+  } else {
+    showPage(state.currentPage);
+  }
 }
 
 function updateNotificationBadge() {
@@ -284,6 +311,7 @@ function bindNavigation() {
       const target = link.dataset.page;
       if (target) {
         showPage(target);
+        closeMobileSidebar();
       }
     });
   });
@@ -315,6 +343,15 @@ function showPage(targetPage) {
 }
 
 function initializeTransactions() {
+  const savedTransactions = localStorage.getItem('finsightTransactions');
+  if (savedTransactions) {
+    try {
+      state.transactions = JSON.parse(savedTransactions);
+    } catch (e) {
+      console.error('Error parsing saved transactions:', e);
+    }
+  }
+
   transactionSearch.addEventListener('input', updateTransactionListing);
   transactionFilter.addEventListener('change', updateTransactionListing);
   state.currentPageIndex = 1;
@@ -353,8 +390,8 @@ function renderTransactionRow(row) {
       <td>${row.status}</td>
       <td>
         <div class="action-buttons">
-          <button class="edit">Edit</button>
-          <button class="delete">Delete</button>
+          <button class="edit" data-id="${row.id}">Edit</button>
+          <button class="delete" data-id="${row.id}">Delete</button>
         </div>
       </td>
     </tr>
@@ -478,12 +515,66 @@ function bindUIControls() {
   }
   if (budgetForm) budgetForm.addEventListener('submit', handleCreateBudget);
 
+  // Transaction Table Edit/Delete bindings using event delegation
+  transactionBody.addEventListener('click', (event) => {
+    const editBtn = event.target.closest('button.edit');
+    const deleteBtn = event.target.closest('button.delete');
+    
+    if (editBtn) {
+      const id = Number(editBtn.dataset.id);
+      openEditTransactionModal(id);
+    } else if (deleteBtn) {
+      const id = Number(deleteBtn.dataset.id);
+      deleteTransaction(id);
+    }
+  });
+
+  // Transaction Modal bindings
+  const closeTransactionModalBtn = document.getElementById('closeTransactionModalBtn');
+  const cancelTransactionBtn = document.getElementById('cancelTransactionBtn');
+  const transactionForm = document.getElementById('transactionForm');
+  const transactionModal = document.getElementById('transactionModal');
+
+  if (closeTransactionModalBtn) closeTransactionModalBtn.addEventListener('click', closeTransactionModal);
+  if (cancelTransactionBtn) cancelTransactionBtn.addEventListener('click', closeTransactionModal);
+  if (transactionModal) {
+    transactionModal.addEventListener('click', (e) => {
+      if (e.target === transactionModal) closeTransactionModal();
+    });
+  }
+  if (transactionForm) transactionForm.addEventListener('submit', handleEditTransactionSubmit);
+
+  // Mobile Menu & Sidebar toggle
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openMobileSidebar();
+    });
+  }
+
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (window.innerWidth <= 768) {
+        closeMobileSidebar();
+      } else {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) sidebar.classList.toggle('collapsed');
+      }
+    });
+  }
+
   // global outside click listener above handles closing for all dropdowns
 }
 
 function closeAllDropdowns() {
   closeProfileMenu();
   closeNotificationsPanel();
+  closeBudgetModal();
+  closeTransactionModal();
+  closeMobileSidebar();
 }
 
 function toggleNotificationsPanel(e) {
@@ -596,13 +687,29 @@ function addChatMessage(role, text) {
 
 function renderChat() {
   chatHistory.innerHTML = state.chatMessages
-    .map((message) => `
-      <div class="message ${message.role}">
-        ${message.role === 'ai' ? '<div class="avatar"></div>' : ''}
-        <div class="bubble">${message.text}</div>
-        ${message.role === 'user' ? '<div class="avatar"></div>' : ''}
-      </div>
-    `)
+    .map((message) => {
+      if (message.role === 'ai') {
+        return `
+          <div class="message ai">
+            <div class="avatar ai-avatar">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="ai-sparkle-svg">
+                <path d="M12 2c0 5.523 4.477 10 10 10-5.523 0-10 4.477-10 10-0-5.523-4.477-10-10-10 5.523 0 10-4.477 10-10z"></path>
+              </svg>
+            </div>
+            <div class="bubble">${message.text}</div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="message user">
+            <div class="bubble">${message.text}</div>
+            <div class="avatar user-avatar">
+              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80" alt="Alex Rivera" />
+            </div>
+          </div>
+        `;
+      }
+    })
     .join('');
   chatHistory.scrollTop = chatHistory.scrollHeight;
 }
@@ -661,6 +768,29 @@ function processFile(file) {
 }
 
 function initCharts() {
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js is not loaded. Skipping chart initialization.');
+    document.querySelectorAll('.chart-card').forEach(card => {
+      const canvas = card.querySelector('canvas');
+      if (canvas) {
+        canvas.style.display = 'none';
+        const fallback = document.createElement('div');
+        fallback.className = 'chart-fallback';
+        fallback.style.display = 'flex';
+        fallback.style.alignItems = 'center';
+        fallback.style.justifyContent = 'center';
+        fallback.style.height = '180px';
+        fallback.style.color = 'var(--subtext)';
+        fallback.style.fontSize = '0.9rem';
+        fallback.style.border = '1px dashed var(--border)';
+        fallback.style.borderRadius = '14px';
+        fallback.style.background = 'var(--surface-muted)';
+        fallback.textContent = 'Chart visualization offline';
+        card.appendChild(fallback);
+      }
+    });
+    return;
+  }
   const expenseDoughnut = document.getElementById('expenseDoughnut').getContext('2d');
   charts.expenseDoughnut = new Chart(expenseDoughnut, {
     type: 'doughnut',
@@ -670,14 +800,37 @@ function initCharts() {
         data: [18, 12, 24, 20, 10, 16],
         backgroundColor: ['#1e88e5', '#00c896', '#2d5bf8', '#7d5fff', '#f4b400', '#ff6d6d'],
         borderWidth: 0,
+        cutout: '78%',
+        spacing: 4,
+        borderRadius: 8
       }],
     },
     options: {
-      plugins: { legend: { position: 'bottom', labels: { color: 'var(--subtext)' } } },
+      animation: false,
+      plugins: { 
+        legend: { 
+          position: 'bottom', 
+          labels: { 
+            color: 'var(--subtext)',
+            usePointStyle: true,
+            pointStyle: 'circle',
+            font: {
+              family: "'Inter', sans-serif",
+              size: 12,
+              weight: '500'
+            },
+            padding: 16
+          } 
+        } 
+      },
     },
   });
 
   const expenseBar = document.getElementById('expenseBar').getContext('2d');
+  const barGradient = expenseBar.createLinearGradient(0, 0, 0, 260);
+  barGradient.addColorStop(0, '#1e88e5');
+  barGradient.addColorStop(1, 'rgba(30, 136, 229, 0.1)');
+
   charts.expenseBar = new Chart(expenseBar, {
     type: 'bar',
     data: {
@@ -685,22 +838,44 @@ function initCharts() {
       datasets: [{
         label: 'Expenses',
         data: [4800, 5200, 5000, 4700, 5120, 5280],
-        backgroundColor: 'rgba(30, 136, 229, 0.9)',
-        borderRadius: 14,
-        maxBarThickness: 28,
+        backgroundColor: barGradient,
+        hoverBackgroundColor: '#1e88e5',
+        borderRadius: 8,
+        maxBarThickness: 24,
       }],
     },
     options: {
+      animation: false,
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: 'var(--subtext)' } },
-        y: { grid: { color: 'rgba(10, 22, 40, 0.06)' }, ticks: { color: 'var(--subtext)' } },
+        x: { 
+          grid: { display: false }, 
+          ticks: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 11 }
+          } 
+        },
+        y: { 
+          grid: { color: 'rgba(163, 179, 207, 0.08)', drawBorder: false }, 
+          ticks: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 11 }
+          } 
+        },
       },
     },
   });
 
   const incomeLine = document.getElementById('incomeLine').getContext('2d');
+  const incomeGrad = incomeLine.createLinearGradient(0, 0, 0, 250);
+  incomeGrad.addColorStop(0, 'rgba(0, 200, 150, 0.25)');
+  incomeGrad.addColorStop(1, 'rgba(0, 200, 150, 0.00)');
+
+  const expenseGrad = incomeLine.createLinearGradient(0, 0, 0, 250);
+  expenseGrad.addColorStop(0, 'rgba(30, 136, 229, 0.20)');
+  expenseGrad.addColorStop(1, 'rgba(30, 136, 229, 0.00)');
+
   charts.incomeLine = new Chart(incomeLine, {
     type: 'line',
     data: {
@@ -710,32 +885,68 @@ function initCharts() {
           label: 'Income',
           data: [8200, 9000, 8800, 9300, 9500, 9800],
           borderColor: '#00c896',
-          backgroundColor: 'rgba(0, 200, 150, 0.15)',
-          tension: 0.35,
+          borderWidth: 3,
+          backgroundColor: incomeGrad,
+          tension: 0.38,
           fill: true,
-          pointRadius: 4,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#00c896',
+          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderWidth: 2,
         },
         {
           label: 'Expense',
           data: [5600, 5900, 5800, 5400, 5700, 6100],
           borderColor: '#1e88e5',
-          backgroundColor: 'rgba(30, 136, 229, 0.12)',
-          tension: 0.35,
+          borderWidth: 3,
+          backgroundColor: expenseGrad,
+          tension: 0.38,
           fill: true,
-          pointRadius: 4,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#1e88e5',
+          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderWidth: 2,
         },
       ],
     },
     options: {
-      plugins: { legend: { labels: { color: 'var(--subtext)' } } },
+      animation: false,
+      plugins: { 
+        legend: { 
+          labels: { 
+            color: 'var(--subtext)',
+            usePointStyle: true,
+            pointStyle: 'circle',
+            font: { family: "'Inter', sans-serif", size: 12, weight: '500' }
+          } 
+        } 
+      },
       scales: {
-        x: { ticks: { color: 'var(--subtext)' }, grid: { display: false } },
-        y: { ticks: { color: 'var(--subtext)' }, grid: { color: 'rgba(10, 22, 40, 0.05)' } },
+        x: { 
+          ticks: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 11 }
+          }, 
+          grid: { display: false } 
+        },
+        y: { 
+          ticks: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 11 }
+          }, 
+          grid: { color: 'rgba(163, 179, 207, 0.08)' } 
+        },
       },
     },
   });
 
   const savingsArea = document.getElementById('savingsArea').getContext('2d');
+  const savingsGrad = savingsArea.createLinearGradient(0, 0, 0, 250);
+  savingsGrad.addColorStop(0, 'rgba(30, 136, 229, 0.25)');
+  savingsGrad.addColorStop(1, 'rgba(30, 136, 229, 0.00)');
+
   charts.savingsArea = new Chart(savingsArea, {
     type: 'line',
     data: {
@@ -744,17 +955,35 @@ function initCharts() {
         label: 'Savings Growth',
         data: [12000, 14600, 17150, 19900, 23020, 25640],
         borderColor: '#1e88e5',
-        backgroundColor: 'rgba(30, 136, 229, 0.2)',
+        borderWidth: 3,
+        backgroundColor: savingsGrad,
         fill: true,
-        tension: 0.3,
-        pointRadius: 4,
+        tension: 0.38,
+        pointRadius: 0,
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: '#1e88e5',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2,
       }],
     },
     options: {
+      animation: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: 'var(--subtext)' }, grid: { display: false } },
-        y: { ticks: { color: 'var(--subtext)' }, grid: { color: 'rgba(10, 22, 40, 0.05)' } },
+        x: { 
+          ticks: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 11 }
+          }, 
+          grid: { display: false } 
+        },
+        y: { 
+          ticks: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 11 }
+          }, 
+          grid: { color: 'rgba(163, 179, 207, 0.08)' } 
+        },
       },
     },
   });
@@ -767,20 +996,58 @@ function initCharts() {
       datasets: [{
         label: 'Portfolio Metrics',
         data: [82, 72, 68, 74, 60, 80],
-        backgroundColor: 'rgba(0, 200, 150, 0.18)',
+        backgroundColor: 'rgba(0, 200, 150, 0.15)',
         borderColor: '#00c896',
+        borderWidth: 2.5,
         pointBackgroundColor: '#00c896',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4.5,
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: '#00c896',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2.5,
       }],
     },
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
       scales: {
-        r: { grid: { color: 'rgba(10, 22, 40, 0.1)' }, angleLines: { color: 'rgba(10, 22, 40, 0.1)' }, pointLabels: { color: 'var(--subtext)' }, ticks: { display: false } },
+        r: { 
+          grid: { 
+            circular: true,
+            color: 'rgba(163, 179, 207, 0.12)' 
+          }, 
+          angleLines: { color: 'rgba(163, 179, 207, 0.12)' }, 
+          suggestedMin: 0,
+          suggestedMax: 100,
+          pointLabels: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 12, weight: '600' }
+          }, 
+          ticks: { display: false } 
+        },
       },
-      plugins: { legend: { display: false } },
+      plugins: { 
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { family: "'Inter', sans-serif", size: 13, weight: '600' },
+          bodyFont: { family: "'Inter', sans-serif", size: 12 },
+          padding: 10,
+          cornerRadius: 12,
+          displayColors: false
+        }
+      },
     },
   });
 
   const stockChart = document.getElementById('stockChart').getContext('2d');
+  const stockGrad = stockChart.createLinearGradient(0, 0, 0, 200);
+  stockGrad.addColorStop(0, 'rgba(30, 136, 229, 0.22)');
+  stockGrad.addColorStop(1, 'rgba(30, 136, 229, 0.00)');
+
   charts.stockChart = new Chart(stockChart, {
     type: 'line',
     data: {
@@ -789,25 +1056,45 @@ function initCharts() {
         label: 'Price',
         data: state.stockData.chart,
         borderColor: '#1e88e5',
-        backgroundColor: 'rgba(30, 136, 229, 0.16)',
-        tension: 0.3,
+        borderWidth: 3,
+        backgroundColor: stockGrad,
+        tension: 0.38,
         fill: true,
-        pointRadius: 3,
+        pointRadius: 0,
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: '#1e88e5',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2,
       }],
     },
     options: {
+      animation: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: 'var(--subtext)' }, grid: { display: false } },
-        y: { ticks: { color: 'var(--subtext)' }, grid: { color: 'rgba(10, 22, 40, 0.08)' } },
+        x: { 
+          ticks: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 10 }
+          }, 
+          grid: { display: false } 
+        },
+        y: { 
+          ticks: { 
+            color: 'var(--subtext)',
+            font: { family: "'Inter', sans-serif", size: 10 }
+          }, 
+          grid: { color: 'rgba(163, 179, 207, 0.08)' } 
+        },
       },
     },
   });
 }
 
 function updateStockChart() {
-  charts.stockChart.data.datasets[0].data = state.stockData.chart;
-  charts.stockChart.update();
+  if (charts.stockChart) {
+    charts.stockChart.data.datasets[0].data = state.stockData.chart;
+    charts.stockChart.update();
+  }
 }
 
 // Budget Modal Functions
@@ -907,6 +1194,286 @@ function showBudgetError(msg) {
     errorDiv.textContent = msg;
     errorDiv.hidden = false;
   }
+}
+
+function openEditTransactionModal(id) {
+  const transaction = state.transactions.find(t => t.id === id);
+  if (!transaction) return;
+
+  const modal = document.getElementById('transactionModal');
+  const errorDiv = document.getElementById('transactionFormError');
+  if (!modal) return;
+
+  // Populate inputs
+  document.getElementById('transactionEditId').value = transaction.id;
+  document.getElementById('transactionDateInput').value = transaction.date;
+  document.getElementById('transactionDescriptionInput').value = transaction.description;
+  document.getElementById('transactionCategoryInput').value = transaction.category;
+  document.getElementById('transactionAmountInput').value = transaction.amount;
+  document.getElementById('transactionTypeInput').value = transaction.type;
+  document.getElementById('transactionStatusInput').value = transaction.status;
+
+  if (errorDiv) {
+    errorDiv.hidden = true;
+    errorDiv.textContent = '';
+  }
+  modal.hidden = false;
+}
+
+function closeTransactionModal() {
+  const modal = document.getElementById('transactionModal');
+  if (modal) modal.hidden = true;
+}
+
+function handleEditTransactionSubmit(event) {
+  event.preventDefault();
+
+  const idInput = document.getElementById('transactionEditId');
+  const dateInput = document.getElementById('transactionDateInput');
+  const descInput = document.getElementById('transactionDescriptionInput');
+  const catInput = document.getElementById('transactionCategoryInput');
+  const amountInput = document.getElementById('transactionAmountInput');
+  const typeInput = document.getElementById('transactionTypeInput');
+  const statusInput = document.getElementById('transactionStatusInput');
+
+  if (!idInput || !dateInput || !descInput || !catInput || !amountInput || !typeInput || !statusInput) return;
+
+  const id = Number(idInput.value);
+  const date = dateInput.value;
+  const description = descInput.value.trim();
+  const category = catInput.value;
+  const amountStr = amountInput.value.trim();
+  const type = typeInput.value;
+  const status = statusInput.value;
+
+  if (!description) {
+    showTransactionError('Description is required.');
+    return;
+  }
+
+  const formattedAmount = formatAmount(amountStr, type);
+  if (!formattedAmount) {
+    showTransactionError('Amount must be a valid number (e.g. -$84.20 or 84.20).');
+    return;
+  }
+
+  const index = state.transactions.findIndex(t => t.id === id);
+  if (index === -1) {
+    showTransactionError('Transaction not found.');
+    return;
+  }
+
+  // Update transaction
+  state.transactions[index] = {
+    id,
+    date,
+    description,
+    category,
+    amount: formattedAmount,
+    type,
+    status
+  };
+
+  // Persist in localStorage
+  localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+
+  // Re-render
+  updateTransactionListing();
+
+  // Add notification
+  state.notificationsList.push({
+    id: Date.now(),
+    text: `Transaction "${description}" updated.`,
+    time: 'now',
+    read: false
+  });
+  updateNotificationBadge();
+  renderNotificationsPanel();
+
+  // Close modal
+  closeTransactionModal();
+}
+
+function formatAmount(amountStr, type) {
+  let clean = amountStr.replace(/[\s$,]/g, '');
+  let isNegative = clean.startsWith('-');
+  let isPositive = clean.startsWith('+');
+  let valStr = clean;
+  if (isNegative || isPositive) {
+    valStr = clean.slice(1);
+  }
+  let val = parseFloat(valStr);
+  if (isNaN(val)) return null;
+
+  let formattedVal = val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (isNegative) {
+    return `-$${formattedVal}`;
+  } else if (isPositive) {
+    return `+$${formattedVal}`;
+  } else {
+    // Default sign based on type if not explicitly provided
+    return type === 'Expense' ? `-$${formattedVal}` : `+$${formattedVal}`;
+  }
+}
+
+function showTransactionError(msg) {
+  const errorDiv = document.getElementById('transactionFormError');
+  if (errorDiv) {
+    errorDiv.textContent = msg;
+    errorDiv.hidden = false;
+  }
+}
+
+function deleteTransaction(id) {
+  const transaction = state.transactions.find(t => t.id === id);
+  const desc = transaction ? transaction.description : '';
+  if (confirm(`Are you sure you want to delete the transaction "${desc}"?`)) {
+    state.transactions = state.transactions.filter(t => t.id !== id);
+    localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+    updateTransactionListing();
+
+    // Add notification
+    state.notificationsList.push({
+      id: Date.now(),
+      text: `Transaction "${desc}" deleted.`,
+      time: 'now',
+      read: false
+    });
+    updateNotificationBadge();
+    renderNotificationsPanel();
+  }
+}
+
+function renderSavingsCards() {
+  if (!savingsGrid) return;
+
+  // 1. Filter savings list
+  let filtered = [...state.savings];
+  if (state.savingsFilter !== 'all') {
+    if (state.savingsFilter === 'low-secure') {
+      filtered = filtered.filter(item => item.riskLevel === 'low' || item.riskLevel === 'secure');
+    } else if (state.savingsFilter === 'balanced-moderate') {
+      filtered = filtered.filter(item => item.riskLevel === 'balanced' || item.riskLevel === 'moderate');
+    } else if (state.savingsFilter === 'high') {
+      filtered = filtered.filter(item => item.riskLevel === 'high');
+    }
+  }
+
+  // 2. Sort savings list
+  if (state.savingsSort === 'balance-desc') {
+    filtered.sort((a, b) => b.balance - a.balance);
+  } else if (state.savingsSort === 'balance-asc') {
+    filtered.sort((a, b) => a.balance - b.balance);
+  } else if (state.savingsSort === 'return-desc') {
+    filtered.sort((a, b) => b.returnRate - a.returnRate);
+  } else if (state.savingsSort === 'progress-desc') {
+    filtered.sort((a, b) => b.progress - a.progress);
+  }
+
+  // 3. Compute stats
+  const total = state.savings.reduce((sum, item) => sum + item.balance, 0);
+  const weightedReturnSum = state.savings.reduce((sum, item) => sum + (item.balance * item.returnRate), 0);
+  const avgReturn = total > 0 ? (weightedReturnSum / total) : 0;
+  const count = state.savings.length;
+
+  // Update DOM stats elements
+  if (savingsTotalBalance) {
+    savingsTotalBalance.textContent = `$${total.toLocaleString('en-US')}`;
+  }
+  if (savingsAvgReturn) {
+    savingsAvgReturn.textContent = `${avgReturn.toFixed(1)}%`;
+  }
+  if (savingsGoalCount) {
+    savingsGoalCount.textContent = count;
+  }
+
+  // 4. Render cards
+  const icons = {
+    'shield': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    'pie-chart': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>`,
+    'clock': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    'trending-up': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
+    'shield-check': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 11l2 2 4-4"/></svg>`
+  };
+
+  if (filtered.length === 0) {
+    savingsGrid.innerHTML = `<div class="no-results" style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--subtext);">No savings goals match the active filter.</div>`;
+    return;
+  }
+
+  savingsGrid.innerHTML = filtered.map(item => {
+    return `
+      <article class="savings-card glass-card card-${item.riskLevel}">
+        <div class="savings-card-header">
+          <div class="savings-icon-container">
+            ${icons[item.icon] || icons['shield']}
+          </div>
+          <div class="savings-title-info">
+            <span class="savings-category">${item.name}</span>
+            <span class="savings-badge badge-${item.riskLevel}">${item.risk}</span>
+          </div>
+        </div>
+        <div class="savings-balance-section">
+          <span class="savings-balance-label">Balance</span>
+          <strong class="savings-balance">$${item.balance.toLocaleString('en-US')}</strong>
+        </div>
+        <div class="savings-progress-section">
+          <div class="savings-progress-meta">
+            <span>Allocation Progress</span>
+            <strong>${item.progress}%</strong>
+          </div>
+          <div class="savings-progress-bar">
+            <span style="width: ${item.progress}%" class="progress-${item.riskLevel}"></span>
+          </div>
+        </div>
+        <div class="savings-card-footer">
+          <span class="savings-purpose">${item.purpose}</span>
+          <span class="savings-return"><span class="arrow-up">↑</span> ${item.returnRate}% Return</span>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+function initializeSavings() {
+  // Bind sort selector
+  if (savingsSortSelect) {
+    savingsSortSelect.addEventListener('change', (e) => {
+      state.savingsSort = e.target.value;
+      renderSavingsCards();
+    });
+  }
+
+  // Bind filters
+  const filterContainer = document.getElementById('savingsFilterControls');
+  if (filterContainer) {
+    filterContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+
+      // Update active class
+      filterContainer.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      state.savingsFilter = btn.dataset.filter;
+      renderSavingsCards();
+    });
+  }
+
+  // Initial render
+  renderSavingsCards();
+}
+
+function openMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) sidebar.classList.add('open');
+  if (menuOverlay) menuOverlay.removeAttribute('hidden');
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) sidebar.classList.remove('open');
+  if (menuOverlay) menuOverlay.setAttribute('hidden', '');
 }
 
 init();
