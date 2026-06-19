@@ -795,24 +795,155 @@ function setStockDetails() {
   document.getElementById('stockLow').textContent = state.stockData.low52;
   document.getElementById('stockPE').textContent = state.stockData.peRatio;
   document.getElementById('stockRecommendation').textContent = state.stockData.recommendation;
-  document.getElementById('tradeBadge').textContent = 'BUY';
+  
+  // Set badge and AI stats dynamically
+  const badge = document.getElementById('tradeBadge');
+  if (badge) {
+    const action = state.stockData.tradeBadge || 'BUY';
+    badge.textContent = action;
+    
+    // Smooth custom badge colors based on recommendation action
+    if (action === 'BUY') {
+      badge.style.background = 'rgba(0, 200, 150, 0.16)';
+      badge.style.color = state.theme === 'dark' ? '#00c896' : '#0d8763';
+    } else if (action === 'SELL') {
+      badge.style.background = 'rgba(217, 83, 79, 0.16)';
+      badge.style.color = '#d9534f';
+    } else { // HOLD
+      badge.style.background = 'rgba(244, 180, 0, 0.16)';
+      badge.style.color = state.theme === 'dark' ? '#ffc107' : '#b08200';
+    }
+  }
+
+  const riskEl = document.getElementById('stockRisk');
+  const confEl = document.getElementById('stockConfidence');
+  if (riskEl) riskEl.textContent = state.stockData.riskLevel || 'Medium';
+  if (confEl) confEl.textContent = state.stockData.confidence || '86%';
 }
 
-function handleStockSearch() {
+async function handleStockSearch() {
   const query = stockSearchInput.value.trim();
   if (!query) return;
-  state.stockData.ticker = query.toUpperCase().slice(0, 5);
-  state.stockData.company = `${query} Holdings`;
-  state.stockData.price = `$${(120 + Math.random() * 80).toFixed(2)}`;
-  state.stockData.marketCap = `${(60 + Math.random() * 280).toFixed(0)}B`;
-  state.stockData.volume = `${(0.8 + Math.random() * 3.6).toFixed(1)}M`;
-  state.stockData.high52 = `$${(parseFloat(state.stockData.price.slice(1)) + 15).toFixed(2)}`;
-  state.stockData.low52 = `$${(parseFloat(state.stockData.price.slice(1)) - 35).toFixed(2)}`;
-  state.stockData.peRatio = `${(14 + Math.random() * 20).toFixed(1)}`;
-  state.stockData.recommendation = `The ${query.toUpperCase()} outlook shows steady momentum. Consider adding to your portfolio on pullbacks while monitoring volatility.`;
-  state.stockData.chart = Array.from({ length: 12 }, () => 90 + Math.random() * 80);
-  setStockDetails();
-  updateStockChart();
+  
+  // Show visual loading indicator
+  const searchBtn = document.getElementById('stockSearchButton');
+  const originalText = searchBtn.textContent;
+  searchBtn.textContent = 'Analyzing...';
+  searchBtn.disabled = true;
+  
+  try {
+    const apiBase = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+    const response = await fetch(`${apiBase}/api/stock?symbol=${encodeURIComponent(query)}`);
+    if (!response.ok) throw new Error('Symbol not found');
+    
+    const data = await response.json();
+    if (data.error || !data.price) {
+      throw new Error('Stock data unavailable');
+    }
+    
+    // Update state
+    state.stockData.ticker = data.symbol;
+    state.stockData.company = data.companyName || `${data.symbol} Holdings`;
+    
+    // Normalize pence-quoted stocks (GBp/GBX) to GBP (Pounds)
+    let priceVal = data.price;
+    let highVal = data.high52;
+    let lowVal = data.low52;
+    let currencyCode = data.currency || 'USD';
+    
+    if (currencyCode === 'GBp' || currencyCode === 'GBX') {
+      priceVal = priceVal / 100;
+      if (highVal) highVal = highVal / 100;
+      if (lowVal) lowVal = lowVal / 100;
+      currencyCode = 'GBP';
+    }
+    
+    // Map currency symbols
+    const currencyMap = { 'USD': '$', 'INR': '₹', 'GBP': '£', 'EUR': '€', 'JPY': '¥', 'CAD': 'CA$' };
+    const curSymbol = currencyMap[currencyCode.toUpperCase()] || `${currencyCode} `;
+    
+    state.stockData.price = `${curSymbol}${priceVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    
+    // Format market cap
+    let marketCapFormatted = 'N/A';
+    if (data.marketCap) {
+      // Note: Scraped marketCap is already string formatted like "4.377T" or "24.399B"
+      marketCapFormatted = `${curSymbol}${data.marketCap}`;
+    }
+    state.stockData.marketCap = marketCapFormatted;
+    
+    // Format volume
+    let volumeFormatted = 'N/A';
+    if (data.volume) {
+      if (data.volume >= 1e6) {
+        volumeFormatted = `${(data.volume / 1e6).toFixed(2)}M`;
+      } else {
+        volumeFormatted = data.volume.toLocaleString('en-US');
+      }
+    }
+    state.stockData.volume = volumeFormatted;
+    
+    state.stockData.high52 = highVal ? `${curSymbol}${highVal.toLocaleString('en-US', {maximumFractionDigits: 2})}` : 'N/A';
+    state.stockData.low52 = lowVal ? `${curSymbol}${lowVal.toLocaleString('en-US', {maximumFractionDigits: 2})}` : 'N/A';
+    state.stockData.peRatio = data.peRatio ? data.peRatio.toFixed(2) : 'N/A';
+    
+    // Generate AI recommendations from metrics
+    const normPrice = priceVal;
+    const normHigh = highVal || priceVal;
+    const normLow = lowVal || priceVal;
+    const pctFromHigh = ((normHigh - normPrice) / normHigh) * 100;
+    const pctFromLow = ((normPrice - normLow) / normLow) * 100;
+    
+    let rec = '';
+    let badge = 'HOLD';
+    let risk = 'Low';
+    let confidence = '80%';
+    
+    if (pctFromHigh < 5) {
+      rec = `Strong momentum on ${data.symbol}. Trading near its 52-week high of ${curSymbol}${normHigh.toFixed(2)}. Potential breakout watch. Consider scaling in.`;
+      badge = 'BUY';
+      risk = 'Medium';
+      confidence = '88%';
+    } else if (pctFromLow < 8) {
+      rec = `${data.symbol} is trading close to its 52-week support floor of ${curSymbol}${normLow.toFixed(2)}. Buying opportunity for value investors with tight stop-losses.`;
+      badge = 'BUY';
+      risk = 'High';
+      confidence = '85%';
+    } else if (data.peRatio > 40) {
+      rec = `${data.symbol} shows high growth expectations with a P/E of ${data.peRatio.toFixed(1)}. Valuation is stretched compared to peers. Maintain current shares.`;
+      badge = 'HOLD';
+      risk = 'High';
+      confidence = '82%';
+    } else {
+      rec = `${data.symbol} exhibits solid support with moderate volatility. Valuation (P/E: ${data.peRatio ? data.peRatio.toFixed(1) : 'N/A'}) is reasonable. Hold or accumulate on minor dips.`;
+      badge = 'BUY';
+      risk = 'Low';
+      confidence = '86%';
+    }
+    
+    state.stockData.recommendation = rec;
+    state.stockData.tradeBadge = badge;
+    state.stockData.riskLevel = risk;
+    state.stockData.confidence = confidence;
+    
+    // Use actual history data if available, otherwise generate random trend
+    if (data.history && data.history.length > 0) {
+      state.stockData.chart = data.history;
+    } else {
+      state.stockData.chart = Array.from({ length: 12 }, () => 90 + Math.random() * 80);
+    }
+    
+    setStockDetails();
+    updateStockChart();
+    
+    showToast(`Analyzed ${data.symbol} successfully!`, 'success');
+  } catch (err) {
+    console.error(err);
+    showToast(`Could not analyze symbol "${query}". Please check spelling.`, 'warning');
+  } finally {
+    searchBtn.textContent = originalText;
+    searchBtn.disabled = false;
+  }
 }
 
 function handleChatSubmit(event) {
