@@ -63,9 +63,9 @@ const state = {
     { id: 3, text: 'Import completed for May statement', time: '3h', read: false },
   ],
   profile: {
-    name: 'Alex Rivera',
-    email: 'alex.rivera@email.com',
-    phone: '+1 (555) 238-1124',
+    name: 'Arjun Singh',
+    email: 'arjunsingh24@gmail.com',
+    phone: '+91 7861831987',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80'
   },
 };
