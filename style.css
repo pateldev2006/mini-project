@@ -2926,6 +2926,7 @@ input:checked + .slider:before {
 }
 
 .modal-dialog {
+  background: var(--surface);
   width: 100%;
   max-width: 480px;
   border-radius: 28px;
