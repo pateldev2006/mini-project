@@ -45,11 +45,11 @@ const state = {
   stockData: {
     ticker: 'ACME',
     company: 'Acme Dynamics',
-    price: '₹148.72',
-    marketCap: '₹176B',
+    price: '$148.72',
+    marketCap: '$176B',
     volume: '2.1M',
-    high52: '₹162.30',
-    low52: '₹103.15',
+    high52: '$162.30',
+    low52: '$103.15',
     peRatio: '24.8',
     recommendation: 'Strong growth signal with moderate volatility. Hold current shares and consider adding on dips.',
     risk: 'Medium',
@@ -940,7 +940,7 @@ async function handleStockSearch() {
     }
     
     // Map currency symbols
-    const currencyMap = { 'USD': '₹', 'INR': '₹', 'GBP': '£', 'EUR': '€', 'JPY': '¥', 'CAD': 'CA₹' };
+    const currencyMap = { 'USD': '$', 'INR': '₹', 'GBP': '£', 'EUR': '€', 'JPY': '¥', 'CAD': 'CA$' };
     const curSymbol = currencyMap[currencyCode.toUpperCase()] || `${currencyCode} `;
     
     state.stockData.price = `${curSymbol}${priceVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -1028,9 +1028,9 @@ async function handleStockSearch() {
     
     // Generate realistic simulated data
     const ticker = query.toUpperCase();
-    const currencyMap = { 'NS': '₹', 'L': '£', 'DE': '€', 'PA': '€', 'AS': '€', 'T': '¥', 'TW': 'NT₹' };
+    const currencyMap = { 'NS': '₹', 'L': '£', 'DE': '€', 'PA': '€', 'AS': '€', 'T': '¥', 'TW': 'NT$' };
     const suffix = ticker.split('.').pop();
-    const curSymbol = currencyMap[suffix] || '₹';
+    const curSymbol = currencyMap[suffix] || '$';
     
     const mockPrice = 100 + Math.random() * 900;
     
