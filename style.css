@@ -3281,4 +3281,52 @@ input:checked + .slider:before {
   border: 1px solid rgba(30, 136, 229, 0.15);
 }
 
+/* User Profile Editing Styling */
+.profile-name-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  position: relative;
+}
+
+.name-edit-icon {
+  background: transparent;
+  border: none;
+  color: var(--subtext);
+  padding: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-name-container:hover .name-edit-icon,
+.name-edit-icon:focus {
+  opacity: 0.7;
+  color: var(--primary);
+  background: rgba(30, 136, 229, 0.08);
+}
+
+.profile-name-edit-input {
+  font-family: inherit;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin: 0;
+  outline: none;
+  width: 90%;
+  max-width: 280px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
 

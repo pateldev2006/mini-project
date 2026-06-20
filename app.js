@@ -62,6 +62,10 @@ const state = {
     { id: 2, text: 'Portfolio alert: ACME reached target', time: '1h', read: false },
     { id: 3, text: 'Import completed for May statement', time: '3h', read: false },
   ],
+  profile: {
+    name: 'Alex Rivera',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80'
+  },
 };
 
 const pages = document.querySelectorAll('.page');
@@ -116,6 +120,7 @@ function init() {
   initCharts();
   setStockDetails();
   setupImport();
+  initializeProfile();
   bindUIControls();
   setupStockSuggestions();
   updateNotificationBadge();
@@ -1093,7 +1098,7 @@ function renderChat() {
           <div class="message user">
             <div class="bubble">${message.text}</div>
             <div class="avatar user-avatar">
-              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80" alt="Alex Rivera" />
+              <img src="${state.profile.avatar}" alt="${state.profile.name}" />
             </div>
           </div>
         `;
@@ -2154,6 +2159,155 @@ function selectSuggestion(item) {
   currentSuggestions = [];
   activeSuggestionIndex = -1;
   handleStockSearch();
+}
+
+function initializeProfile() {
+  // Load profile values from localStorage if they exist
+  const savedProfile = localStorage.getItem('finsightUserProfile');
+  if (savedProfile) {
+    try {
+      const parsed = JSON.parse(savedProfile);
+      state.profile = { ...state.profile, ...parsed };
+    } catch (e) {
+      console.error('Error parsing saved profile:', e);
+    }
+  }
+
+  // Populate fields in DOM
+  updateProfileDOM();
+
+  // Bind edit events for profile picture (avatar)
+  const avatarEditBtn = document.getElementById('avatarEditBtn');
+  const profileAvatarInput = document.getElementById('profileAvatarInput');
+  const profileMainAvatar = document.getElementById('profileMainAvatar');
+
+  if (avatarEditBtn && profileAvatarInput) {
+    // When clicking the edit badge, open the file picker
+    avatarEditBtn.addEventListener('click', () => {
+      profileAvatarInput.click();
+    });
+  }
+  
+  if (profileMainAvatar && profileAvatarInput) {
+    // Alternatively, let them click the picture itself
+    profileMainAvatar.style.cursor = 'pointer';
+    profileMainAvatar.addEventListener('click', () => {
+      profileAvatarInput.click();
+    });
+  }
+
+  if (profileAvatarInput) {
+    profileAvatarInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Limit file size to 2MB to keep it safe for localStorage
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('Image file must be less than 2MB', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Data = e.target.result;
+        state.profile.avatar = base64Data;
+        saveProfile();
+        updateProfileDOM();
+        showToast('Profile picture updated successfully!', 'success');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Bind edit events for user name
+  const nameEditBtn = document.getElementById('nameEditBtn');
+  const profileMainName = document.getElementById('profileMainName');
+
+  if (nameEditBtn && profileMainName) {
+    nameEditBtn.addEventListener('click', () => {
+      startNameEdit();
+    });
+    
+    profileMainName.style.cursor = 'pointer';
+    profileMainName.addEventListener('click', () => {
+      startNameEdit();
+    });
+  }
+}
+
+function updateProfileDOM() {
+  const profileHeaderAvatar = document.getElementById('profileHeaderAvatar');
+  const profileHeaderName = document.getElementById('profileHeaderName');
+  const profileMainAvatar = document.getElementById('profileMainAvatar');
+  const profileMainName = document.getElementById('profileMainName');
+
+  if (profileHeaderAvatar) profileHeaderAvatar.src = state.profile.avatar;
+  if (profileMainAvatar) profileMainAvatar.src = state.profile.avatar;
+  if (profileHeaderName) profileHeaderName.textContent = state.profile.name;
+  if (profileMainName) profileMainName.textContent = state.profile.name;
+}
+
+function saveProfile() {
+  localStorage.setItem('finsightUserProfile', JSON.stringify(state.profile));
+}
+
+function startNameEdit() {
+  const profileMainName = document.getElementById('profileMainName');
+  if (!profileMainName) return;
+
+  // Prevent multiple inputs if already editing
+  if (profileMainName.tagName.toLowerCase() === 'input') return;
+
+  const currentName = profileMainName.textContent.trim();
+  const parent = profileMainName.parentNode;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'profile-name-edit-input';
+  input.value = currentName;
+  input.maxLength = 40;
+
+  // Swap h2 with input
+  parent.replaceChild(input, profileMainName);
+  input.focus();
+  input.select();
+
+  // Save on Enter or Blur
+  let saved = false;
+  const finishEdit = () => {
+    if (saved) return;
+    saved = true;
+
+    const newName = input.value.trim() || currentName;
+    state.profile.name = newName;
+    saveProfile();
+
+    const h2 = document.createElement('h2');
+    h2.id = 'profileMainName';
+    h2.textContent = newName;
+    h2.style.cursor = 'pointer';
+    h2.addEventListener('click', () => startNameEdit());
+
+    parent.replaceChild(h2, input);
+    updateProfileDOM();
+
+    if (newName !== currentName) {
+      showToast('Name updated successfully!', 'success');
+      // If AI Advisor was opened, renderChat to update the chat names immediately
+      renderChat();
+    }
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      finishEdit();
+    } else if (e.key === 'Escape') {
+      input.value = currentName; // revert
+      finishEdit();
+    }
+  });
+
+  input.addEventListener('blur', finishEdit);
 }
 
 init();
