@@ -11,18 +11,18 @@ const state = {
   savingsFilter: 'all',
   savingsSort: 'balance-desc',
   transactions: [
-    { date: '2026-06-10', description: 'Coffee subscription', category: 'Bills', amount: '-$24.99', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-10', description: 'Grocery market', category: 'Food', amount: '-$84.20', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-09', description: 'Monthly salary', category: 'Investment', amount: '+$5,200.00', type: 'Income', status: 'Completed' },
-    { date: '2026-06-08', description: 'Gym membership', category: 'Health', amount: '-$54.00', type: 'Expense', status: 'Pending' },
-    { date: '2026-06-07', description: 'Ride share', category: 'Transport', amount: '-$18.40', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-06', description: 'Weekend dining', category: 'Entertainment', amount: '-$120.30', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-05', description: 'Book purchase', category: 'Education', amount: '-$35.00', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-04', description: 'Dividend payout', category: 'Investment', amount: '+$420.00', type: 'Income', status: 'Completed' },
-    { date: '2026-06-03', description: 'Taxi ride', category: 'Transport', amount: '-$16.50', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-02', description: 'Pharmacy', category: 'Health', amount: '-$30.00', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-01', description: 'Gadget purchase', category: 'Shopping', amount: '-$235.00', type: 'Expense', status: 'Pending' },
-    { date: '2026-05-31', description: 'Utility payment', category: 'Bills', amount: '-$160.00', type: 'Expense', status: 'Completed' },
+    { date: '2026-06-10', description: 'Coffee subscription', category: 'Bills', amount: '-₹24.99', type: 'Expense', status: 'Completed' },
+    { date: '2026-06-10', description: 'Grocery market', category: 'Food', amount: '-₹84.20', type: 'Expense', status: 'Completed' },
+    { date: '2026-06-09', description: 'Monthly salary', category: 'Investment', amount: '+₹5,200.00', type: 'Income', status: 'Completed' },
+    { date: '2026-06-08', description: 'Gym membership', category: 'Health', amount: '-₹54.00', type: 'Expense', status: 'Pending' },
+    { date: '2026-06-07', description: 'Ride share', category: 'Transport', amount: '-₹18.40', type: 'Expense', status: 'Completed' },
+    { date: '2026-06-06', description: 'Weekend dining', category: 'Entertainment', amount: '-₹120.30', type: 'Expense', status: 'Completed' },
+    { date: '2026-06-05', description: 'Book purchase', category: 'Education', amount: '-₹35.00', type: 'Expense', status: 'Completed' },
+    { date: '2026-06-04', description: 'Dividend payout', category: 'Investment', amount: '+₹420.00', type: 'Income', status: 'Completed' },
+    { date: '2026-06-03', description: 'Taxi ride', category: 'Transport', amount: '-₹16.50', type: 'Expense', status: 'Completed' },
+    { date: '2026-06-02', description: 'Pharmacy', category: 'Health', amount: '-₹30.00', type: 'Expense', status: 'Completed' },
+    { date: '2026-06-01', description: 'Gadget purchase', category: 'Shopping', amount: '-₹235.00', type: 'Expense', status: 'Pending' },
+    { date: '2026-05-31', description: 'Utility payment', category: 'Bills', amount: '-₹160.00', type: 'Expense', status: 'Completed' },
   ],
   currentPageIndex: 1,
   rowsPerPage: 6,
@@ -45,11 +45,11 @@ const state = {
   stockData: {
     ticker: 'ACME',
     company: 'Acme Dynamics',
-    price: '$148.72',
-    marketCap: '$176B',
+    price: '₹148.72',
+    marketCap: '₹176B',
     volume: '2.1M',
-    high52: '$162.30',
-    low52: '$103.15',
+    high52: '₹162.30',
+    low52: '₹103.15',
     peRatio: '24.8',
     recommendation: 'Strong growth signal with moderate volatility. Hold current shares and consider adding on dips.',
     risk: 'Medium',
@@ -479,15 +479,15 @@ function renderBudgetCards() {
         </div>
         <div>
           <p>Budget limit</p>
-          <strong>$${item.limit}</strong>
+          <strong>₹${item.limit}</strong>
         </div>
         <div>
           <p>Spent amount</p>
-          <strong>$${item.spent}</strong>
+          <strong>₹${item.spent}</strong>
         </div>
         <div>
           <p>Remaining amount</p>
-          <strong>$${item.remaining}</strong>
+          <strong>₹${item.remaining}</strong>
         </div>
         <div class="progress-bar"><span style="width:${usage}%"></span></div>
       </article>
@@ -937,7 +937,7 @@ async function handleStockSearch() {
     }
     
     // Map currency symbols
-    const currencyMap = { 'USD': '$', 'INR': '₹', 'GBP': '£', 'EUR': '€', 'JPY': '¥', 'CAD': 'CA$' };
+    const currencyMap = { 'USD': '₹', 'INR': '₹', 'GBP': '£', 'EUR': '€', 'JPY': '¥', 'CAD': 'CA₹' };
     const curSymbol = currencyMap[currencyCode.toUpperCase()] || `${currencyCode} `;
     
     state.stockData.price = `${curSymbol}${priceVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -1020,9 +1020,9 @@ async function handleStockSearch() {
     
     // Generate realistic simulated data
     const ticker = query.toUpperCase();
-    const currencyMap = { 'NS': '₹', 'L': '£', 'DE': '€', 'PA': '€', 'AS': '€', 'T': '¥', 'TW': 'NT$' };
+    const currencyMap = { 'NS': '₹', 'L': '£', 'DE': '€', 'PA': '€', 'AS': '€', 'T': '¥', 'TW': 'NT₹' };
     const suffix = ticker.split('.').pop();
-    const curSymbol = currencyMap[suffix] || '$';
+    const curSymbol = currencyMap[suffix] || '₹';
     
     const mockPrice = 100 + Math.random() * 900;
     
@@ -1107,7 +1107,7 @@ function generateChatResponse(prompt) {
   
   state.transactions.forEach(t => {
     // Remove formatting symbols to get numeric amount
-    const val = Math.abs(parseFloat(t.amount.replace(/[\$\+,]/g, '')));
+    const val = Math.abs(parseFloat(t.amount.replace(/[\₹\+,]/g, '')));
     if (t.type === 'Income') {
       totalIncome += val;
     } else if (t.type === 'Expense') {
@@ -1133,7 +1133,7 @@ function generateChatResponse(prompt) {
   if (lower.includes('savings') || lower.includes('sip') || lower.includes('goal')) {
     const topSavings = state.savings[0]; // E.g., Emergency Fund
     const avgReturn = (state.savings.reduce((acc, curr) => acc + curr.returnRate * curr.balance, 0) / totalSavings).toFixed(1);
-    return `Your overall savings and investments total **$${totalSavings.toLocaleString('en-US')}** with an average weighted return rate of **${avgReturn}%**. \n\nYour primary goal is the **${topSavings.name}** (currently at **$${topSavings.balance.toLocaleString('en-US')}**, which is **${topSavings.progress}%** complete). \n\nI recommend increasing your monthly SIP or Mutual Funds allocation by **10% ($150)** to reduce the timeline to completion by an estimated 3 months.`;
+    return `Your overall savings and investments total **₹${totalSavings.toLocaleString('en-US')}** with an average weighted return rate of **${avgReturn}%**. \n\nYour primary goal is the **${topSavings.name}** (currently at **₹${topSavings.balance.toLocaleString('en-US')}**, which is **${topSavings.progress}%** complete). \n\nI recommend increasing your monthly SIP or Mutual Funds allocation by **10% (₹150)** to reduce the timeline to completion by an estimated 3 months.`;
   }
   
   // 2. Reduce expenses / Category budget analysis
@@ -1149,10 +1149,10 @@ function generateChatResponse(prompt) {
       }
     });
 
-    let advice = `Based on your recent transactions, your highest spending category this month is **${highestExpenseCategory}** where you spent **$${highestExpenseValue.toFixed(2)}**. `;
+    let advice = `Based on your recent transactions, your highest spending category this month is **${highestExpenseCategory}** where you spent **₹${highestExpenseValue.toFixed(2)}**. `;
     if (maxUtilizationPct > 80) {
       const budget = state.budgets.find(b => b.label === maxUtilizationCat);
-      advice += `Additionally, your **${maxUtilizationCat}** budget is at a high **${maxUtilizationPct.toFixed(0)}%** utilization (spent $${budget.spent} of $${budget.limit} limit). \n\nTo free up cash flow quickly, I recommend shifting non-essential purchases in **${maxUtilizationCat}** into automated savings. Setting a category ceiling of $450 next month will instantly save you **$170**!`;
+      advice += `Additionally, your **${maxUtilizationCat}** budget is at a high **${maxUtilizationPct.toFixed(0)}%** utilization (spent ₹${budget.spent} of ₹${budget.limit} limit). \n\nTo free up cash flow quickly, I recommend shifting non-essential purchases in **${maxUtilizationCat}** into automated savings. Setting a category ceiling of ₹450 next month will instantly save you **₹170**!`;
     } else {
       advice += `Your budgets look healthy and on-track with no major spending leaks. Shifting an extra 5% of your monthly surplus into your Emergency reserve is recommended.`;
     }
@@ -1165,7 +1165,7 @@ function generateChatResponse(prompt) {
     const mfBal = state.savings.find(s => s.name === 'Mutual Funds')?.balance || 0;
     const totalInvestments = stocksBal + mfBal;
     
-    return `You have **$${totalInvestments.toLocaleString('en-US')}** invested across Stocks and Mutual Funds (making up **${((totalInvestments/totalSavings)*100).toFixed(0)}%** of your savings net worth). \n\nTo optimize for long-term growth while managing risk, I suggest allocating your funds into this balanced growth model:
+    return `You have **₹${totalInvestments.toLocaleString('en-US')}** invested across Stocks and Mutual Funds (making up **${((totalInvestments/totalSavings)*100).toFixed(0)}%** of your savings net worth). \n\nTo optimize for long-term growth while managing risk, I suggest allocating your funds into this balanced growth model:
 * **60% Low-Cost Index ETFs** (like VOO or QQQ to capture core market growth)
 * **20% High-Quality Growth Equities** (e.g., tech and energy leaders with strong cash flows)
 * **10% Diversified Emerging Markets**
@@ -1180,15 +1180,15 @@ function generateChatResponse(prompt) {
     if (score > 100) score = 100;
     if (score < 50) score = 50;
 
-    return `Your calculated Financial Health Score is **${score}/100**, which falls in the **Excellent** range. \n\n* **Strengths**: Solid asset base (totaling $${totalSavings.toLocaleString()}), positive income-to-expense ratio, and low leverage.
+    return `Your calculated Financial Health Score is **${score}/100**, which falls in the **Excellent** range. \n\n* **Strengths**: Solid asset base (totaling ₹${totalSavings.toLocaleString()}), positive income-to-expense ratio, and low leverage.
 * **Areas to Monitor**: You have **${reviewBudgetCount}** budget categories (specifically **Shopping**) nearing their limits. Keeping category utilization below 75% will push your health score above 90.`;
   }
 
   // 5. Default Context-Aware Response
   return `I am your personal AI Financial Advisor. Looking at your real-time dashboard data:
-* Total Savings Base: **$${totalSavings.toLocaleString()}**
+* Total Savings Base: **₹${totalSavings.toLocaleString()}**
 * Active Primary Goal: **${state.savings[0].name}** (${state.savings[0].progress}% complete)
-* Highest Spend Area: **${highestExpenseCategory}** ($${highestExpenseValue.toFixed(0)} spent)
+* Highest Spend Area: **${highestExpenseCategory}** (₹${highestExpenseValue.toFixed(0)} spent)
 
 Could you tell me more about what you would like to analyze? You can ask me to:
 * *"Show my monthly savings plan"*
@@ -1289,11 +1289,11 @@ function initCharts() {
           const calculatedAmount = (val / 100) * 10520;
           
           centerLabel.textContent = label;
-          centerValue.textContent = `$${Math.round(calculatedAmount).toLocaleString('en-US')}`;
+          centerValue.textContent = `₹${Math.round(calculatedAmount).toLocaleString('en-US')}`;
           centerLabel.style.color = charts.expenseDoughnut.data.datasets[0].backgroundColor[index];
         } else {
           centerLabel.textContent = 'Total Spent';
-          centerValue.textContent = '$10,520';
+          centerValue.textContent = '₹10,520';
           centerLabel.style.color = 'var(--subtext)';
         }
       },
@@ -1746,7 +1746,7 @@ function handleEditTransactionSubmit(event) {
 
   const formattedAmount = formatAmount(amountStr, type);
   if (!formattedAmount) {
-    showTransactionError('Amount must be a valid number (e.g. -$84.20 or 84.20).');
+    showTransactionError('Amount must be a valid number (e.g. -₹84.20 or 84.20).');
     return;
   }
 
@@ -1788,7 +1788,7 @@ function handleEditTransactionSubmit(event) {
 }
 
 function formatAmount(amountStr, type) {
-  let clean = amountStr.replace(/[\s$,]/g, '');
+  let clean = amountStr.replace(/[\s₹,]/g, '');
   let isNegative = clean.startsWith('-');
   let isPositive = clean.startsWith('+');
   let valStr = clean;
@@ -1800,12 +1800,12 @@ function formatAmount(amountStr, type) {
 
   let formattedVal = val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (isNegative) {
-    return `-$${formattedVal}`;
+    return `-₹${formattedVal}`;
   } else if (isPositive) {
-    return `+$${formattedVal}`;
+    return `+₹${formattedVal}`;
   } else {
     // Default sign based on type if not explicitly provided
-    return type === 'Expense' ? `-$${formattedVal}` : `+$${formattedVal}`;
+    return type === 'Expense' ? `-₹${formattedVal}` : `+₹${formattedVal}`;
   }
 }
 
@@ -1871,7 +1871,7 @@ function renderSavingsCards() {
 
   // Update DOM stats elements
   if (savingsTotalBalance) {
-    savingsTotalBalance.textContent = `$${total.toLocaleString('en-US')}`;
+    savingsTotalBalance.textContent = `₹${total.toLocaleString('en-US')}`;
   }
   if (savingsAvgReturn) {
     savingsAvgReturn.textContent = `${avgReturn.toFixed(1)}%`;
@@ -1908,7 +1908,7 @@ function renderSavingsCards() {
         </div>
         <div class="savings-balance-section">
           <span class="savings-balance-label">Balance</span>
-          <strong class="savings-balance">$${item.balance.toLocaleString('en-US')}</strong>
+          <strong class="savings-balance">₹${item.balance.toLocaleString('en-US')}</strong>
         </div>
         <div class="savings-progress-section">
           <div class="savings-progress-meta">
