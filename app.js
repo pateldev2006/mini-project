@@ -678,6 +678,30 @@ function bindUIControls() {
     }
   });
 
+  // Generate Report Button
+  const generateReportBtn = document.getElementById('generateReportBtn');
+  if (generateReportBtn) {
+    generateReportBtn.addEventListener('click', () => {
+      exportTransactionsToCSV();
+    });
+  }
+
+  // Export Excel Button (Reports page)
+  const exportExcelBtn = document.getElementById('exportExcelBtn');
+  if (exportExcelBtn) {
+    exportExcelBtn.addEventListener('click', () => {
+      exportTransactionsToCSV();
+    });
+  }
+
+  // Download PDF Button (Reports page)
+  const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+  if (downloadPdfBtn) {
+    downloadPdfBtn.addEventListener('click', () => {
+      alert('Generating PDF report... (Dummy feature)');
+    });
+  }
+
   // Transaction Modal bindings
   const closeTransactionModalBtn = document.getElementById('closeTransactionModalBtn');
   const cancelTransactionBtn = document.getElementById('cancelTransactionBtn');
@@ -2142,6 +2166,46 @@ function deleteTransaction(id) {
     updateNotificationBadge();
     renderNotificationsPanel();
   }
+}
+
+function exportTransactionsToCSV() {
+  if (!state.transactions || state.transactions.length === 0) {
+    alert('No transactions to export.');
+    return;
+  }
+
+  // Create CSV header
+  const headers = ['ID', 'Date', 'Description', 'Category', 'Amount', 'Type', 'Status'];
+  const csvRows = [];
+  csvRows.push(headers.join(','));
+
+  // Create CSV rows
+  state.transactions.forEach(t => {
+    // Wrap strings in quotes to handle commas
+    const row = [
+      t.id,
+      `"${t.date}"`,
+      `"${t.description.replace(/"/g, '""')}"`,
+      `"${t.category}"`,
+      `"${t.amount}"`,
+      `"${t.type}"`,
+      `"${t.status}"`
+    ];
+    csvRows.push(row.join(','));
+  });
+
+  const csvString = csvRows.join('\n');
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  
+  // Create a download link
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'financial_report_dummy.csv');
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function renderSavingsCards() {
