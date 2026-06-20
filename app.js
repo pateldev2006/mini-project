@@ -665,18 +665,20 @@ function bindUIControls() {
   if (budgetForm) budgetForm.addEventListener('submit', handleCreateBudget);
 
   // Transaction Table Edit/Delete bindings using event delegation
-  transactionBody.addEventListener('click', (event) => {
-    const editBtn = event.target.closest('button.edit');
-    const deleteBtn = event.target.closest('button.delete');
-    
-    if (editBtn) {
-      const id = Number(editBtn.dataset.id);
-      openEditTransactionModal(id);
-    } else if (deleteBtn) {
-      const id = Number(deleteBtn.dataset.id);
-      deleteTransaction(id);
-    }
-  });
+  if (transactionBody) {
+    transactionBody.addEventListener('click', (event) => {
+      const editBtn = event.target.closest('button.edit');
+      const deleteBtn = event.target.closest('button.delete');
+      
+      if (editBtn) {
+        const id = Number(editBtn.dataset.id);
+        openEditTransactionModal(id);
+      } else if (deleteBtn) {
+        const id = Number(deleteBtn.dataset.id);
+        deleteTransaction(id);
+      }
+    });
+  }
 
   // Generate Report Button
   const generateReportBtn = document.getElementById('generateReportBtn');
