@@ -11,18 +11,18 @@ const state = {
   savingsFilter: 'all',
   savingsSort: 'balance-desc',
   transactions: [
-    { date: '2026-06-10', description: 'Coffee subscription', category: 'Bills', amount: '-₹24.99', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-10', description: 'Grocery market', category: 'Food', amount: '-₹84.20', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-09', description: 'Monthly salary', category: 'Investment', amount: '+₹5,200.00', type: 'Income', status: 'Completed' },
-    { date: '2026-06-08', description: 'Gym membership', category: 'Health', amount: '-₹54.00', type: 'Expense', status: 'Pending' },
-    { date: '2026-06-07', description: 'Ride share', category: 'Transport', amount: '-₹18.40', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-06', description: 'Weekend dining', category: 'Entertainment', amount: '-₹120.30', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-05', description: 'Book purchase', category: 'Education', amount: '-₹35.00', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-04', description: 'Dividend payout', category: 'Investment', amount: '+₹420.00', type: 'Income', status: 'Completed' },
-    { date: '2026-06-03', description: 'Taxi ride', category: 'Transport', amount: '-₹16.50', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-02', description: 'Pharmacy', category: 'Health', amount: '-₹30.00', type: 'Expense', status: 'Completed' },
-    { date: '2026-06-01', description: 'Gadget purchase', category: 'Shopping', amount: '-₹235.00', type: 'Expense', status: 'Pending' },
-    { date: '2026-05-31', description: 'Utility payment', category: 'Bills', amount: '-₹160.00', type: 'Expense', status: 'Completed' },
+    { id: 1, date: '2026-06-10', description: 'Coffee subscription', category: 'Bills', amount: '-₹24.99', type: 'Expense', status: 'Completed' },
+    { id: 2, date: '2026-06-10', description: 'Grocery market', category: 'Food', amount: '-₹84.20', type: 'Expense', status: 'Completed' },
+    { id: 3, date: '2026-06-09', description: 'Monthly salary', category: 'Investment', amount: '+₹5,200.00', type: 'Income', status: 'Completed' },
+    { id: 4, date: '2026-06-08', description: 'Gym membership', category: 'Health', amount: '-₹54.00', type: 'Expense', status: 'Pending' },
+    { id: 5, date: '2026-06-07', description: 'Ride share', category: 'Transport', amount: '-₹18.40', type: 'Expense', status: 'Completed' },
+    { id: 6, date: '2026-06-06', description: 'Weekend dining', category: 'Entertainment', amount: '-₹120.30', type: 'Expense', status: 'Completed' },
+    { id: 7, date: '2026-06-05', description: 'Book purchase', category: 'Education', amount: '-₹35.00', type: 'Expense', status: 'Completed' },
+    { id: 8, date: '2026-06-04', description: 'Dividend payout', category: 'Investment', amount: '+₹420.00', type: 'Income', status: 'Completed' },
+    { id: 9, date: '2026-06-03', description: 'Taxi ride', category: 'Transport', amount: '-₹16.50', type: 'Expense', status: 'Completed' },
+    { id: 10, date: '2026-06-02', description: 'Pharmacy', category: 'Health', amount: '-₹30.00', type: 'Expense', status: 'Completed' },
+    { id: 11, date: '2026-06-01', description: 'Gadget purchase', category: 'Shopping', amount: '-₹235.00', type: 'Expense', status: 'Pending' },
+    { id: 12, date: '2026-05-31', description: 'Utility payment', category: 'Bills', amount: '-₹160.00', type: 'Expense', status: 'Completed' },
   ],
   currentPageIndex: 1,
   rowsPerPage: 6,
@@ -700,7 +700,11 @@ function bindUIControls() {
   const downloadPdfBtn = document.getElementById('downloadPdfBtn');
   if (downloadPdfBtn) {
     downloadPdfBtn.addEventListener('click', () => {
-      alert('Generating PDF report... (Dummy feature)');
+      if (typeof showToast === 'function') {
+        showToast('Generating PDF report... (Dummy feature)', 'info');
+      } else {
+        alert('Generating PDF report... (Dummy feature)');
+      }
     });
   }
 
@@ -2208,6 +2212,11 @@ function exportTransactionsToCSV() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  
+  // Also show a toast since webviews might intercept/block silent downloads
+  if (typeof showToast === 'function') {
+    showToast('Report generated and downloaded successfully.', 'success');
+  }
 }
 
 function renderSavingsCards() {
