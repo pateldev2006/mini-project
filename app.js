@@ -807,8 +807,8 @@ function setStockDetails() {
     
     // Smooth custom badge colors based on recommendation action
     if (action === 'BUY') {
-      badge.style.background = 'rgba(37, 99, 235, 0.16)';
-      badge.style.color = state.theme === 'dark' ? '#2563eb' : '#2563eb';
+      badge.style.background = 'rgba(14, 165, 233, 0.16)';
+      badge.style.color = state.theme === 'dark' ? '#0ea5e9' : '#0ea5e9';
     } else if (action === 'SELL') {
       badge.style.background = 'rgba(217, 83, 79, 0.16)';
       badge.style.color = '#d9534f';
@@ -1591,8 +1591,8 @@ function initCharts() {
 
   const expenseBar = document.getElementById('expenseBar').getContext('2d');
   const barGradient = expenseBar.createLinearGradient(0, 0, 0, 260);
-  barGradient.addColorStop(0, '#1e88e5');
-  barGradient.addColorStop(1, 'rgba(30, 136, 229, 0.1)');
+  barGradient.addColorStop(0, '#0284c7');
+  barGradient.addColorStop(1, 'rgba(2, 132, 199, 0.1)');
 
   charts.expenseBar = new Chart(expenseBar, {
     type: 'bar',
@@ -1602,7 +1602,7 @@ function initCharts() {
         label: 'Expenses',
         data: [4800, 5200, 5000, 4700, 5120, 5280],
         backgroundColor: barGradient,
-        hoverBackgroundColor: '#1e88e5',
+        hoverBackgroundColor: '#0284c7',
         borderRadius: 8,
         maxBarThickness: 24,
       }],
@@ -1632,12 +1632,12 @@ function initCharts() {
 
   const incomeLine = document.getElementById('incomeLine').getContext('2d');
   const incomeGrad = incomeLine.createLinearGradient(0, 0, 0, 250);
-  incomeGrad.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
-  incomeGrad.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+  incomeGrad.addColorStop(0, 'rgba(14, 165, 233, 0.25)');
+  incomeGrad.addColorStop(1, 'rgba(14, 165, 233, 0.00)');
 
   const expenseGrad = incomeLine.createLinearGradient(0, 0, 0, 250);
-  expenseGrad.addColorStop(0, 'rgba(30, 136, 229, 0.20)');
-  expenseGrad.addColorStop(1, 'rgba(30, 136, 229, 0.00)');
+  expenseGrad.addColorStop(0, 'rgba(2, 132, 199, 0.20)');
+  expenseGrad.addColorStop(1, 'rgba(2, 132, 199, 0.00)');
 
   charts.incomeLine = new Chart(incomeLine, {
     type: 'line',
@@ -1647,28 +1647,28 @@ function initCharts() {
         {
           label: 'Income',
           data: [8200, 9000, 8800, 9300, 9500, 9800],
-          borderColor: '#2563eb',
+          borderColor: '#0ea5e9',
           borderWidth: 3,
           backgroundColor: incomeGrad,
           tension: 0.38,
           fill: true,
           pointRadius: 0,
           pointHoverRadius: 6,
-          pointHoverBackgroundColor: '#2563eb',
+          pointHoverBackgroundColor: '#0ea5e9',
           pointHoverBorderColor: '#ffffff',
           pointHoverBorderWidth: 2,
         },
         {
           label: 'Expense',
           data: [5600, 5900, 5800, 5400, 5700, 6100],
-          borderColor: '#1e88e5',
+          borderColor: '#0284c7',
           borderWidth: 3,
           backgroundColor: expenseGrad,
           tension: 0.38,
           fill: true,
           pointRadius: 0,
           pointHoverRadius: 6,
-          pointHoverBackgroundColor: '#1e88e5',
+          pointHoverBackgroundColor: '#0284c7',
           pointHoverBorderColor: '#ffffff',
           pointHoverBorderWidth: 2,
         },
@@ -1707,8 +1707,8 @@ function initCharts() {
 
   const savingsArea = document.getElementById('savingsArea').getContext('2d');
   const savingsGrad = savingsArea.createLinearGradient(0, 0, 0, 250);
-  savingsGrad.addColorStop(0, 'rgba(30, 136, 229, 0.25)');
-  savingsGrad.addColorStop(1, 'rgba(30, 136, 229, 0.00)');
+  savingsGrad.addColorStop(0, 'rgba(2, 132, 199, 0.25)');
+  savingsGrad.addColorStop(1, 'rgba(2, 132, 199, 0.00)');
 
   charts.savingsArea = new Chart(savingsArea, {
     type: 'line',
@@ -1717,14 +1717,14 @@ function initCharts() {
       datasets: [{
         label: 'Savings Growth',
         data: [12000, 14600, 17150, 19900, 23020, 25640],
-        borderColor: '#1e88e5',
+        borderColor: '#0284c7',
         borderWidth: 3,
         backgroundColor: savingsGrad,
         fill: true,
         tension: 0.38,
         pointRadius: 0,
         pointHoverRadius: 6,
-        pointHoverBackgroundColor: '#1e88e5',
+        pointHoverBackgroundColor: '#0284c7',
         pointHoverBorderColor: '#ffffff',
         pointHoverBorderWidth: 2,
       }],
@@ -1759,15 +1759,15 @@ function initCharts() {
       datasets: [{
         label: 'Portfolio Metrics',
         data: [82, 72, 68, 74, 60, 80],
-        backgroundColor: 'rgba(37, 99, 235, 0.15)',
-        borderColor: '#2563eb',
+        backgroundColor: 'rgba(14, 165, 233, 0.15)',
+        borderColor: '#0ea5e9',
         borderWidth: 2.5,
-        pointBackgroundColor: '#2563eb',
+        pointBackgroundColor: '#0ea5e9',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 4.5,
         pointHoverRadius: 7,
-        pointHoverBackgroundColor: '#2563eb',
+        pointHoverBackgroundColor: '#0ea5e9',
         pointHoverBorderColor: '#ffffff',
         pointHoverBorderWidth: 2.5,
       }],
@@ -1808,8 +1808,8 @@ function initCharts() {
 
   const stockChart = document.getElementById('stockChart').getContext('2d');
   const stockGrad = stockChart.createLinearGradient(0, 0, 0, 200);
-  stockGrad.addColorStop(0, 'rgba(30, 136, 229, 0.22)');
-  stockGrad.addColorStop(1, 'rgba(30, 136, 229, 0.00)');
+  stockGrad.addColorStop(0, 'rgba(2, 132, 199, 0.22)');
+  stockGrad.addColorStop(1, 'rgba(2, 132, 199, 0.00)');
 
   charts.stockChart = new Chart(stockChart, {
     type: 'line',
@@ -1818,14 +1818,14 @@ function initCharts() {
       datasets: [{
         label: 'Price',
         data: state.stockData.chart,
-        borderColor: '#1e88e5',
+        borderColor: '#0284c7',
         borderWidth: 3,
         backgroundColor: stockGrad,
         tension: 0.38,
         fill: true,
         pointRadius: 0,
         pointHoverRadius: 6,
-        pointHoverBackgroundColor: '#1e88e5',
+        pointHoverBackgroundColor: '#0284c7',
         pointHoverBorderColor: '#ffffff',
         pointHoverBorderWidth: 2,
       }],
