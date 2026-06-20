@@ -64,6 +64,8 @@ const state = {
   ],
   profile: {
     name: 'Alex Rivera',
+    email: 'alex.rivera@email.com',
+    phone: '+1 (555) 238-1124',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80'
   },
 };
@@ -2233,6 +2235,21 @@ function initializeProfile() {
       startNameEdit();
     });
   }
+
+  // Bind edit events for email and phone number
+  const profileMainEmail = document.getElementById('profileMainEmail');
+  const profileMainPhone = document.getElementById('profileMainPhone');
+
+  if (profileMainEmail) {
+    profileMainEmail.addEventListener('click', () => {
+      startContactEdit('email');
+    });
+  }
+  if (profileMainPhone) {
+    profileMainPhone.addEventListener('click', () => {
+      startContactEdit('phone');
+    });
+  }
 }
 
 function updateProfileDOM() {
@@ -2240,11 +2257,15 @@ function updateProfileDOM() {
   const profileHeaderName = document.getElementById('profileHeaderName');
   const profileMainAvatar = document.getElementById('profileMainAvatar');
   const profileMainName = document.getElementById('profileMainName');
+  const profileMainEmail = document.getElementById('profileMainEmail');
+  const profileMainPhone = document.getElementById('profileMainPhone');
 
   if (profileHeaderAvatar) profileHeaderAvatar.src = state.profile.avatar;
   if (profileMainAvatar) profileMainAvatar.src = state.profile.avatar;
   if (profileHeaderName) profileHeaderName.textContent = state.profile.name;
   if (profileMainName) profileMainName.textContent = state.profile.name;
+  if (profileMainEmail) profileMainEmail.textContent = state.profile.email;
+  if (profileMainPhone) profileMainPhone.textContent = state.profile.phone;
 }
 
 function saveProfile() {
@@ -2303,6 +2324,78 @@ function startNameEdit() {
       finishEdit();
     } else if (e.key === 'Escape') {
       input.value = currentName; // revert
+      finishEdit();
+    }
+  });
+
+  input.addEventListener('blur', finishEdit);
+}
+
+function startContactEdit(type) {
+  const elementId = type === 'email' ? 'profileMainEmail' : 'profileMainPhone';
+  const element = document.getElementById(elementId);
+  if (!element) return;
+
+  if (element.tagName.toLowerCase() === 'input') return;
+
+  const currentValue = element.textContent.trim();
+  const parent = element.parentNode;
+
+  const input = document.createElement('input');
+  input.type = type === 'email' ? 'email' : 'text';
+  input.className = 'profile-contact-edit-input';
+  input.value = currentValue;
+  input.maxLength = 50;
+
+  parent.replaceChild(input, element);
+  input.focus();
+  input.select();
+
+  let saved = false;
+  const finishEdit = () => {
+    if (saved) return;
+    saved = true;
+
+    const newValue = input.value.trim() || currentValue;
+    
+    // Simple email validation
+    if (type === 'email' && newValue !== currentValue) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(newValue)) {
+        showToast('Please enter a valid email address', 'error');
+        // Revert back
+        const span = document.createElement('span');
+        span.id = elementId;
+        span.textContent = currentValue;
+        span.style.cursor = 'pointer';
+        span.addEventListener('click', () => startContactEdit(type));
+        parent.replaceChild(span, input);
+        return;
+      }
+    }
+
+    state.profile[type] = newValue;
+    saveProfile();
+
+    const span = document.createElement('span');
+    span.id = elementId;
+    span.textContent = newValue;
+    span.style.cursor = 'pointer';
+    span.addEventListener('click', () => startContactEdit(type));
+
+    parent.replaceChild(span, input);
+    updateProfileDOM();
+
+    if (newValue !== currentValue) {
+      showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} updated successfully!`, 'success');
+    }
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      finishEdit();
+    } else if (e.key === 'Escape') {
+      input.value = currentValue; // revert
       finishEdit();
     }
   });
