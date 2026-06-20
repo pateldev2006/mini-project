@@ -715,6 +715,41 @@ function bindUIControls() {
     });
   }
 
+  // Payment Modal bindings
+  const tradeBadge = document.getElementById('tradeBadge');
+  if (tradeBadge) {
+    tradeBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const action = tradeBadge.textContent.trim();
+      if (action === 'BUY') {
+        openPaymentModal();
+      }
+    });
+  }
+
+  const closePaymentModalBtn = document.getElementById('closePaymentModalBtn');
+  const cancelPaymentBtn = document.getElementById('cancelPaymentBtn');
+  const paymentModal = document.getElementById('paymentModal');
+  const paymentForm = document.getElementById('paymentForm');
+  const paymentSharesInput = document.getElementById('paymentShares');
+  const successCloseBtn = document.getElementById('successCloseBtn');
+
+  if (closePaymentModalBtn) closePaymentModalBtn.addEventListener('click', closePaymentModal);
+  if (cancelPaymentBtn) cancelPaymentBtn.addEventListener('click', closePaymentModal);
+  if (successCloseBtn) successCloseBtn.addEventListener('click', closePaymentModal);
+  if (paymentModal) {
+    paymentModal.addEventListener('click', (e) => {
+      if (e.target === paymentModal) closePaymentModal();
+    });
+  }
+  if (paymentSharesInput) {
+    paymentSharesInput.addEventListener('input', updatePaymentTotal);
+    paymentSharesInput.addEventListener('change', updatePaymentTotal);
+  }
+  if (paymentForm) {
+    paymentForm.addEventListener('submit', handlePaymentSubmit);
+  }
+
   // global outside click listener above handles closing for all dropdowns
 }
 
@@ -723,6 +758,7 @@ function closeAllDropdowns() {
   closeNotificationsPanel();
   closeBudgetModal();
   closeTransactionModal();
+  closePaymentModal();
   closeMobileSidebar();
 }
 
@@ -2658,6 +2694,156 @@ function startContactEdit(type) {
   });
 
   input.addEventListener('blur', finishEdit);
+}
+
+function openPaymentModal() {
+  closeAllDropdowns();
+  
+  const paymentModal = document.getElementById('paymentModal');
+  const paymentForm = document.getElementById('paymentForm');
+  const paymentSuccessContainer = document.getElementById('paymentSuccessContainer');
+  
+  if (!paymentModal) return;
+  
+  // Populate stock details in the modal
+  document.getElementById('paymentCompanyName').textContent = state.stockData.company;
+  document.getElementById('paymentTicker').textContent = state.stockData.ticker;
+  
+  const priceStr = state.stockData.price;
+  const match = priceStr.match(/^([^\d\s\-\+,]+)?\s*([\d\.,]+)/);
+  let symbol = '$';
+  let price = 0;
+  if (match) {
+    symbol = match[1] || '$';
+    price = parseFloat(match[2].replace(/,/g, ''));
+  }
+  
+  document.getElementById('paymentPrice').textContent = priceStr;
+  document.getElementById('paymentShares').value = 1;
+  
+  // Store currency and price on the form dataset
+  paymentForm.dataset.symbol = symbol;
+  paymentForm.dataset.price = price;
+  
+  // Reset visibility
+  paymentForm.hidden = false;
+  paymentSuccessContainer.hidden = true;
+  
+  // Update calculations
+  updatePaymentTotal();
+  
+  // Show modal
+  paymentModal.hidden = false;
+  document.body.classList.add('menu-open');
+}
+
+function closePaymentModal() {
+  const paymentModal = document.getElementById('paymentModal');
+  if (paymentModal) {
+    paymentModal.hidden = true;
+    document.body.classList.remove('menu-open');
+  }
+}
+
+function updatePaymentTotal() {
+  const paymentForm = document.getElementById('paymentForm');
+  if (!paymentForm) return;
+  
+  const symbol = paymentForm.dataset.symbol || '$';
+  const price = parseFloat(paymentForm.dataset.price) || 0;
+  const shares = parseInt(document.getElementById('paymentShares').value) || 0;
+  
+  const sharesCost = price * shares;
+  
+  let brokerage = 1.50;
+  let tax = Math.max(0.10, sharesCost * 0.0005);
+  
+  if (symbol === '₹') {
+    brokerage = 120.00;
+    tax = Math.max(10.00, sharesCost * 0.0005);
+  } else if (symbol === '£') {
+    brokerage = 1.20;
+    tax = Math.max(0.10, sharesCost * 0.0005);
+  } else if (symbol === '€') {
+    brokerage = 1.40;
+    tax = Math.max(0.10, sharesCost * 0.0005);
+  }
+  
+  const total = sharesCost + brokerage + tax;
+  
+  document.getElementById('sharesCost').textContent = `${symbol}${sharesCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  document.getElementById('brokerageFee').textContent = `${symbol}${brokerage.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  document.getElementById('regulatoryTax').textContent = `${symbol}${tax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  document.getElementById('totalPayable').textContent = `${symbol}${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+}
+
+async function handlePaymentSubmit(event) {
+  event.preventDefault();
+  
+  const paymentForm = document.getElementById('paymentForm');
+  const confirmBtn = document.getElementById('confirmPaymentBtn');
+  const cancelBtn = document.getElementById('cancelPaymentBtn');
+  const closeBtn = document.getElementById('closePaymentModalBtn');
+  const paymentSuccessContainer = document.getElementById('paymentSuccessContainer');
+  const sharesInput = document.getElementById('paymentShares');
+  
+  if (!paymentForm || !confirmBtn) return;
+  
+  const shares = parseInt(sharesInput.value) || 1;
+  const ticker = state.stockData.ticker;
+  const symbol = paymentForm.dataset.symbol || '$';
+  const price = parseFloat(paymentForm.dataset.price) || 0;
+  const totalCost = (price * shares);
+  
+  const originalText = confirmBtn.textContent;
+  confirmBtn.textContent = 'Processing...';
+  confirmBtn.disabled = true;
+  cancelBtn.disabled = true;
+  closeBtn.disabled = true;
+  sharesInput.disabled = true;
+  
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  paymentForm.hidden = true;
+  paymentSuccessContainer.hidden = false;
+  
+  const successMessage = document.getElementById('successMessage');
+  successMessage.textContent = `Bought ${shares} share${shares > 1 ? 's' : ''} of ${ticker} for a total value of ${symbol}${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} successfully.`;
+  
+  let totalCostINR = totalCost;
+  if (symbol === '$') {
+    totalCostINR = totalCost * 83.30;
+  } else if (symbol === '£') {
+    totalCostINR = totalCost * 105.50;
+  } else if (symbol === '€') {
+    totalCostINR = totalCost * 89.20;
+  }
+  
+  const dateStr = new Date().toISOString().split('T')[0];
+  const newTx = {
+    date: dateStr,
+    description: `Bought ${shares} ${ticker} shares`,
+    category: 'Investment',
+    amount: `-₹${totalCostINR.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+    type: 'Expense',
+    status: 'Completed'
+  };
+  
+  state.transactions.unshift(newTx);
+  
+  localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+  
+  if (typeof updateTransactionListing === 'function') {
+    updateTransactionListing();
+  }
+  
+  confirmBtn.textContent = originalText;
+  confirmBtn.disabled = false;
+  cancelBtn.disabled = false;
+  closeBtn.disabled = false;
+  sharesInput.disabled = false;
+  
+  showToast(`Successfully purchased ${shares} shares of ${ticker}!`, 'success');
 }
 
 init();

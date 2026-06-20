@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=17" />
+  <link rel="stylesheet" href="style.css?v=18" />
 </head>
 <body>
   <div class="app-shell">
@@ -463,7 +463,7 @@
                   <span>Acme Dynamics</span>
                   <strong id="stockTicker">ACME</strong>
                 </div>
-                <span class="status-chip success" id="tradeBadge">BUY</span>
+                 <button class="status-chip success clickable" id="tradeBadge" type="button">BUY</button>
               </div>
               <div class="stock-metrics">
                 <div><span>Price</span><strong id="stockPrice">$148.72</strong></div>
@@ -929,7 +929,86 @@
     </div>
   </div>
 
+  <!-- Stock Purchase Modal (Dummy Payment Screen) -->
+  <div id="paymentModal" class="modal-overlay" hidden>
+    <div class="modal-card payment-modal-card">
+      <div class="modal-header">
+        <h2>Confirm Stock Purchase</h2>
+        <button type="button" class="close-btn" id="closePaymentModalBtn">&times;</button>
+      </div>
+      <div class="payment-modal-body">
+        <!-- Main Payment Form -->
+        <form id="paymentForm">
+          <div class="payment-stock-info">
+            <span id="paymentCompanyName">Apple Inc.</span>
+            <strong id="paymentTicker">AAPL</strong>
+          </div>
+          
+          <div class="payment-form-row">
+            <div class="form-group">
+              <label for="paymentShares">Quantity (Shares)</label>
+              <input type="number" id="paymentShares" min="1" step="1" value="1" required />
+            </div>
+            <div class="form-group">
+              <label>Current Share Price</label>
+              <div class="read-only-box" id="paymentPrice">$298.01</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="paymentMethod">Select Payment Method</label>
+            <select id="paymentMethod" class="select-input">
+              <option value="wallet">FinSight Mock Wallet (Balance: ₹48,200.00)</option>
+              <option value="card">Dummy Credit Card (•••• •••• •••• 4242)</option>
+              <option value="upi">Mock UPI Address (arjunsingh@okaxis)</option>
+            </select>
+          </div>
+
+          <div class="payment-summary">
+            <h3>Cost Breakdown</h3>
+            <div class="summary-row">
+              <span>Shares Cost</span>
+              <strong id="sharesCost">$298.01</strong>
+            </div>
+            <div class="summary-row">
+              <span>Brokerage Commission</span>
+              <strong id="brokerageFee">$1.50</strong>
+            </div>
+            <div class="summary-row">
+              <span>Regulatory Taxes</span>
+              <strong id="regulatoryTax">$0.25</strong>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row total-row">
+              <span>Total Payable Amount</span>
+              <strong id="totalPayable">$299.76</strong>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" id="cancelPaymentBtn" class="btn btn-outline">Cancel Order</button>
+            <button type="submit" id="confirmPaymentBtn" class="btn btn-primary">Confirm Trade</button>
+          </div>
+        </form>
+
+        <!-- Success Screen (Hidden by Default) -->
+        <div id="paymentSuccessContainer" hidden>
+          <div class="success-checkmark-wrapper">
+            <div class="checkmark-circle">
+              <div class="checkmark draw"></div>
+            </div>
+          </div>
+          <h3>Transaction Successful!</h3>
+          <p id="successMessage">Bought 1 share of AAPL successfully.</p>
+          <div class="modal-actions justify-center">
+            <button type="button" id="successCloseBtn" class="btn btn-primary">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="app.js?v=17" defer></script>
+  <script src="app.js?v=18" defer></script>
 </body>
 </html>
