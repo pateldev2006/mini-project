@@ -807,8 +807,8 @@ function setStockDetails() {
     
     // Smooth custom badge colors based on recommendation action
     if (action === 'BUY') {
-      badge.style.background = 'rgba(0, 200, 150, 0.16)';
-      badge.style.color = state.theme === 'dark' ? '#00c896' : '#0d8763';
+      badge.style.background = 'rgba(37, 99, 235, 0.16)';
+      badge.style.color = state.theme === 'dark' ? '#2563eb' : '#2563eb';
     } else if (action === 'SELL') {
       badge.style.background = 'rgba(217, 83, 79, 0.16)';
       badge.style.color = '#d9534f';
@@ -1065,15 +1065,24 @@ async function handleStockSearch() {
   }
 }
 
-function handleChatSubmit(event) {
+async function handleChatSubmit(event) {
   event.preventDefault();
   const question = chatInput.value.trim();
   if (!question) return;
   addChatMessage('user', question);
   chatInput.value = '';
-  setTimeout(() => {
-    addChatMessage('ai', generateChatResponse(question));
-  }, 600);
+  
+  const loadingMsg = addChatLoadingMessage();
+  
+  try {
+    const response = await generateChatResponseAsync(question);
+    removeChatLoadingMessage(loadingMsg);
+    addChatMessage('ai', response);
+  } catch (error) {
+    console.error("Error generating chat response:", error);
+    removeChatLoadingMessage(loadingMsg);
+    addChatMessage('ai', "### **Error**\nI'm sorry, I encountered an issue while communicating with the stock search service. Please verify your connection or try again.");
+  }
 }
 
 function addChatMessage(role, text) {
@@ -1081,10 +1090,119 @@ function addChatMessage(role, text) {
   renderChat();
 }
 
+function addChatLoadingMessage() {
+  const loadingMsg = { role: 'ai', text: '...', isLoading: true };
+  state.chatMessages.push(loadingMsg);
+  renderChat();
+  return loadingMsg;
+}
+
+function removeChatLoadingMessage(loadingMsg) {
+  const idx = state.chatMessages.indexOf(loadingMsg);
+  if (idx > -1) {
+    state.chatMessages.splice(idx, 1);
+    renderChat();
+  }
+}
+
+function parseMarkdown(text) {
+  if (!text) return '';
+  
+  let html = text;
+  
+  // 1. Parse tables
+  const lines = html.split('\n');
+  let inTable = false;
+  let tableHtml = '';
+  const processedLines = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith('|') && line.endsWith('|')) {
+      if (!inTable) {
+        inTable = true;
+        tableHtml = '<table>';
+      }
+      
+      if (line.includes('---')) {
+        continue;
+      }
+      
+      const cells = line.split('|').slice(1, -1).map(c => c.trim());
+      const isHeader = !tableHtml.includes('<tr>');
+      
+      tableHtml += '<tr>';
+      cells.forEach(cell => {
+        const tag = isHeader ? 'th' : 'td';
+        tableHtml += `<${tag}>${parseInlineMarkdown(cell)}</${tag}>`;
+      });
+      tableHtml += '</tr>';
+    } else {
+      if (inTable) {
+        inTable = false;
+        tableHtml += '</table>';
+        processedLines.push(tableHtml);
+        tableHtml = '';
+      }
+      processedLines.push(line);
+    }
+  }
+  if (inTable) {
+    tableHtml += '</table>';
+    processedLines.push(tableHtml);
+  }
+  
+  html = processedLines.join('\n');
+  
+  // 2. Parse headings
+  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  
+  // 3. Parse bullet lists
+  html = html.replace(/^\s*[\*\-]\s+(.*$)/gim, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+  html = html.replace(/<\/ul>\s*<ul>/gim, '');
+  
+  // 4. Parse numbered lists
+  html = html.replace(/^\s*\d+\.\s+(.*$)/gim, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>)/gim, '<ol>$1</ol>');
+  html = html.replace(/<\/ol>\s*<ol>/gim, '');
+  
+  // 5. Parse inline elements
+  html = parseInlineMarkdown(html);
+  
+  // 6. Handle paragraph breaks
+  const finalLines = html.split('\n');
+  for (let j = 0; j < finalLines.length; j++) {
+    const l = finalLines[j];
+    if (!l.startsWith('<h') && !l.startsWith('<t') && !l.startsWith('<u') && !l.startsWith('<o') && !l.startsWith('<l') && l.trim().length > 0) {
+      finalLines[j] = `<p>${l}</p>`;
+    }
+  }
+  html = finalLines.join('');
+  
+  return html;
+}
+
+function parseInlineMarkdown(text) {
+  let res = text;
+  res = res.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  res = res.replace(/`(.*?)`/g, '<code>$1</code>');
+  return res;
+}
+
 function renderChat() {
   chatHistory.innerHTML = state.chatMessages
     .map((message) => {
       if (message.role === 'ai') {
+        const bubbleContent = message.isLoading
+          ? `<div class="typing-indicator">
+               <span></span>
+               <span></span>
+               <span></span>
+             </div>`
+          : parseMarkdown(message.text);
         return `
           <div class="message ai">
             <div class="avatar ai-avatar">
@@ -1092,7 +1210,7 @@ function renderChat() {
                 <path d="M12 2c0 5.523 4.477 10 10 10-5.523 0-10 4.477-10 10-0-5.523-4.477-10-10-10 5.523 0 10-4.477 10-10z"></path>
               </svg>
             </div>
-            <div class="bubble">${message.text}</div>
+            <div class="bubble">${bubbleContent}</div>
           </div>
         `;
       } else {
@@ -1110,16 +1228,61 @@ function renderChat() {
   chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-function generateChatResponse(prompt) {
+async function generateChatResponseAsync(prompt) {
   const lower = prompt.toLowerCase();
   
-  // Calculate total monthly income, total expenses, and category-level spending from state
+  // Extract potential stock symbols or company names
+  const stopWords = new Set(['what', 'is', 'the', 'of', 'in', 'and', 'to', 'a', 'about', 'how', 'does', 'do', 'you', 'think', 'recommend', 'should', 'buy', 'sell', 'stock', 'share', 'shares', 'price', 'info', 'details', 'tell', 'me', 'on', 'for', 'with', 'at', 'any']);
+  const words = prompt.replace(/[?.,!]/g, '').split(/\s+/).map(w => w.trim()).filter(w => w.length > 1);
+  
+  let detectedSymbolOrName = null;
+  
+  for (const word of words) {
+    if (word.length >= 2 && word.length <= 5 && /^[A-Za-z]+$/.test(word)) {
+      if (word === word.toUpperCase() && !stopWords.has(word.toLowerCase())) {
+        detectedSymbolOrName = word;
+        break;
+      }
+    }
+  }
+  
+  if (!detectedSymbolOrName) {
+    for (const word of words) {
+      if (!stopWords.has(word.toLowerCase())) {
+        detectedSymbolOrName = word;
+        break;
+      }
+    }
+  }
+
+  // Check if we should call the Yahoo Finance proxy APIs
+  if (detectedSymbolOrName && (lower.includes('stock') || lower.includes('price') || lower.includes('share') || lower.includes('company') || lower.includes('ticker') || lower.includes('market') || lower.includes('portfolio') || /^[A-Z]{2,5}$/.test(detectedSymbolOrName))) {
+    try {
+      const searchRes = await fetch(`/api/search?q=${encodeURIComponent(detectedSymbolOrName)}`);
+      if (searchRes.ok) {
+        const suggestions = await searchRes.json();
+        if (suggestions && suggestions.length > 0) {
+          const match = suggestions[0];
+          const ticker = match.symbol;
+          
+          const stockRes = await fetch(`/api/stock?symbol=${ticker}`);
+          if (stockRes.ok) {
+            const stockData = await stockRes.json();
+            return formatStockResponse(stockData);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching live stock details in chat:", e);
+    }
+  }
+  
+  // Local fallback templates
   let totalIncome = 0;
   let totalExpenses = 0;
   const categoryTotals = {};
   
   state.transactions.forEach(t => {
-    // Remove formatting symbols to get numeric amount
     const val = Math.abs(parseFloat(t.amount.replace(/[\₹\+,]/g, '')));
     if (t.type === 'Income') {
       totalIncome += val;
@@ -1129,7 +1292,6 @@ function generateChatResponse(prompt) {
     }
   });
 
-  // Calculate highest expense category
   let highestExpenseCategory = 'Discretionary';
   let highestExpenseValue = 0;
   for (const cat in categoryTotals) {
@@ -1139,19 +1301,26 @@ function generateChatResponse(prompt) {
     }
   }
 
-  // Calculate total savings balance
   const totalSavings = state.savings.reduce((acc, curr) => acc + curr.balance, 0);
 
   // 1. Savings trajectory
   if (lower.includes('savings') || lower.includes('sip') || lower.includes('goal')) {
-    const topSavings = state.savings[0]; // E.g., Emergency Fund
+    const topSavings = state.savings[0];
     const avgReturn = (state.savings.reduce((acc, curr) => acc + curr.returnRate * curr.balance, 0) / totalSavings).toFixed(1);
-    return `Your overall savings and investments total **₹${totalSavings.toLocaleString('en-US')}** with an average weighted return rate of **${avgReturn}%**. \n\nYour primary goal is the **${topSavings.name}** (currently at **₹${topSavings.balance.toLocaleString('en-US')}**, which is **${topSavings.progress}%** complete). \n\nI recommend increasing your monthly SIP or Mutual Funds allocation by **10% (₹150)** to reduce the timeline to completion by an estimated 3 months.`;
+    return `### **Savings & Investment Analysis**
+Your total active savings base stands at **₹${totalSavings.toLocaleString('en-US')}** with an average annual yield of **${avgReturn}%**.
+
+**Primary Target**: **${topSavings.name}**
+* Current Balance: **₹${topSavings.balance.toLocaleString('en-US')}**
+* Progress: **${topSavings.progress}%** of target
+
+**Strategic Recommendations**:
+1. **Increase Monthly Allocations**: Adjusting your systematic investment plan (SIP) or mutual fund contribution by **10% (approx. ₹150/month)** can shave 3 months off your emergency reserve target.
+2. **Automated Round-ups**: Enable transactions round-up to automatically route spare change to this fund.`;
   }
   
   // 2. Reduce expenses / Category budget analysis
   if (lower.includes('reduce') || lower.includes('expense') || lower.includes('spending') || lower.includes('cut')) {
-    // Find category with highest budget utilization
     let maxUtilizationCat = 'Shopping';
     let maxUtilizationPct = 0;
     state.budgets.forEach(b => {
@@ -1162,12 +1331,17 @@ function generateChatResponse(prompt) {
       }
     });
 
-    let advice = `Based on your recent transactions, your highest spending category this month is **${highestExpenseCategory}** where you spent **₹${highestExpenseValue.toFixed(2)}**. `;
+    let advice = `### **Expense and Budget Audit**
+An analysis of your recent ledger shows that **${highestExpenseCategory}** is your largest spending category this month, totaling **₹${highestExpenseValue.toFixed(2)}**. `;
     if (maxUtilizationPct > 80) {
       const budget = state.budgets.find(b => b.label === maxUtilizationCat);
-      advice += `Additionally, your **${maxUtilizationCat}** budget is at a high **${maxUtilizationPct.toFixed(0)}%** utilization (spent ₹${budget.spent} of ₹${budget.limit} limit). \n\nTo free up cash flow quickly, I recommend shifting non-essential purchases in **${maxUtilizationCat}** into automated savings. Setting a category ceiling of ₹450 next month will instantly save you **₹170**!`;
+      advice += `\n\n**Alert**: Your budget for **${maxUtilizationCat}** has reached **${maxUtilizationPct.toFixed(0)}%** utilization (spent **₹${budget.spent}** of **₹${budget.limit}** limit).
+      
+**Action Plan**:
+* **Discretionary Lock**: Pause non-essential purchases in the **${maxUtilizationCat}** category for the next 10 days.
+* **Limit Adjustment**: Lower next month's cap for **${maxUtilizationCat}** to **₹450** to instantly save **₹170** and increase your investable surplus.`;
     } else {
-      advice += `Your budgets look healthy and on-track with no major spending leaks. Shifting an extra 5% of your monthly surplus into your Emergency reserve is recommended.`;
+      advice += `\n\nYour budgets are currently in a healthy state, with all categories well below their limits. \n\n**Action Plan**: Since you have surplus cash flow, I recommend transferring 5% of your remaining monthly balance into your interest-bearing Fixed Deposit (yielding **5.1%**).`;
     }
     return advice;
   }
@@ -1178,11 +1352,14 @@ function generateChatResponse(prompt) {
     const mfBal = state.savings.find(s => s.name === 'Mutual Funds')?.balance || 0;
     const totalInvestments = stocksBal + mfBal;
     
-    return `You have **₹${totalInvestments.toLocaleString('en-US')}** invested across Stocks and Mutual Funds (making up **${((totalInvestments/totalSavings)*100).toFixed(0)}%** of your savings net worth). \n\nTo optimize for long-term growth while managing risk, I suggest allocating your funds into this balanced growth model:
-* **60% Low-Cost Index ETFs** (like VOO or QQQ to capture core market growth)
-* **20% High-Quality Growth Equities** (e.g., tech and energy leaders with strong cash flows)
-* **10% Diversified Emerging Markets**
-* **10% Secure Interest Yields** (like your Fixed Deposit yielding 5.1%)`;
+    return `### **Growth Portfolio Recommendation**
+You currently hold **₹${totalInvestments.toLocaleString('en-US')}** in market-exposed assets (Stocks and Mutual Funds), which comprises **${((totalInvestments/totalSavings)*100).toFixed(0)}%** of your total savings net worth.
+
+Here is a institutional-grade growth model designed to optimize yield while mitigating volatility:
+1. **Core Market (60%)**: Allocation to low-cost broad-market index ETFs (e.g., tracking S&P 500 or Nasdaq-100) to capture index growth.
+2. **Growth Equities (20%)**: Large-cap technology or energy leaders showing strong free cash flow and revenue expansion.
+3. **Emerging Markets (10%)**: International and emerging markets exposure for geographical diversification.
+4. **Defensive/Fixed Income (10%)**: Secure, high-yield fixed deposits (like your FD earning 5.1%) to act as a buffer during market drawdowns.`;
   }
   
   // 4. Financial Health Score Explanation
@@ -1193,22 +1370,102 @@ function generateChatResponse(prompt) {
     if (score > 100) score = 100;
     if (score < 50) score = 50;
 
-    return `Your calculated Financial Health Score is **${score}/100**, which falls in the **Excellent** range. \n\n* **Strengths**: Solid asset base (totaling ₹${totalSavings.toLocaleString()}), positive income-to-expense ratio, and low leverage.
-* **Areas to Monitor**: You have **${reviewBudgetCount}** budget categories (specifically **Shopping**) nearing their limits. Keeping category utilization below 75% will push your health score above 90.`;
+    return `### **Financial Health Assessment**
+Your current Financial Health Score is **${score}/100**, which represents a **Strong** financial standing.
+
+**Positive Anchors**:
+* **Healthy Savings Base**: Total savings of **₹${totalSavings.toLocaleString()}** represents a strong safety net.
+* **Positive Cash Flow**: Income-to-expense ratio is positive.
+
+**Risk Factors**:
+* **High Budget Utilization**: You have **${reviewBudgetCount}** categories (principally **Shopping**) that are close to exceeding their caps. Keeping budget utilization below 75% will boost your health score to **90+**.`;
   }
 
   // 5. Default Context-Aware Response
-  return `I am your personal AI Financial Advisor. Looking at your real-time dashboard data:
-* Total Savings Base: **₹${totalSavings.toLocaleString()}**
-* Active Primary Goal: **${state.savings[0].name}** (${state.savings[0].progress}% complete)
-* Highest Spend Area: **${highestExpenseCategory}** (₹${highestExpenseValue.toFixed(0)} spent)
+  return `### **FinSight AI Assistant**
+Welcome! I am your AI Financial Advisor. Based on your active account telemetry, here is your summary:
+* **Total Assets**: ₹${totalSavings.toLocaleString()}
+* **Primary Objective**: ${state.savings[0].name} (${state.savings[0].progress}% complete)
+* **Top Expense Category**: ${highestExpenseCategory} (₹${highestExpenseValue.toFixed(0)} spent)
 
-Could you tell me more about what you would like to analyze? You can ask me to:
-* *"Show my monthly savings plan"*
-* *"How can I reduce expenses?"*
-* *"Recommend a growth portfolio"*
-* *"Explain my financial health score"*`;
+**How I can assist you today**:
+1. **Analyze Budgets**: Ask *"How can I reduce expenses?"* or *"Analyze my spending"*
+2. **Investments**: Ask *"Recommend a growth portfolio"* or *"What is my savings trajectory?"*
+3. **Health Audit**: Ask *"Explain my financial health score"*
+4. **Stock Information**: Ask about **any stock ticker or company name** (e.g., *"What is Apple's stock price?"*, *"Is MSFT a good buy?"*, *"Search stock Tesla"*).`;
 }
+
+function formatStockResponse(data) {
+  const symbol = data.symbol;
+  const companyName = data.companyName || symbol;
+  const currency = data.currency || 'USD';
+  const price = data.price ? parseFloat(data.price).toFixed(2) : 'N/A';
+  const high52 = data.high52 ? parseFloat(data.high52).toFixed(2) : 'N/A';
+  const low52 = data.low52 ? parseFloat(data.low52).toFixed(2) : 'N/A';
+  const volume = data.volume ? formatCompactNumber(data.volume) : 'N/A';
+  const marketCap = data.marketCap || 'N/A';
+  const peRatio = data.peRatio || 'N/A';
+  
+  let positionPct = 0;
+  if (data.price && data.high52 && data.low52) {
+    const range = data.high52 - data.low52;
+    if (range > 0) {
+      positionPct = ((data.price - data.low52) / range) * 100;
+    }
+  }
+  
+  let signal = 'HOLD';
+  let adviceText = '';
+  if (positionPct > 85) {
+    signal = 'ACCUMULATE / HOLD';
+    adviceText = `Trading near its 52-week high, ${companyName} shows strong momentum but potential near-term overvaluation risk. Consider dollar-cost averaging into a position rather than a large lump-sum purchase.`;
+  } else if (positionPct < 25) {
+    signal = 'WATCHLIST / VALUE BUY';
+    adviceText = `Currently trading near its 52-week low. This represents a potential turnaround play or value opportunity, but carries risk due to downward trend. Ensure there are no structural issues with the company's business model before buying.`;
+  } else {
+    signal = 'BUY / HOLD';
+    adviceText = `Trading in the middle of its 52-week range. The stock shows stable consolidated behavior. Ideal for steady long-term accumulation.`;
+  }
+  
+  if (peRatio !== 'N/A' && !isNaN(peRatio)) {
+    const pe = parseFloat(peRatio);
+    if (pe > 35) {
+      adviceText += ` The trailing P/E of **${peRatio}** is elevated, indicating that the market has priced in high growth expectations. Best suited for growth portfolios with a higher risk tolerance.`;
+    } else if (pe < 15) {
+      adviceText += ` The trailing P/E of **${peRatio}** is low, suggesting the stock may be undervalued or defensive in nature relative to its earnings.`;
+    }
+  }
+
+  const currencySymbol = currency === 'INR' ? '₹' : (currency === 'USD' ? '$' : currency + ' ');
+
+  return `### **Live Analysis: ${companyName} (${symbol})**
+Here is the real-time financial telemetry for **${symbol}** trading on the **Yahoo Finance** indexes:
+
+| Metric | Value |
+| :--- | :--- |
+| **Current Price** | **${currencySymbol}${price}** |
+| **Market Capitalization** | ${marketCap} |
+| **Trailing P/E Ratio** | ${peRatio} |
+| **Trading Volume** | ${volume} |
+| **52-Week Range** | ${currencySymbol}${low52} – ${currencySymbol}${high52} |
+
+**Technical Signal**: \`${signal}\`
+* **Price Position**: The stock is currently trading at **${positionPct.toFixed(0)}%** of its 52-week range.
+* **Investment Outlook**: ${adviceText}
+
+*Note: All stock data is fetched live and updated in real-time. Make sure to combine this analysis with the company's latest quarterly reports and macroeconomic factors before making investment decisions.*`;
+}
+
+function formatCompactNumber(number) {
+  if (isNaN(number)) return number;
+  const num = parseFloat(number);
+  if (num >= 1.0e9) return (num / 1.0e9).toFixed(2) + 'B';
+  if (num >= 1.0e6) return (num / 1.0e6).toFixed(2) + 'M';
+  if (num >= 1.0e3) return (num / 1.0e3).toFixed(2) + 'K';
+  return num.toString();
+}
+
+
 
 function setupImport() {
   importProgress.querySelector('span').style.width = '0%';
@@ -1375,8 +1632,8 @@ function initCharts() {
 
   const incomeLine = document.getElementById('incomeLine').getContext('2d');
   const incomeGrad = incomeLine.createLinearGradient(0, 0, 0, 250);
-  incomeGrad.addColorStop(0, 'rgba(0, 200, 150, 0.25)');
-  incomeGrad.addColorStop(1, 'rgba(0, 200, 150, 0.00)');
+  incomeGrad.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
+  incomeGrad.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
 
   const expenseGrad = incomeLine.createLinearGradient(0, 0, 0, 250);
   expenseGrad.addColorStop(0, 'rgba(30, 136, 229, 0.20)');
@@ -1390,14 +1647,14 @@ function initCharts() {
         {
           label: 'Income',
           data: [8200, 9000, 8800, 9300, 9500, 9800],
-          borderColor: '#00c896',
+          borderColor: '#2563eb',
           borderWidth: 3,
           backgroundColor: incomeGrad,
           tension: 0.38,
           fill: true,
           pointRadius: 0,
           pointHoverRadius: 6,
-          pointHoverBackgroundColor: '#00c896',
+          pointHoverBackgroundColor: '#2563eb',
           pointHoverBorderColor: '#ffffff',
           pointHoverBorderWidth: 2,
         },
@@ -1502,15 +1759,15 @@ function initCharts() {
       datasets: [{
         label: 'Portfolio Metrics',
         data: [82, 72, 68, 74, 60, 80],
-        backgroundColor: 'rgba(0, 200, 150, 0.15)',
-        borderColor: '#00c896',
+        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+        borderColor: '#2563eb',
         borderWidth: 2.5,
-        pointBackgroundColor: '#00c896',
+        pointBackgroundColor: '#2563eb',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 4.5,
         pointHoverRadius: 7,
-        pointHoverBackgroundColor: '#00c896',
+        pointHoverBackgroundColor: '#2563eb',
         pointHoverBorderColor: '#ffffff',
         pointHoverBorderWidth: 2.5,
       }],
