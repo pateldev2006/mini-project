@@ -113,6 +113,52 @@ class CustomRequestHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 error_response = json.dumps({'error': str(e)}).encode('utf-8')
                 self.wfile.write(error_response)
+        elif parsed_url.path == '/api/search':
+            query_params = urllib.parse.parse_qs(parsed_url.query)
+            q = query_params.get('q', [''])[0]
+            
+            try:
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    'Accept-Encoding': 'gzip, deflate',
+                }
+                
+                search_url = f"https://query2.finance.yahoo.com/v1/finance/search?q={urllib.parse.quote(q)}"
+                search_req = urllib.request.Request(search_url, headers=headers)
+                with urllib.request.urlopen(search_req) as response:
+                    data = response.read()
+                    if response.info().get('Content-Encoding') == 'gzip' or data.startswith(b'\x1f\x8b'):
+                        data = gzip.decompress(data)
+                    search_res = json.loads(data.decode('utf-8'))
+                
+                suggestions = []
+                for quote in search_res.get('quotes', []):
+                    symbol = quote.get('symbol')
+                    name = quote.get('longname') or quote.get('shortname') or symbol
+                    exch = quote.get('exchange')
+                    quote_type = quote.get('quoteType')
+                    if symbol and quote_type in ['EQUITY', 'ETF']:
+                        suggestions.append({
+                            'symbol': symbol,
+                            'name': name,
+                            'exchange': exch
+                        })
+                
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(suggestions).encode('utf-8'))
+                
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                error_response = json.dumps({'error': str(e)}).encode('utf-8')
+                self.wfile.write(error_response)
         else:
             # Fallback to serving static files
             super().do_GET()

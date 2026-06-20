@@ -117,6 +117,7 @@ function init() {
   setStockDetails();
   setupImport();
   bindUIControls();
+  setupStockSuggestions();
   updateNotificationBadge();
   initializeSavings();
 
@@ -618,11 +619,6 @@ function bindUIControls() {
   }
 
   stockSearchButton.addEventListener('click', handleStockSearch);
-  stockSearchInput.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      handleStockSearch();
-    }
-  });
 
   chatForm.addEventListener('submit', handleChatSubmit);
   promptButtons.forEach((button) => button.addEventListener('click', () => {
@@ -1978,6 +1974,186 @@ function closeMobileSidebar() {
   const sidebar = document.querySelector('.sidebar');
   if (sidebar) sidebar.classList.remove('open');
   if (menuOverlay) menuOverlay.setAttribute('hidden', '');
+}
+
+let suggestionDebounceTimeout = null;
+let activeSuggestionIndex = -1;
+let currentSuggestions = [];
+
+function setupStockSuggestions() {
+  const stockSuggestions = document.getElementById('stockSuggestions');
+  if (!stockSuggestions || !stockSearchInput) return;
+
+  // Listen to input events on the search bar
+  stockSearchInput.addEventListener('input', () => {
+    clearTimeout(suggestionDebounceTimeout);
+    const query = stockSearchInput.value.trim();
+    if (!query) {
+      stockSuggestions.hidden = true;
+      currentSuggestions = [];
+      activeSuggestionIndex = -1;
+      return;
+    }
+
+    suggestionDebounceTimeout = setTimeout(async () => {
+      try {
+        const apiBase = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        let data = [];
+
+        if (isLocal || window.location.protocol === 'file:') {
+          try {
+            const response = await fetch(`${apiBase}/api/search?q=${encodeURIComponent(query)}`);
+            if (response.ok) {
+              data = await response.json();
+            } else {
+              throw new Error('Local search API failed');
+            }
+          } catch (localErr) {
+            console.warn("Local search failed, falling back to client proxy:", localErr);
+            data = await fetchSearchSuggestionsFallback(query);
+          }
+        } else {
+          data = await fetchSearchSuggestionsFallback(query);
+        }
+
+        currentSuggestions = data;
+        activeSuggestionIndex = -1;
+        renderSuggestions(data);
+      } catch (err) {
+        console.error("Error fetching suggestions:", err);
+      }
+    }, 200); // 200ms debounce
+  });
+
+  // Handle keyboard navigation inside the input
+  stockSearchInput.addEventListener('keydown', (event) => {
+    if (stockSuggestions.hidden || currentSuggestions.length === 0) {
+      if (event.key === 'Enter') {
+        handleStockSearch();
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      activeSuggestionIndex = (activeSuggestionIndex + 1) % currentSuggestions.length;
+      updateActiveSuggestion();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      activeSuggestionIndex = (activeSuggestionIndex - 1 + currentSuggestions.length) % currentSuggestions.length;
+      updateActiveSuggestion();
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (activeSuggestionIndex >= 0 && activeSuggestionIndex < currentSuggestions.length) {
+        selectSuggestion(currentSuggestions[activeSuggestionIndex]);
+      } else {
+        handleStockSearch();
+      }
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      stockSuggestions.hidden = true;
+      activeSuggestionIndex = -1;
+    }
+  });
+
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', (event) => {
+    if (!stockSearchInput.contains(event.target) && !stockSuggestions.contains(event.target)) {
+      stockSuggestions.hidden = true;
+      activeSuggestionIndex = -1;
+    }
+  });
+
+  // Show suggestions when clicking back into input if it has content
+  stockSearchInput.addEventListener('focus', () => {
+    if (stockSearchInput.value.trim() && currentSuggestions.length > 0) {
+      stockSuggestions.hidden = false;
+    }
+  });
+}
+
+async function fetchSearchSuggestionsFallback(query) {
+  try {
+    const searchUrl = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
+    const res = await fetch(proxyUrl);
+    if (!res.ok) return [];
+    const wrapper = await res.json();
+    const parsed = JSON.parse(wrapper.contents);
+    const suggestions = [];
+    let count = 0;
+    for (const quote of parsed.quotes || []) {
+      if (count >= 6) break;
+      const symbol = quote.symbol;
+      const name = quote.longname || quote.shortname || symbol;
+      const exch = quote.exchange;
+      const quoteType = quote.quoteType;
+      if (symbol && (quoteType === 'EQUITY' || quoteType === 'ETF')) {
+        suggestions.push({ symbol, name, exchange: exch });
+        count++;
+      }
+    }
+    return suggestions;
+  } catch (err) {
+    console.error("Fallback search failed:", err);
+    return [];
+  }
+}
+
+function renderSuggestions(suggestions) {
+  const stockSuggestions = document.getElementById('stockSuggestions');
+  if (!stockSuggestions) return;
+
+  stockSuggestions.innerHTML = '';
+  if (suggestions.length === 0) {
+    stockSuggestions.hidden = true;
+    return;
+  }
+
+  suggestions.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'stock-suggestion-item';
+    div.dataset.index = index;
+    div.innerHTML = `
+      <span class="stock-suggestion-ticker">${item.symbol}</span>
+      <span class="stock-suggestion-name">${item.name}</span>
+      <span class="stock-suggestion-exchange">${item.exchange}</span>
+    `;
+    div.addEventListener('click', () => {
+      selectSuggestion(item);
+    });
+    stockSuggestions.appendChild(div);
+  });
+
+  stockSuggestions.hidden = false;
+}
+
+function updateActiveSuggestion() {
+  const stockSuggestions = document.getElementById('stockSuggestions');
+  if (!stockSuggestions) return;
+
+  const items = stockSuggestions.querySelectorAll('.stock-suggestion-item');
+  items.forEach((item, idx) => {
+    if (idx === activeSuggestionIndex) {
+      item.classList.add('active');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+function selectSuggestion(item) {
+  if (!stockSearchInput) return;
+  stockSearchInput.value = item.symbol;
+  const stockSuggestions = document.getElementById('stockSuggestions');
+  if (stockSuggestions) {
+    stockSuggestions.hidden = true;
+  }
+  currentSuggestions = [];
+  activeSuggestionIndex = -1;
+  handleStockSearch();
 }
 
 init();
