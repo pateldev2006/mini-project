@@ -1011,6 +1011,11 @@ async function handleStockSearch() {
       state.stockData.chart = Array.from({ length: 12 }, () => 90 + Math.random() * 80);
     }
     
+    const stockGrid = document.querySelector('.stock-grid');
+    if (stockGrid) {
+      stockGrid.removeAttribute('hidden');
+    }
+
     setStockDetails();
     updateStockChart();
     
@@ -1042,6 +1047,11 @@ async function handleStockSearch() {
     state.stockData.confidence = `${(80 + Math.floor(Math.random() * 15))}%`;
     state.stockData.chart = Array.from({ length: 12 }, () => mockPrice * (0.85 + Math.random() * 0.3));
     
+    const stockGrid = document.querySelector('.stock-grid');
+    if (stockGrid) {
+      stockGrid.removeAttribute('hidden');
+    }
+
     setStockDetails();
     updateStockChart();
     
@@ -1586,6 +1596,7 @@ function initCharts() {
 function updateStockChart() {
   if (charts.stockChart) {
     charts.stockChart.data.datasets[0].data = state.stockData.chart;
+    charts.stockChart.resize();
     charts.stockChart.update();
   }
 }
