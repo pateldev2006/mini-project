@@ -49,8 +49,16 @@ def main():
         resizable=True
     )
     
-    # Start the webview loop
-    webview.start()
+    # Define a custom directory for user data in Windows APPDATA to persist localStorage
+    appdata_dir = os.environ.get('APPDATA')
+    if appdata_dir:
+        storage_path = os.path.join(appdata_dir, 'FinSightAI')
+    else:
+        # Fallback to local directory if APPDATA is missing
+        storage_path = os.path.abspath('user_data')
+
+    # Start the webview loop with persistence enabled
+    webview.start(private_mode=False, storage_path=storage_path)
 
 if __name__ == '__main__':
     main()
