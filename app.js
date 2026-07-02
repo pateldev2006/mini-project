@@ -2972,15 +2972,15 @@ function initGlobalSearch() {
   // Compile search data dynamically
   const getSearchData = () => {
     const data = [
-      { type: 'Page', title: 'Dashboard', keywords: ['home', 'dashboard', 'overview'], action: () => navigate('dashboard') },
-      { type: 'Page', title: 'Budget', keywords: ['budget', 'expenses', 'limits'], action: () => navigate('budget') },
-      { type: 'Page', title: 'Stock Analyzer', keywords: ['stocks', 'analyzer', 'market', 'trade', 'apple', 'aapl', 'tesla', 'tsla'], action: () => navigate('stocks') },
-      { type: 'Page', title: 'AI Advisor', keywords: ['ai', 'advisor', 'bot', 'help', 'chat'], action: () => navigate('advisor') },
-      { type: 'Page', title: 'AI Savings', keywords: ['savings', 'goals', 'emergency fund', 'retirement'], action: () => navigate('savings') },
-      { type: 'Page', title: 'Reports', keywords: ['reports', 'analytics', 'charts', 'summary'], action: () => navigate('reports') },
-      { type: 'Page', title: 'Bank Import', keywords: ['import', 'bank', 'csv', 'sync'], action: () => navigate('import') },
-      { type: 'Page', title: 'Profile', keywords: ['profile', 'settings', 'account'], action: () => navigate('profile') },
-      { type: 'Action', title: 'Create New Budget', keywords: ['create budget', 'new budget'], action: () => { navigate('budget'); openBudgetModal(); } },
+      { type: 'Page', title: 'Dashboard', keywords: ['home', 'dashboard', 'overview'], action: () => showPage('dashboard') },
+      { type: 'Page', title: 'Budget', keywords: ['budget', 'expenses', 'limits'], action: () => showPage('budget') },
+      { type: 'Page', title: 'Stock Analyzer', keywords: ['stocks', 'analyzer', 'market', 'trade', 'apple', 'aapl', 'tesla', 'tsla'], action: () => showPage('stocks') },
+      { type: 'Page', title: 'AI Advisor', keywords: ['ai', 'advisor', 'bot', 'help', 'chat'], action: () => showPage('advisor') },
+      { type: 'Page', title: 'AI Savings', keywords: ['savings', 'goals', 'emergency fund', 'retirement'], action: () => showPage('savings') },
+      { type: 'Page', title: 'Reports', keywords: ['reports', 'analytics', 'charts', 'summary'], action: () => showPage('reports') },
+      { type: 'Page', title: 'Bank Import', keywords: ['import', 'bank', 'csv', 'sync'], action: () => showPage('import') },
+      { type: 'Page', title: 'Profile', keywords: ['profile', 'settings', 'account'], action: () => showPage('profile') },
+      { type: 'Action', title: 'Create New Budget', keywords: ['create budget', 'new budget'], action: () => { showPage('budget'); openBudgetModal(); } },
       { type: 'Action', title: 'Export Transactions (CSV)', keywords: ['export', 'csv', 'download'], action: () => { exportTransactionsToCSV(); } }
     ];
 
@@ -2990,7 +2990,7 @@ function initGlobalSearch() {
           type: 'Transaction',
           title: t.desc,
           keywords: [t.desc.toLowerCase(), t.category.toLowerCase(), t.amount.toString()],
-          action: () => navigate('dashboard')
+          action: () => showPage('dashboard')
         });
       });
     }
@@ -3001,7 +3001,7 @@ function initGlobalSearch() {
           type: 'Savings Goal',
           title: s.name,
           keywords: [s.name.toLowerCase(), s.risk.toLowerCase()],
-          action: () => navigate('savings')
+          action: () => showPage('savings')
         });
       });
     }
