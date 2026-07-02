@@ -3789,3 +3789,152 @@ body::after {
   color: var(--subtext);
   font-size: 0.95rem;
 }
+
+
+/* ========================================================= */
+/* COMPREHENSIVE MOBILE OVERHAUL (max-width: 480px)          */
+/* ========================================================= */
+@media (max-width: 480px) {
+  /* Prevent horizontal scrolling entirely */
+  body, html {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  .app-shell {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .content-area {
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  /* Topbar Fixes */
+  .topbar {
+    padding: 12px 12px 0;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .topbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .search-field {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .mobile-menu-btn {
+    margin-bottom: 8px;
+  }
+
+  /* Headings & Text */
+  .page-head {
+    flex-wrap: wrap;
+  }
+  .page-head h1 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    word-wrap: break-word;
+    white-space: normal;
+  }
+  
+  .hero-copy h1 {
+    font-size: 1.75rem;
+  }
+
+  .hero-copy p {
+    font-size: 0.95rem;
+  }
+
+  /* Buttons */
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .page-head .btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  /* Grids */
+  .stats-grid,
+  .dashboard-grid,
+  .hero-metrics,
+  .budget-grid,
+  .stock-grid,
+  .savings-grid,
+  .report-grid,
+  .import-grid,
+  .profile-layout-grid,
+  .charts-grid,
+  .portfolio-layout,
+  .portfolio-metrics,
+  .savings-stats-grid,
+  .feature-grid,
+  .steps-grid,
+  .testimonial-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+  
+  .summary-card.wide-card {
+    grid-column: span 1 !important;
+  }
+
+  /* Cards */
+  .summary-card,
+  .panel-card,
+  .metric-card,
+  .budget-card,
+  .stock-card {
+    padding: 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Tables */
+  .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -12px;
+    padding: 0 12px;
+    width: calc(100% + 24px);
+  }
+
+  /* Modals */
+  .modal-dialog {
+    max-width: 95%;
+    padding: 20px;
+    margin: 10px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Floating Objects */
+  .floating-object {
+    transform: scale(0.6);
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+  }
+}
