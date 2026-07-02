@@ -3685,3 +3685,42 @@ body::after {
     transform: rotate(-3deg) translate(2%, 2%) scale(1);
   }
 }
+
+/* Floating Objects */
+.floating-objects {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1; /* Above bg, below content */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floating-object {
+  position: absolute;
+  background: rgba(14, 165, 233, 0.05);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.1);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(110vh) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-20vh) rotate(360deg) scale(1.2);
+    opacity: 0;
+  }
+}

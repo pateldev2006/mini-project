@@ -124,6 +124,7 @@ function init() {
   setupImport();
   initializeProfile();
   bindUIControls();
+  initFloatingObjects();
   setupStockSuggestions();
   updateNotificationBadge();
   initializeSavings();
@@ -2922,3 +2923,41 @@ async function handlePaymentSubmit(event) {
 }
 
 init();
+
+function initFloatingObjects() {
+  const container = document.getElementById('floatingObjects');
+  if (!container) return;
+  
+  // Clear any existing
+  container.innerHTML = '';
+  
+  const objectCount = 20;
+  for (let i = 0; i < objectCount; i++) {
+    const obj = document.createElement('div');
+    obj.classList.add('floating-object');
+    
+    // Randomize properties
+    const size = Math.random() * 60 + 20; 
+    const left = Math.random() * 100; 
+    const duration = Math.random() * 25 + 15; 
+    const delay = Math.random() * -30; // Negative delay so they start immediately distributed
+    
+    obj.style.width = `${size}px`;
+    obj.style.height = `${size}px`;
+    obj.style.left = `${left}vw`;
+    obj.style.animationDuration = `${duration}s`;
+    obj.style.animationDelay = `${delay}s`;
+    
+    // Randomize shape (circles, squares, and hollow rings)
+    const type = Math.random();
+    if (type > 0.6) {
+      obj.style.borderRadius = '50%';
+    } else if (type > 0.3) {
+      obj.style.background = 'transparent';
+      obj.style.borderWidth = '2px';
+      obj.style.borderRadius = '50%';
+    }
+    
+    container.appendChild(obj);
+  }
+}
