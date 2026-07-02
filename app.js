@@ -125,6 +125,7 @@ function init() {
   initializeProfile();
   bindUIControls();
   initFloatingObjects();
+  initGlobalSearch();
   setupStockSuggestions();
   updateNotificationBadge();
   initializeSavings();
@@ -2960,4 +2961,102 @@ function initFloatingObjects() {
     
     container.appendChild(obj);
   }
+}
+
+function initGlobalSearch() {
+  const searchInput = document.getElementById('globalSearch');
+  const resultsOverlay = document.getElementById('globalSearchResults');
+  
+  if (!searchInput || !resultsOverlay) return;
+
+  // Compile search data dynamically
+  const getSearchData = () => {
+    const data = [
+      { type: 'Page', title: 'Dashboard', keywords: ['home', 'dashboard', 'overview'], action: () => navigate('dashboard') },
+      { type: 'Page', title: 'Budget', keywords: ['budget', 'expenses', 'limits'], action: () => navigate('budget') },
+      { type: 'Page', title: 'Stock Analyzer', keywords: ['stocks', 'analyzer', 'market', 'trade', 'apple', 'aapl', 'tesla', 'tsla'], action: () => navigate('stocks') },
+      { type: 'Page', title: 'AI Advisor', keywords: ['ai', 'advisor', 'bot', 'help', 'chat'], action: () => navigate('advisor') },
+      { type: 'Page', title: 'AI Savings', keywords: ['savings', 'goals', 'emergency fund', 'retirement'], action: () => navigate('savings') },
+      { type: 'Page', title: 'Reports', keywords: ['reports', 'analytics', 'charts', 'summary'], action: () => navigate('reports') },
+      { type: 'Page', title: 'Bank Import', keywords: ['import', 'bank', 'csv', 'sync'], action: () => navigate('import') },
+      { type: 'Page', title: 'Profile', keywords: ['profile', 'settings', 'account'], action: () => navigate('profile') },
+      { type: 'Action', title: 'Create New Budget', keywords: ['create budget', 'new budget'], action: () => { navigate('budget'); openBudgetModal(); } },
+      { type: 'Action', title: 'Export Transactions (CSV)', keywords: ['export', 'csv', 'download'], action: () => { exportTransactionsToCSV(); } }
+    ];
+
+    if (state && state.transactions) {
+      state.transactions.forEach(t => {
+        data.push({
+          type: 'Transaction',
+          title: t.desc,
+          keywords: [t.desc.toLowerCase(), t.category.toLowerCase(), t.amount.toString()],
+          action: () => navigate('dashboard')
+        });
+      });
+    }
+    
+    if (state && state.savings) {
+      state.savings.forEach(s => {
+        data.push({
+          type: 'Savings Goal',
+          title: s.name,
+          keywords: [s.name.toLowerCase(), s.risk.toLowerCase()],
+          action: () => navigate('savings')
+        });
+      });
+    }
+
+    return data;
+  };
+
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    if (!query) {
+      resultsOverlay.hidden = true;
+      return;
+    }
+
+    const searchData = getSearchData();
+    const results = searchData.filter(item => 
+      item.title.toLowerCase().includes(query) || 
+      item.keywords.some(k => k.includes(query))
+    ).slice(0, 8); // Max 8 results
+
+    resultsOverlay.innerHTML = '';
+    
+    if (results.length === 0) {
+      resultsOverlay.innerHTML = `<div class="search-empty">No results found for "${query}"</div>`;
+    } else {
+      results.forEach(res => {
+        const itemEl = document.createElement('div');
+        itemEl.classList.add('search-result-item');
+        itemEl.innerHTML = `
+          <div class="search-result-title">${res.title}</div>
+          <div class="search-result-desc">${res.type}</div>
+        `;
+        itemEl.addEventListener('click', () => {
+          res.action();
+          searchInput.value = '';
+          resultsOverlay.hidden = true;
+        });
+        resultsOverlay.appendChild(itemEl);
+      });
+    }
+    
+    resultsOverlay.hidden = false;
+  });
+
+  // Hide on outside click
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !resultsOverlay.contains(e.target)) {
+      resultsOverlay.hidden = true;
+    }
+  });
+  
+  // Show on focus if there's text
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim().length > 0) {
+      searchInput.dispatchEvent(new Event('input'));
+    }
+  });
 }
