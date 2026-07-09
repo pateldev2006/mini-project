@@ -3090,15 +3090,17 @@ function initFloatingObjects() {
     container.appendChild(obj);
   }
   
-  // 4) Data Streams (4 items - vertical lines falling down)
-  for (let i = 0; i < 4; i++) {
+  // 4) Diamonds (5 items - floating diamond outlines)
+  for (let i = 0; i < 5; i++) {
     const obj = document.createElement('div');
-    obj.classList.add('floating-object', 'data-stream');
-    const height = Math.random() * 80 + 40;
+    obj.classList.add('floating-object', 'diamond');
+    const size = Math.random() * 20 + 10;
     const left = Math.random() * 95;
-    const duration = Math.random() * 6 + 4;
-    const delay = Math.random() * -10;
-    obj.style.cssText = `height:${height}px;left:${left}vw;animation-duration:${duration}s;animation-delay:${delay}s;`;
+    const duration = Math.random() * 25 + 20;
+    const delay = Math.random() * -30;
+    const driftX = (Math.random() - 0.5) * 80;
+    const driftRot = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 180 + 90);
+    obj.style.cssText = `width:${size}px;height:${size}px;left:${left}vw;animation-duration:${duration}s;animation-delay:${delay}s;--drift-x:${driftX}px;--drift-rot:${driftRot}deg;`;
     container.appendChild(obj);
   }
   
