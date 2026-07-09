@@ -311,13 +311,27 @@ Provide a detailed, accurate, and professional response.
                 self.wfile.write(json.dumps({'reply': reply}).encode('utf-8'))
                     
             except Exception as e:
+                import urllib.error
                 import traceback
                 traceback.print_exc()
+                
+                err_details = str(e)
+                if isinstance(e, urllib.error.HTTPError):
+                    try:
+                        body_content = e.read().decode('utf-8')
+                        err_json = json.loads(body_content)
+                        if 'error' in err_json:
+                            err_details = f"{e}: {err_json['error'].get('message', '')}"
+                        else:
+                            err_details = f"{e}: {body_content}"
+                    except Exception:
+                        pass
+                
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps({'reply': f"### ❌ AI Integration Error\nFailed to connect to Gemini API. Details: `{str(e)}`"}).encode('utf-8'))
+                self.wfile.write(json.dumps({'reply': f"### ❌ AI Integration Error\nFailed to connect to Gemini API. Details: `{err_details}`"}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
