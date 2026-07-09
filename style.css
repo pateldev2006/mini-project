@@ -195,8 +195,7 @@ button {
 .sidebar-link.active {
   background: rgba(14, 165, 233, 0.12);
   color: var(--text);
-  border-left: 3px solid transparent;
-  border-image: linear-gradient(180deg, #0ea5e9, #8b5cf6) 1;
+  border-left: 3px solid var(--accent);
 }
 
 
@@ -648,8 +647,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 28px;
   padding: 28px;
-  border-top: 3px solid transparent;
-  border-image: linear-gradient(90deg, #0ea5e9, #8b5cf6) 1;
+  border-top: 3px solid var(--accent);
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
@@ -916,8 +914,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 28px;
   padding: 24px;
-  border-top: 2px solid;
-  border-image: linear-gradient(90deg, rgba(14, 165, 233, 0.3), rgba(139, 92, 246, 0.2)) 1;
+  border-top: 2px solid rgba(14, 165, 233, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -2768,11 +2765,11 @@ input:checked + .slider:before {
 }
 
 .glass-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(90deg, rgba(14, 165, 233, 0.4), rgba(139, 92, 246, 0.4), rgba(20, 184, 166, 0.3)) border-box;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
   box-shadow: 0 8px 32px rgba(14, 165, 233, 0.08);
-  border-top: 2px solid;
-  border-image: linear-gradient(90deg, rgba(14, 165, 233, 0.4), rgba(139, 92, 246, 0.4), rgba(20, 184, 166, 0.3)) 1;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
