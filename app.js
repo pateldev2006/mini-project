@@ -1493,18 +1493,20 @@ function renderChat() {
 function detectStockSymbol(prompt) {
   const lower = prompt.toLowerCase();
   const stopWords = new Set(['what', 'is', 'the', 'of', 'in', 'and', 'to', 'a', 'about', 'how', 'does', 'do', 'you', 'think', 'recommend', 'should', 'buy', 'sell', 'stock', 'share', 'shares', 'price', 'info', 'details', 'tell', 'me', 'on', 'for', 'with', 'at', 'any']);
-  const words = prompt.replace(/[?.,!]/g, '').split(/\s+/).map(w => w.trim()).filter(w => w.length > 1);
+  const words = prompt.split(/\s+/).map(w => w.replace(/^[?.,!]+|[?.,!]+$/g, '').trim()).filter(w => w.length > 1);
   
   let detectedSymbolOrName = null;
+  // First attempt: look for clean uppercase words (e.g. AAPL, RELIANCE.NS)
   for (const word of words) {
-    if (word.length >= 2 && word.length <= 5 && /^[A-Za-z]+$/.test(word)) {
-      if (word === word.toUpperCase() && !stopWords.has(word.toLowerCase())) {
+    if (word === word.toUpperCase() && !stopWords.has(word.toLowerCase())) {
+      if (/^[A-Z]{2,6}$/.test(word) || /^[A-Z]+\.[A-Z]{2,3}$/.test(word)) {
         detectedSymbolOrName = word;
         break;
       }
     }
   }
   
+  // Second attempt: look for any non-stopword if no uppercase match found
   if (!detectedSymbolOrName) {
     for (const word of words) {
       if (!stopWords.has(word.toLowerCase())) {
@@ -1520,8 +1522,8 @@ function isStockQuery(prompt, detectedSymbol) {
   if (!detectedSymbol) return false;
   const lower = prompt.toLowerCase();
   
-  // If the symbol is a clean uppercase ticker symbol (e.g., 2 to 5 letters), it's a stock query
-  if (/^[A-Z]{2,5}$/.test(detectedSymbol)) return true;
+  // If the symbol is a clean uppercase ticker (e.g., 2 to 6 letters), or contains exchange suffix like .NS or .BO
+  if (/^[A-Z]{2,6}$/.test(detectedSymbol) || /^[A-Z]+\.[A-Z]{2,3}$/.test(detectedSymbol)) return true;
   
   // Otherwise, the prompt must contain a stock-related keyword
   const keywords = ['stock', 'price', 'share', 'shares', 'ticker', 'market', 'symbol', 'quote', 'portfolio', 'buy', 'sell'];
