@@ -1516,6 +1516,18 @@ function detectStockSymbol(prompt) {
   return detectedSymbolOrName;
 }
 
+function isStockQuery(prompt, detectedSymbol) {
+  if (!detectedSymbol) return false;
+  const lower = prompt.toLowerCase();
+  
+  // If the symbol is a clean uppercase ticker symbol (e.g., 2 to 5 letters), it's a stock query
+  if (/^[A-Z]{2,5}$/.test(detectedSymbol)) return true;
+  
+  // Otherwise, the prompt must contain a stock-related keyword
+  const keywords = ['stock', 'price', 'share', 'shares', 'ticker', 'market', 'symbol', 'quote', 'portfolio', 'buy', 'sell'];
+  return keywords.some(keyword => lower.includes(keyword));
+}
+
 function getLocalFallbackAdvice(prompt) {
   const lower = prompt.toLowerCase();
   let totalIncome = 0;
@@ -1665,7 +1677,7 @@ async function generateChatResponseAsync(prompt) {
       if (data.key_missing) {
         let stockInfoText = "";
         const detectedSymbolOrName = detectStockSymbol(prompt);
-        if (detectedSymbolOrName) {
+        if (detectedSymbolOrName && isStockQuery(prompt, detectedSymbolOrName)) {
           try {
             const searchRes = await fetch(`/api/search?q=${encodeURIComponent(detectedSymbolOrName)}`);
             if (searchRes.ok) {
@@ -1698,7 +1710,7 @@ async function generateChatResponseAsync(prompt) {
   
   // 2. Full local rule-based system if server fails completely or goes offline
   const detectedSymbolOrName = detectStockSymbol(prompt);
-  if (detectedSymbolOrName) {
+  if (detectedSymbolOrName && isStockQuery(prompt, detectedSymbolOrName)) {
     try {
       const searchRes = await fetch(`/api/search?q=${encodeURIComponent(detectedSymbolOrName)}`);
       if (searchRes.ok) {
