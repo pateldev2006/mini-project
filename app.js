@@ -2932,35 +2932,173 @@ function initFloatingObjects() {
   // Clear any existing
   container.innerHTML = '';
   
-  const objectCount = 20;
-  for (let i = 0; i < objectCount; i++) {
+  // === Create varied floating objects ===
+  
+  // 1) Neon Rings (8 items)
+  for (let i = 0; i < 8; i++) {
     const obj = document.createElement('div');
-    obj.classList.add('floating-object');
-    
-    // Randomize properties
-    const size = Math.random() * 60 + 20; 
-    const left = Math.random() * 100; 
-    const duration = Math.random() * 25 + 15; 
-    const delay = Math.random() * -30; // Negative delay so they start immediately distributed
-    
-    obj.style.width = `${size}px`;
-    obj.style.height = `${size}px`;
-    obj.style.left = `${left}vw`;
-    obj.style.animationDuration = `${duration}s`;
-    obj.style.animationDelay = `${delay}s`;
-    
-    // Randomize shape (circles, squares, and hollow rings)
-    const type = Math.random();
-    if (type > 0.6) {
-      obj.style.borderRadius = '50%';
-    } else if (type > 0.3) {
-      obj.style.background = 'transparent';
-      obj.style.borderWidth = '2px';
-      obj.style.borderRadius = '50%';
-    }
-    
+    obj.classList.add('floating-object', 'neon-ring');
+    const size = Math.random() * 50 + 25;
+    const left = Math.random() * 95;
+    const duration = Math.random() * 20 + 20;
+    const delay = Math.random() * -35;
+    const driftX = (Math.random() - 0.5) * 120;
+    const driftRot = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 360 + 180);
+    obj.style.cssText = `width:${size}px;height:${size}px;left:${left}vw;animation-duration:${duration}s;animation-delay:${delay}s;--drift-x:${driftX}px;--drift-rot:${driftRot}deg;`;
     container.appendChild(obj);
   }
+  
+  // 2) Hexagons (6 items)
+  for (let i = 0; i < 6; i++) {
+    const obj = document.createElement('div');
+    obj.classList.add('floating-object', 'hexagon');
+    const size = Math.random() * 40 + 20;
+    const left = Math.random() * 95;
+    const duration = Math.random() * 25 + 25;
+    const delay = Math.random() * -40;
+    obj.style.cssText = `width:${size}px;height:${size}px;left:${left}vw;animation-duration:${duration}s;animation-delay:${delay}s;`;
+    container.appendChild(obj);
+  }
+  
+  // 3) Glowing Orbs (5 items)
+  for (let i = 0; i < 5; i++) {
+    const obj = document.createElement('div');
+    obj.classList.add('floating-object', 'glow-orb');
+    const size = Math.random() * 30 + 10;
+    const left = Math.random() * 95;
+    const duration = Math.random() * 30 + 25;
+    const delay = Math.random() * -35;
+    const driftX = (Math.random() - 0.5) * 80;
+    obj.style.cssText = `width:${size}px;height:${size}px;left:${left}vw;animation-duration:${duration}s;animation-delay:${delay}s;--drift-x:${driftX}px;`;
+    container.appendChild(obj);
+  }
+  
+  // 4) Data Streams (4 items - vertical lines falling down)
+  for (let i = 0; i < 4; i++) {
+    const obj = document.createElement('div');
+    obj.classList.add('floating-object', 'data-stream');
+    const height = Math.random() * 80 + 40;
+    const left = Math.random() * 95;
+    const duration = Math.random() * 6 + 4;
+    const delay = Math.random() * -10;
+    obj.style.cssText = `height:${height}px;left:${left}vw;animation-duration:${duration}s;animation-delay:${delay}s;`;
+    container.appendChild(obj);
+  }
+  
+  // 5) Scan Lines (2 items - horizontal sweeps)
+  for (let i = 0; i < 2; i++) {
+    const obj = document.createElement('div');
+    obj.classList.add('floating-object', 'scan-line');
+    const duration = 10 + i * 8;
+    const delay = -(i * 6);
+    obj.style.cssText = `animation-duration:${duration}s;animation-delay:${delay}s;`;
+    container.appendChild(obj);
+  }
+  
+  // 6) Grid Dots (6 items - small pulsing dots)
+  for (let i = 0; i < 6; i++) {
+    const obj = document.createElement('div');
+    obj.classList.add('floating-object', 'grid-dot');
+    const size = Math.random() * 5 + 3;
+    const left = Math.random() * 95;
+    const duration = Math.random() * 35 + 30;
+    const delay = Math.random() * -40;
+    const driftX = (Math.random() - 0.5) * 60;
+    obj.style.cssText = `width:${size}px;height:${size}px;left:${left}vw;animation-duration:${duration}s;animation-delay:${delay}s;--drift-x:${driftX}px;`;
+    container.appendChild(obj);
+  }
+  
+  // === Initialize canvas particle constellation ===
+  initBgCanvas();
+}
+
+// Animated particle constellation on canvas
+function initBgCanvas() {
+  const canvas = document.getElementById('bgCanvas');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  let animationId;
+  let particles = [];
+  const PARTICLE_COUNT = 60;
+  const CONNECTION_DIST = 120;
+  
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  
+  function createParticles() {
+    particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        size: Math.random() * 2 + 0.8,
+        opacity: Math.random() * 0.5 + 0.2
+      });
+    }
+  }
+  
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const isDark = document.documentElement.classList.contains('dark');
+    const baseColor = isDark ? '14, 165, 233' : '2, 132, 199';
+    const lineColor = isDark ? '14, 165, 233' : '2, 132, 199';
+    
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < CONNECTION_DIST) {
+          const opacity = (1 - dist / CONNECTION_DIST) * 0.25;
+          ctx.strokeStyle = `rgba(${lineColor}, ${opacity})`;
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    
+    // Draw particles
+    for (const p of particles) {
+      ctx.fillStyle = `rgba(${baseColor}, ${p.opacity})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Update positions
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      
+      // Wrap around edges
+      if (p.x < -10) p.x = canvas.width + 10;
+      if (p.x > canvas.width + 10) p.x = -10;
+      if (p.y < -10) p.y = canvas.height + 10;
+      if (p.y > canvas.height + 10) p.y = -10;
+    }
+    
+    animationId = requestAnimationFrame(draw);
+  }
+  
+  resize();
+  createParticles();
+  draw();
+  
+  window.addEventListener('resize', () => {
+    resize();
+    createParticles();
+  });
 }
 
 function initGlobalSearch() {

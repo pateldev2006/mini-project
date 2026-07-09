@@ -1,7 +1,11 @@
 :root {
   color-scheme: light;
-  --bg: #ffffff;
-  --bg-gradient: radial-gradient(circle at top left, rgba(14, 165, 233, 0.05), transparent 32%), #ffffff;
+  --bg: #f0f4f8;
+  --bg-gradient: 
+    radial-gradient(ellipse at 15% 10%, rgba(14, 165, 233, 0.08), transparent 50%),
+    radial-gradient(ellipse at 85% 20%, rgba(139, 92, 246, 0.06), transparent 45%),
+    radial-gradient(ellipse at 50% 80%, rgba(20, 184, 166, 0.05), transparent 50%),
+    linear-gradient(135deg, #f0f4f8, #e8eef5);
   --surface: rgba(255, 255, 255, 0.95);
   --surface-strong: #ffffff;
   --surface-muted: rgba(10, 22, 40, 0.04);
@@ -18,8 +22,14 @@
 
 .dark {
   color-scheme: dark;
-  --bg: #08121f;
-  --bg-gradient: radial-gradient(circle at top left, rgba(14, 165, 233, 0.22), transparent 36%), var(--bg);
+  --bg: #050d1a;
+  --bg-gradient: 
+    radial-gradient(ellipse at 10% 5%, rgba(14, 165, 233, 0.25), transparent 45%),
+    radial-gradient(ellipse at 90% 15%, rgba(99, 102, 241, 0.2), transparent 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.08), transparent 55%),
+    radial-gradient(ellipse at 20% 90%, rgba(20, 184, 166, 0.15), transparent 45%),
+    radial-gradient(ellipse at 80% 80%, rgba(236, 72, 153, 0.08), transparent 40%),
+    linear-gradient(180deg, #050d1a, #0a1628, #08121f);
   --surface: rgba(15, 25, 42, 0.94);
   --surface-strong: rgba(14, 22, 36, 0.98);
   --surface-muted: rgba(255, 255, 255, 0.06);
@@ -43,7 +53,10 @@ body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   background: var(--bg-gradient);
+  background-attachment: fixed;
   color: var(--text);
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 img {
@@ -77,6 +90,8 @@ button {
   display: grid;
   grid-template-columns: 320px 1fr;
   min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar {
@@ -3640,8 +3655,24 @@ button#tradeBadge.clickable:active {
 }
 
 
+/* ============ Futuristic Background System ============ */
 
-/* Futuristic Background Animation */
+/* Canvas for animated particle grid */
+#bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+}
+.dark #bgCanvas {
+  opacity: 0.6;
+}
+
+/* Animated gradient blobs */
 body::before, body::after {
   content: "";
   position: fixed;
@@ -3650,80 +3681,208 @@ body::before, body::after {
   width: 200%;
   height: 200%;
   background-repeat: no-repeat;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
-  animation: bgOrbit 40s ease-in-out infinite alternate;
 }
 
 body::before {
-  background-image: radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.12), transparent 45%),
-                    radial-gradient(circle at 80% 70%, rgba(99, 102, 241, 0.12), transparent 45%);
-  animation-duration: 45s;
+  background-image: 
+    radial-gradient(circle at 20% 25%, rgba(14, 165, 233, 0.18), transparent 40%),
+    radial-gradient(circle at 75% 65%, rgba(99, 102, 241, 0.15), transparent 40%),
+    radial-gradient(circle at 50% 10%, rgba(236, 72, 153, 0.08), transparent 35%);
+  animation: bgOrbit1 50s ease-in-out infinite alternate;
 }
 
 body::after {
-  background-image: radial-gradient(circle at 70% 20%, rgba(168, 85, 247, 0.12), transparent 40%),
-                    radial-gradient(circle at 30% 80%, rgba(20, 184, 166, 0.12), transparent 40%);
-  animation-duration: 35s;
-  animation-direction: alternate-reverse;
+  background-image: 
+    radial-gradient(circle at 65% 15%, rgba(168, 85, 247, 0.15), transparent 38%),
+    radial-gradient(circle at 25% 80%, rgba(20, 184, 166, 0.18), transparent 42%),
+    radial-gradient(circle at 85% 45%, rgba(14, 165, 233, 0.1), transparent 35%);
+  animation: bgOrbit2 40s ease-in-out infinite alternate-reverse;
 }
 
-@keyframes bgOrbit {
-  0% {
-    transform: rotate(0deg) translate(0%, 0%) scale(1);
-  }
-  25% {
-    transform: rotate(3deg) translate(-2%, 3%) scale(1.05);
-  }
-  50% {
-    transform: rotate(-2deg) translate(3%, -2%) scale(0.95);
-  }
-  75% {
-    transform: rotate(1deg) translate(-3%, -3%) scale(1.02);
-  }
-  100% {
-    transform: rotate(-3deg) translate(2%, 2%) scale(1);
-  }
+.dark body::before {
+  background-image: 
+    radial-gradient(circle at 20% 25%, rgba(14, 165, 233, 0.28), transparent 40%),
+    radial-gradient(circle at 75% 65%, rgba(99, 102, 241, 0.22), transparent 40%),
+    radial-gradient(circle at 50% 10%, rgba(236, 72, 153, 0.12), transparent 35%);
 }
 
-/* Floating Objects */
+.dark body::after {
+  background-image: 
+    radial-gradient(circle at 65% 15%, rgba(168, 85, 247, 0.25), transparent 38%),
+    radial-gradient(circle at 25% 80%, rgba(20, 184, 166, 0.22), transparent 42%),
+    radial-gradient(circle at 85% 45%, rgba(14, 165, 233, 0.15), transparent 35%);
+}
+
+@keyframes bgOrbit1 {
+  0%   { transform: rotate(0deg) translate(0%, 0%) scale(1); }
+  20%  { transform: rotate(2deg) translate(-1.5%, 2%) scale(1.03); }
+  40%  { transform: rotate(-1deg) translate(2%, -1.5%) scale(0.97); }
+  60%  { transform: rotate(1.5deg) translate(-2%, -1%) scale(1.04); }
+  80%  { transform: rotate(-2deg) translate(1%, 2.5%) scale(0.98); }
+  100% { transform: rotate(-1deg) translate(2%, -2%) scale(1.01); }
+}
+
+@keyframes bgOrbit2 {
+  0%   { transform: rotate(0deg) translate(0%, 0%) scale(1); }
+  25%  { transform: rotate(-2deg) translate(2%, -2%) scale(1.05); }
+  50%  { transform: rotate(1deg) translate(-2%, 3%) scale(0.96); }
+  75%  { transform: rotate(-1.5deg) translate(3%, 1%) scale(1.03); }
+  100% { transform: rotate(2deg) translate(-1%, -2%) scale(1); }
+}
+
+/* ============ Floating Objects Container ============ */
 .floating-objects {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 1; /* Above bg, below content */
+  z-index: 0;
   pointer-events: none;
   overflow: hidden;
 }
 
+/* ============ Floating Object Base & Variants ============ */
 .floating-object {
   position: absolute;
-  background: rgba(14, 165, 233, 0.05);
-  border: 1px solid rgba(14, 165, 233, 0.2);
-  box-shadow: 0 0 20px rgba(14, 165, 233, 0.1);
-  backdrop-filter: blur(2px);
   pointer-events: none;
-  animation: floatUp linear infinite;
+  will-change: transform, opacity;
 }
 
-@keyframes floatUp {
+/* --- Neon Ring --- */
+.floating-object.neon-ring {
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid rgba(14, 165, 233, 0.25);
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.15), inset 0 0 15px rgba(14, 165, 233, 0.05);
+  animation: floatDrift linear infinite;
+}
+
+/* --- Hexagon --- */
+.floating-object.hexagon {
+  background: rgba(139, 92, 246, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: floatSway ease-in-out infinite;
+}
+
+/* --- Glowing Orb --- */
+.floating-object.glow-orb {
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.3), rgba(14, 165, 233, 0.05) 60%, transparent 70%);
+  filter: blur(1px);
+  animation: floatDrift linear infinite, pulseGlow 4s ease-in-out infinite alternate;
+}
+
+/* --- Data Stream --- */
+.floating-object.data-stream {
+  width: 2px !important;
+  border-radius: 1px;
+  background: linear-gradient(180deg, transparent, rgba(20, 184, 166, 0.6), transparent);
+  animation: dataStream linear infinite;
+}
+
+/* --- Scan Line --- */
+.floating-object.scan-line {
+  height: 1px !important;
+  width: 100vw !important;
+  left: 0 !important;
+  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.15), rgba(139, 92, 246, 0.1), transparent);
+  animation: scanLine 12s linear infinite;
+}
+
+/* --- Grid Dot --- */
+.floating-object.grid-dot {
+  border-radius: 50%;
+  background: rgba(14, 165, 233, 0.35);
+  box-shadow: 0 0 8px rgba(14, 165, 233, 0.3);
+  animation: pulseGlow 3s ease-in-out infinite alternate, floatDrift 30s linear infinite;
+}
+
+/* Dark mode glow boost */
+.dark .floating-object.neon-ring {
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: 0 0 25px rgba(14, 165, 233, 0.25), inset 0 0 20px rgba(14, 165, 233, 0.08);
+}
+.dark .floating-object.hexagon {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+.dark .floating-object.glow-orb {
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.45), rgba(14, 165, 233, 0.08) 60%, transparent 70%);
+}
+.dark .floating-object.data-stream {
+  background: linear-gradient(180deg, transparent, rgba(20, 184, 166, 0.8), transparent);
+}
+.dark .floating-object.grid-dot {
+  background: rgba(14, 165, 233, 0.5);
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.4);
+}
+
+/* ============ Keyframe Animations ============ */
+@keyframes floatDrift {
   0% {
-    transform: translateY(110vh) rotate(0deg) scale(0.8);
+    transform: translate(0, 110vh) rotate(0deg) scale(0.7);
     opacity: 0;
   }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
+  8% { opacity: 0.8; }
+  92% { opacity: 0.8; }
   100% {
-    transform: translateY(-20vh) rotate(360deg) scale(1.2);
+    transform: translate(var(--drift-x, 50px), -20vh) rotate(var(--drift-rot, 360deg)) scale(1.1);
     opacity: 0;
   }
 }
+
+@keyframes floatSway {
+  0% {
+    transform: translate(0, 110vh) rotate(0deg);
+    opacity: 0;
+  }
+  8% { opacity: 0.7; }
+  25% { transform: translate(40px, 75vh) rotate(15deg); }
+  50% { transform: translate(-30px, 45vh) rotate(-10deg); }
+  75% { transform: translate(20px, 15vh) rotate(8deg); }
+  92% { opacity: 0.7; }
+  100% {
+    transform: translate(-10px, -15vh) rotate(-5deg);
+    opacity: 0;
+  }
+}
+
+@keyframes scanLine {
+  0% {
+    transform: translateY(-10vh);
+    opacity: 0;
+  }
+  5% { opacity: 0.6; }
+  95% { opacity: 0.6; }
+  100% {
+    transform: translateY(110vh);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0.4; transform: scale(1); }
+}
+
+@keyframes dataStream {
+  0% {
+    transform: translateY(-20vh);
+    opacity: 0;
+  }
+  10% { opacity: 0.9; }
+  90% { opacity: 0.9; }
+  100% {
+    transform: translateY(110vh);
+    opacity: 0;
+  }
+}
+
 
 /* Global Search Overlay */
 .search-field {
@@ -3928,9 +4087,20 @@ body::after {
     overflow-y: auto;
   }
 
-  /* Floating Objects */
+  /* Floating Objects - reduce on mobile for performance */
   .floating-object {
-    transform: scale(0.6);
+    transform: scale(0.5);
+    opacity: 0.5;
+  }
+  .floating-object.scan-line,
+  .floating-object.data-stream {
+    display: none; /* hide these on mobile for cleaner look */
+  }
+  #bgCanvas {
+    opacity: 0.2;
+  }
+  .dark #bgCanvas {
+    opacity: 0.3;
   }
   
   /* Sidebar */
