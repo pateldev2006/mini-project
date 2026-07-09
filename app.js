@@ -782,6 +782,123 @@ function bindUIControls() {
     paymentForm.addEventListener('submit', handlePaymentSubmit);
   }
 
+  // Watch Demo Button — scroll to features on home page
+  const watchDemoBtn = document.getElementById('watchDemoBtn');
+  if (watchDemoBtn) {
+    watchDemoBtn.addEventListener('click', () => {
+      showPage('home');
+      setTimeout(() => {
+        const featureGrid = document.querySelector('.feature-grid');
+        if (featureGrid) {
+          featureGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    });
+  }
+
+  // Sign Out Button — clear session and reload
+  const logoutButton = document.getElementById('logoutButton');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', () => {
+      // Clear all FinSight data from localStorage
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('finsight')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      showToast('Signed out successfully. Reloading...', 'success');
+      closeProfileMenu();
+      setTimeout(() => {
+        window.location.reload();
+      }, 1200);
+    });
+  }
+
+  // Savings Filter Buttons
+  const savingsFilterControls = document.getElementById('savingsFilterControls');
+  if (savingsFilterControls) {
+    savingsFilterControls.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Update active state
+        savingsFilterControls.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const filter = btn.dataset.filter;
+        const savingsGrid = document.getElementById('savingsGrid');
+        if (!savingsGrid) return;
+        
+        const cards = savingsGrid.querySelectorAll('.savings-card');
+        cards.forEach(card => {
+          const risk = card.dataset.risk || '';
+          if (filter === 'all') {
+            card.style.display = '';
+          } else if (filter === 'low-secure') {
+            card.style.display = (risk === 'low' || risk === 'secure') ? '' : 'none';
+          } else if (filter === 'balanced-moderate') {
+            card.style.display = (risk === 'balanced' || risk === 'moderate') ? '' : 'none';
+          } else if (filter === 'high') {
+            card.style.display = (risk === 'high') ? '' : 'none';
+          }
+        });
+      });
+    });
+  }
+
+  // Savings Sort Dropdown
+  const savingsSortSelect = document.getElementById('savingsSortSelect');
+  if (savingsSortSelect) {
+    savingsSortSelect.addEventListener('change', () => {
+      const sortBy = savingsSortSelect.value;
+      const savingsGrid = document.getElementById('savingsGrid');
+      if (!savingsGrid) return;
+      
+      const cards = Array.from(savingsGrid.querySelectorAll('.savings-card'));
+      cards.sort((a, b) => {
+        const aBalance = parseFloat(a.dataset.balance) || 0;
+        const bBalance = parseFloat(b.dataset.balance) || 0;
+        const aReturn = parseFloat(a.dataset.returnRate) || 0;
+        const bReturn = parseFloat(b.dataset.returnRate) || 0;
+        const aProgress = parseFloat(a.dataset.progress) || 0;
+        const bProgress = parseFloat(b.dataset.progress) || 0;
+        
+        switch (sortBy) {
+          case 'balance-desc': return bBalance - aBalance;
+          case 'balance-asc': return aBalance - bBalance;
+          case 'return-desc': return bReturn - aReturn;
+          case 'progress-desc': return bProgress - aProgress;
+          default: return 0;
+        }
+      });
+      
+      cards.forEach(card => savingsGrid.appendChild(card));
+    });
+  }
+
+  // Download PDF Button — use native print dialog
+  const downloadPdfBtnEl = document.getElementById('downloadPdfBtn');
+  if (downloadPdfBtnEl) {
+    // Remove existing listeners by replacing the element
+    const newPdfBtn = downloadPdfBtnEl.cloneNode(true);
+    downloadPdfBtnEl.parentNode.replaceChild(newPdfBtn, downloadPdfBtnEl);
+    newPdfBtn.addEventListener('click', () => {
+      showToast('Opening print dialog for PDF export...', 'info');
+      setTimeout(() => window.print(), 500);
+    });
+  }
+
+  // Footer links navigation
+  document.querySelectorAll('.landing-footer a[href^="#"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const page = link.getAttribute('href').substring(1);
+      if (page) showPage(page);
+    });
+  });
+
   // global outside click listener above handles closing for all dropdowns
 }
 
@@ -2280,7 +2397,7 @@ function renderSavingsCards() {
 
   savingsGrid.innerHTML = filtered.map(item => {
     return `
-      <article class="savings-card glass-card card-${item.riskLevel}">
+      <article class="savings-card glass-card card-${item.riskLevel}" data-risk="${item.riskLevel}" data-balance="${item.balance}" data-return-rate="${item.returnRate}" data-progress="${item.progress}">
         <div class="savings-card-header">
           <div class="savings-icon-container">
             ${icons[item.icon] || icons['shield']}
