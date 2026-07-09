@@ -3102,13 +3102,15 @@ function initFloatingObjects() {
     container.appendChild(obj);
   }
   
-  // 5) Scan Lines (2 items - horizontal sweeps)
-  for (let i = 0; i < 2; i++) {
+  // 5) Plus Markers (4 items - floating crosses)
+  for (let i = 0; i < 4; i++) {
     const obj = document.createElement('div');
-    obj.classList.add('floating-object', 'scan-line');
-    const duration = 10 + i * 8;
-    const delay = -(i * 6);
-    obj.style.cssText = `animation-duration:${duration}s;animation-delay:${delay}s;`;
+    obj.classList.add('floating-object', 'plus-marker');
+    const left = Math.random() * 95;
+    const duration = Math.random() * 25 + 20;
+    const delay = Math.random() * -30;
+    const driftX = (Math.random() - 0.5) * 80;
+    obj.style.cssText = `left:${left}vw;animation-duration:${duration}s;animation-delay:${delay}s;--drift-x:${driftX}px;`;
     container.appendChild(obj);
   }
   

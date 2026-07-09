@@ -3879,14 +3879,41 @@ body::after {
   animation: dataStream linear infinite;
 }
 
-/* --- Scan Line --- */
-.floating-object.scan-line {
-  height: 1px !important;
-  width: 100vw !important;
-  left: 0 !important;
-  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.15), rgba(139, 92, 246, 0.1), transparent);
-  animation: scanLine 12s linear infinite;
+/* --- Plus Marker --- */
+.floating-object.plus-marker {
+  width: 14px !important;
+  height: 14px !important;
+  background: transparent;
+  animation: floatDrift 28s linear infinite;
 }
+
+.floating-object.plus-marker::before,
+.floating-object.plus-marker::after {
+  content: "";
+  position: absolute;
+  background: rgba(14, 165, 233, 0.4);
+  box-shadow: 0 0 8px rgba(14, 165, 233, 0.35);
+}
+
+.floating-object.plus-marker::before {
+  top: 6px;
+  left: 0;
+  width: 14px;
+  height: 2px;
+}
+
+.floating-object.plus-marker::after {
+  top: 0;
+  left: 6px;
+  width: 2px;
+  height: 14px;
+}
+
+.dark .floating-object.plus-marker::before,
+.dark .floating-object.plus-marker::after {
+  background: rgba(14, 165, 233, 0.65);
+}
+
 
 /* --- Grid Dot --- */
 .floating-object.grid-dot {
@@ -4187,7 +4214,7 @@ body::after {
     transform: scale(0.5);
     opacity: 0.5;
   }
-  .floating-object.scan-line,
+  .floating-object.plus-marker,
   .floating-object.data-stream {
     display: none; /* hide these on mobile for cleaner look */
   }
