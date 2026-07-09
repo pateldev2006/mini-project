@@ -1500,7 +1500,9 @@ function detectStockSymbol(prompt) {
     'return', 'returns', 'rate', 'rates', 'interest', 'debt', 'debts', 'tax', 'taxes', 'fund', 'funds', 'sip', 'sips', 'fd', 'fds', 
     'transaction', 'transactions', 'help', 'guide', 'explain', 'show', 'view', 'display', 'check', 'analyze', 'analysis', 
     'audit', 'track', 'chart', 'graph', 'report', 'reports', 'summary', 'detail', 'details', 'list', 'table', 'data', 'information',
-    'make', 'learn', 'get', 'create', 'add', 'edit', 'delete', 'remove', 'clear'
+    'make', 'learn', 'get', 'create', 'add', 'edit', 'delete', 'remove', 'clear',
+    'give', 'some', 'suggest', 'suggestion', 'suggestions', 'this', 'that', 'these', 'those', 'who', 'where', 'when', 'why', 'which',
+    'only', 'own', 'same', 'each', 'every', 'other', 'another', 'none', 'both', 'all'
   ]);
   const words = prompt.split(/\s+/).map(w => w.replace(/^[?.,!]+|[?.,!]+$/g, '').trim()).filter(w => w.length > 1);
   
