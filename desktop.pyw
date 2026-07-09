@@ -47,12 +47,12 @@ def main():
     if not server_ready:
         print("[ERROR] Local background server failed to start in time.")
         
-    print(f"Launching desktop app wrapper pointing to: http://localhost:{port}")
+    print(f"Launching desktop app wrapper pointing to: http://127.0.0.1:{port}")
     
     # Create the native desktop window pointing to the localhost server
     window = webview.create_window(
         title='FinSight AI — Desktop App',
-        url=f'http://localhost:{port}',
+        url=f'http://127.0.0.1:{port}',
         width=1280,
         height=800,
         min_size=(960, 600),
