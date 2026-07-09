@@ -37,11 +37,7 @@ const state = {
     { label: 'Investment', limit: 920, spent: 725, remaining: 195, status: 'On track' },
     { label: 'Other', limit: 160, spent: 78, remaining: 82, status: 'Healthy' },
   ],
-  chatMessages: [
-    { role: 'ai', text: 'Hello Alex! How can I help you improve your financial plan today?' },
-    { role: 'user', text: 'How can I reduce expenses?' },
-    { role: 'ai', text: 'Review your shopping and subscription categories. Shifting a small portion of discretionary spend into automated savings can improve cash flow quickly.' }
-  ],
+  chatMessages: [],
   stockData: {
     ticker: 'ACME',
     company: 'Acme Dynamics',
