@@ -207,6 +207,9 @@ class CustomRequestHandler(SimpleHTTPRequestHandler):
                     env_vars = load_env()
                     api_key = env_vars.get('GEMINI_API_KEY') or os.environ.get('GEMINI_API_KEY')
                 
+                if api_key:
+                    api_key = api_key.strip("'\" ")
+                
                 if not api_key:
                     # Return error showing key is missing, so client can prompt for it
                     self.send_response(200)
@@ -245,8 +248,9 @@ Provide a detailed, accurate, and professional response.
 - Give a strategic recommendation at the end of your analysis.
 """
                 
-                # Call Gemini API
-                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+                # Clean and URL-encode API key
+                api_key_encoded = urllib.parse.quote(api_key)
+                
                 gemini_payload = {
                     "contents": [{
                         "parts": [{"text": full_prompt}]
@@ -254,33 +258,57 @@ Provide a detailed, accurate, and professional response.
                 }
                 
                 headers = {"Content-Type": "application/json"}
-                gemini_req = urllib.request.Request(
-                    gemini_url,
-                    data=json.dumps(gemini_payload).encode('utf-8'),
-                    headers=headers,
-                    method='POST'
-                )
+                resp_bytes = None
+                last_err = None
                 
-                with urllib.request.urlopen(gemini_req) as response:
-                    resp_bytes = response.read()
-                    resp_json = json.loads(resp_bytes.decode('utf-8'))
+                # Attempt 1: Try stable v1 endpoint
+                try:
+                    gemini_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key_encoded}"
+                    gemini_req = urllib.request.Request(
+                        gemini_url,
+                        data=json.dumps(gemini_payload).encode('utf-8'),
+                        headers=headers,
+                        method='POST'
+                    )
+                    with urllib.request.urlopen(gemini_req) as response:
+                        resp_bytes = response.read()
+                except Exception as e1:
+                    last_err = e1
+                    # Attempt 2: Fallback to v1beta endpoint
+                    try:
+                        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key_encoded}"
+                        gemini_req = urllib.request.Request(
+                            gemini_url,
+                            data=json.dumps(gemini_payload).encode('utf-8'),
+                            headers=headers,
+                            method='POST'
+                        )
+                        with urllib.request.urlopen(gemini_req) as response:
+                            resp_bytes = response.read()
+                    except Exception as e2:
+                        last_err = e2
+                
+                if not resp_bytes:
+                    raise last_err
+                
+                resp_json = json.loads(resp_bytes.decode('utf-8'))
+                
+                # Extract text reply
+                reply = ""
+                if resp_json.get('candidates') and len(resp_json['candidates']) > 0:
+                    candidate = resp_json['candidates'][0]
+                    if candidate.get('content') and candidate['content'].get('parts'):
+                        parts = candidate['content']['parts']
+                        reply = "".join([p.get('text', '') for p in parts])
+                
+                if not reply:
+                    reply = "I parsed the response but could not retrieve a text answer. Please try again."
                     
-                    # Extract text reply
-                    reply = ""
-                    if resp_json.get('candidates') and len(resp_json['candidates']) > 0:
-                        candidate = resp_json['candidates'][0]
-                        if candidate.get('content') and candidate['content'].get('parts'):
-                            parts = candidate['content']['parts']
-                            reply = "".join([p.get('text', '') for p in parts])
-                    
-                    if not reply:
-                        reply = "I parsed the response but could not retrieve a text answer. Please try again."
-                        
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'application/json')
-                    self.send_header('Access-Control-Allow-Origin', '*')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'reply': reply}).encode('utf-8'))
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({'reply': reply}).encode('utf-8'))
                     
             except Exception as e:
                 import traceback
