@@ -629,6 +629,87 @@ function bindUIControls() {
 
   stockSearchButton.addEventListener('click', handleStockSearch);
 
+  // API Key Config Dialog bindings
+  const configureApiKeyBtn = document.getElementById('configureApiKeyBtn');
+  const apiKeyModal = document.getElementById('apiKeyModal');
+  const closeApiKeyModalBtn = document.getElementById('closeApiKeyModalBtn');
+  const apiKeyForm = document.getElementById('apiKeyForm');
+  const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+  const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
+  const aiStatusDot = document.getElementById('aiStatusDot');
+  const aiStatusText = document.getElementById('aiStatusText');
+
+  function updateAiModelStatus() {
+    const savedKey = localStorage.getItem('finsight_gemini_api_key');
+    if (savedKey) {
+      if (aiStatusDot) {
+        aiStatusDot.style.background = '#22c55e';
+        aiStatusDot.style.color = '#22c55e';
+        aiStatusDot.style.boxShadow = '0 0 10px #22c55e';
+      }
+      if (aiStatusText) aiStatusText.textContent = 'Gemini Online';
+    } else {
+      if (aiStatusDot) {
+        aiStatusDot.style.background = '#eab308';
+        aiStatusDot.style.color = '#eab308';
+        aiStatusDot.style.boxShadow = '0 0 10px #eab308';
+      }
+      if (aiStatusText) aiStatusText.textContent = 'Local Mode';
+    }
+  }
+
+  // Initial call to set status indicator on load
+  updateAiModelStatus();
+
+  if (configureApiKeyBtn) {
+    configureApiKeyBtn.addEventListener('click', () => {
+      const savedKey = localStorage.getItem('finsight_gemini_api_key') || '';
+      geminiApiKeyInput.value = savedKey;
+      apiKeyModal.removeAttribute('hidden');
+    });
+  }
+
+  if (closeApiKeyModalBtn) {
+    closeApiKeyModalBtn.addEventListener('click', () => {
+      apiKeyModal.setAttribute('hidden', '');
+    });
+  }
+
+  if (apiKeyModal) {
+    apiKeyModal.addEventListener('click', (e) => {
+      if (e.target === apiKeyModal) {
+        apiKeyModal.setAttribute('hidden', '');
+      }
+    });
+  }
+
+  if (apiKeyForm) {
+    apiKeyForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newKey = geminiApiKeyInput.value.trim();
+      if (newKey) {
+        localStorage.setItem('finsight_gemini_api_key', newKey);
+        if (typeof showToast === 'function') {
+          showToast('Gemini API Key configured successfully!', 'success');
+        }
+        updateAiModelStatus();
+        apiKeyModal.setAttribute('hidden', '');
+      }
+    });
+  }
+
+  if (clearApiKeyBtn) {
+    clearApiKeyBtn.addEventListener('click', () => {
+      localStorage.removeItem('finsight_gemini_api_key');
+      geminiApiKeyInput.value = '';
+      if (typeof showToast === 'function') {
+        showToast('Gemini API Key removed.', 'info');
+      }
+      updateAiModelStatus();
+      apiKeyModal.setAttribute('hidden', '');
+    });
+  }
+
   chatForm.addEventListener('submit', handleChatSubmit);
   promptButtons.forEach((button) => button.addEventListener('click', () => {
     chatInput.value = button.textContent;
@@ -1413,15 +1494,12 @@ function renderChat() {
   chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-async function generateChatResponseAsync(prompt) {
+function detectStockSymbol(prompt) {
   const lower = prompt.toLowerCase();
-  
-  // Extract potential stock symbols or company names
   const stopWords = new Set(['what', 'is', 'the', 'of', 'in', 'and', 'to', 'a', 'about', 'how', 'does', 'do', 'you', 'think', 'recommend', 'should', 'buy', 'sell', 'stock', 'share', 'shares', 'price', 'info', 'details', 'tell', 'me', 'on', 'for', 'with', 'at', 'any']);
   const words = prompt.replace(/[?.,!]/g, '').split(/\s+/).map(w => w.trim()).filter(w => w.length > 1);
   
   let detectedSymbolOrName = null;
-  
   for (const word of words) {
     if (word.length >= 2 && word.length <= 5 && /^[A-Za-z]+$/.test(word)) {
       if (word === word.toUpperCase() && !stopWords.has(word.toLowerCase())) {
@@ -1439,30 +1517,11 @@ async function generateChatResponseAsync(prompt) {
       }
     }
   }
+  return detectedSymbolOrName;
+}
 
-  // Check if we should call the Yahoo Finance proxy APIs
-  if (detectedSymbolOrName && (lower.includes('stock') || lower.includes('price') || lower.includes('share') || lower.includes('company') || lower.includes('ticker') || lower.includes('market') || lower.includes('portfolio') || /^[A-Z]{2,5}$/.test(detectedSymbolOrName))) {
-    try {
-      const searchRes = await fetch(`/api/search?q=${encodeURIComponent(detectedSymbolOrName)}`);
-      if (searchRes.ok) {
-        const suggestions = await searchRes.json();
-        if (suggestions && suggestions.length > 0) {
-          const match = suggestions[0];
-          const ticker = match.symbol;
-          
-          const stockRes = await fetch(`/api/stock?symbol=${ticker}`);
-          if (stockRes.ok) {
-            const stockData = await stockRes.json();
-            return formatStockResponse(stockData);
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Error fetching live stock details in chat:", e);
-    }
-  }
-  
-  // Local fallback templates
+function getLocalFallbackAdvice(prompt) {
+  const lower = prompt.toLowerCase();
   let totalIncome = 0;
   let totalExpenses = 0;
   const categoryTotals = {};
@@ -1578,6 +1637,92 @@ Welcome! I am your AI Financial Advisor. Based on your active account telemetry,
 2. **Investments**: Ask *"Recommend a growth portfolio"* or *"What is my savings trajectory?"*
 3. **Health Audit**: Ask *"Explain my financial health score"*
 4. **Stock Information**: Ask about **any stock ticker or company name** (e.g., *"What is Apple's stock price?"*, *"Is MSFT a good buy?"*, *"Search stock Tesla"*).`;
+}
+
+async function generateChatResponseAsync(prompt) {
+  // 1. Try to call the backend chat API with Gemini
+  try {
+    const savedKey = localStorage.getItem('finsight_gemini_api_key') || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (savedKey) {
+      headers['Authorization'] = `Bearer ${savedKey}`;
+    }
+    
+    // Build context
+    const context = {
+      savings: state.savings || [],
+      budgets: state.budgets || [],
+      transactions: state.transactions || []
+    };
+    
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ prompt, context })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      // If it returned a key-missing message and the query is about a stock,
+      // let's fetch live stock details and append them to the key-missing message!
+      if (data.key_missing) {
+        let stockInfoText = "";
+        const detectedSymbolOrName = detectStockSymbol(prompt);
+        if (detectedSymbolOrName) {
+          try {
+            const searchRes = await fetch(`/api/search?q=${encodeURIComponent(detectedSymbolOrName)}`);
+            if (searchRes.ok) {
+              const suggestions = await searchRes.json();
+              if (suggestions && suggestions.length > 0) {
+                const match = suggestions[0];
+                const ticker = match.symbol;
+                const stockRes = await fetch(`/api/stock?symbol=${ticker}`);
+                if (stockRes.ok) {
+                  const stockData = await stockRes.json();
+                  stockInfoText = "\n\n" + formatStockResponse(stockData);
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Local fallback stock fetch failed:", e);
+          }
+        } else {
+          // If no stock detected, run local rule-based finance templates as fallback
+          stockInfoText = "\n\n" + getLocalFallbackAdvice(prompt);
+        }
+        return data.reply + stockInfoText;
+      }
+      
+      return data.reply;
+    }
+  } catch (error) {
+    console.error("Failed to query backend AI Advisor:", error);
+  }
+  
+  // 2. Full local rule-based system if server fails completely or goes offline
+  const detectedSymbolOrName = detectStockSymbol(prompt);
+  if (detectedSymbolOrName) {
+    try {
+      const searchRes = await fetch(`/api/search?q=${encodeURIComponent(detectedSymbolOrName)}`);
+      if (searchRes.ok) {
+        const suggestions = await searchRes.json();
+        if (suggestions && suggestions.length > 0) {
+          const match = suggestions[0];
+          const ticker = match.symbol;
+          const stockRes = await fetch(`/api/stock?symbol=${ticker}`);
+          if (stockRes.ok) {
+            const stockData = await stockRes.json();
+            return formatStockResponse(stockData);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching live stock details in local fallback:", e);
+    }
+  }
+  
+  return getLocalFallbackAdvice(prompt);
 }
 
 function formatStockResponse(data) {

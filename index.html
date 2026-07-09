@@ -514,11 +514,24 @@
           </div>
           <section class="chat-grid">
             <div class="chat-panel glass-card">
-              <div class="chat-header">
-                <div>
-                  <strong>FinSight Advisor</strong>
-                  <span>AI is ready to help</span>
+              <div class="chat-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div class="ai-avatar" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(14, 165, 233, 0.3);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <strong style="font-size: 1.1rem; display: block; color: var(--text-main);">FinSight Advisor</strong>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span class="status-indicator-dot" id="aiStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #eab308; box-shadow: 0 0 8px currentColor;"></span>
+                      <span id="aiStatusText" style="font-size: 0.8rem; color: var(--subtext);">Local Mode</span>
+                    </div>
+                  </div>
                 </div>
+                <button type="button" class="btn btn-outline small" id="configureApiKeyBtn" style="font-size: 0.85rem; padding: 6px 12px; display: flex; align-items: center; gap: 6px; border-color: var(--border);">
+                  <span>🔑</span> Configure API Key
+                </button>
               </div>
               <div class="chat-history" id="chatHistory"></div>
               <form class="chat-form" id="chatForm">
@@ -1010,9 +1023,33 @@
         </div>
       </div>
     </div>
+  <!-- API Key Config Modal -->
+  <div id="apiKeyModal" class="modal-backdrop" hidden>
+    <div class="modal-dialog glass-card">
+      <div class="modal-header">
+        <h2>🔑 Configure Gemini API Key</h2>
+        <button type="button" class="close-btn" id="closeApiKeyModalBtn">&times;</button>
+      </div>
+      <form id="apiKeyForm">
+        <p style="color: var(--subtext); font-size: 0.9rem; line-height: 1.5; margin-bottom: 12px;">
+          Enter your Google Gemini API key to activate the live AI Advisor. This key will be saved locally in your browser's secure cache and sent to the server for AI queries.
+        </p>
+        <p style="color: var(--subtext); font-size: 0.85rem; line-height: 1.4; background: var(--surface-muted); padding: 10px; border-radius: 12px;">
+          <strong>How to get a key:</strong> Go to <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary); text-decoration: underline;">Google AI Studio</a>, create a free API key, and paste it here.
+        </p>
+        <div class="form-group" style="margin-top: 16px;">
+          <label for="geminiApiKeyInput">Gemini API Key</label>
+          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." required style="width: 100%; box-sizing: border-box;" />
+        </div>
+        <div class="modal-actions" style="margin-top: 24px; justify-content: flex-end; gap: 12px;">
+          <button type="button" id="clearApiKeyBtn" class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">Remove Key</button>
+          <button type="submit" class="btn btn-primary">Save Key</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="app.js?v=21" defer></script>
+  <script src="app.js?v=22" defer></script>
 </body>
 </html>

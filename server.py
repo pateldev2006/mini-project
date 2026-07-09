@@ -4,8 +4,24 @@ import urllib.request
 import urllib.parse
 import gzip
 import re
+import os
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
+
+def load_env():
+    env_data = {}
+    for path in ['.env', '../.env', '../../.env']:
+        if os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        if '=' in line and not line.strip().startswith('#'):
+                            k, v = line.strip().split('=', 1)
+                            env_data[k.strip()] = v.strip()
+            except Exception as e:
+                print(f"Error loading env from {path}: {e}")
+            break
+    return env_data
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
@@ -168,6 +184,115 @@ class CustomRequestHandler(SimpleHTTPRequestHandler):
         else:
             # Fallback to serving static files
             super().do_GET()
+
+    def do_POST(self):
+        parsed_url = urllib.parse.urlparse(self.path)
+        if parsed_url.path == '/api/chat':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            
+            try:
+                req_body = json.loads(post_data.decode('utf-8'))
+                prompt = req_body.get('prompt', '')
+                context = req_body.get('context', {})
+                
+                # Check Authorization header for client-provided API key
+                auth_header = self.headers.get('Authorization', '')
+                api_key = None
+                if auth_header.startswith('Bearer '):
+                    api_key = auth_header.split(' ', 1)[1].strip()
+                
+                if not api_key:
+                    # Fallback to server env
+                    env_vars = load_env()
+                    api_key = env_vars.get('GEMINI_API_KEY') or os.environ.get('GEMINI_API_KEY')
+                
+                if not api_key:
+                    # Return error showing key is missing, so client can prompt for it
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        'reply': "### 🔑 Google Gemini API Key Required\nTo unlock the full potential of your AI Advisor and receive real-time personalized analysis of stocks and funds, please add your Google Gemini API key.\n\n**How to obtain a key:**\n1. Go to [Google AI Studio](https://aistudio.google.com/) and create a free API key.\n2. Click the **🔑 Configure API Key** button in the top right of this chat to save it instantly.",
+                        'key_missing': True
+                    }).encode('utf-8'))
+                    return
+                
+                # Build context strings
+                savings_items = context.get('savings', [])
+                savings_str = ", ".join([f"{s.get('name')}: ₹{s.get('balance'):,.2f} (Yield: {s.get('returnRate')}%" + (f", Progress: {s.get('progress')}%" if s.get('progress') else "") + ")" for s in savings_items])
+                
+                budget_items = context.get('budgets', [])
+                budgets_str = ", ".join([f"{b.get('label')}: Spent ₹{b.get('spent'):,.2f} of ₹{b.get('limit'):,.2f} cap" for b in budget_items])
+                
+                tx_items = context.get('transactions', [])
+                recent_txs = "\n".join([f"- {t.get('date')}: {t.get('description')} ({t.get('category')}) {t.get('amount')} {t.get('type')}" for t in tx_items[:12]])
+                
+                full_prompt = f"""You are FinSight Advisor, an advanced institutional-grade AI financial assistant.
+The user's current financial portfolio metrics are:
+- Linked Accounts / Savings Products: {savings_str or 'None'}
+- Category Budgets: {budgets_str or 'None'}
+- Recent Transaction History:
+{recent_txs or 'None'}
+
+User Question: {prompt}
+
+Provide a detailed, accurate, and professional response. 
+- If the user asks about stocks, mutual funds, SIPs, or exchange rates, provide analytical recommendations, risk management advice, and explain key metrics (like P/E, 52W range, growth projections).
+- Format your response beautifully using markdown (lists, bold headers, code snippets, or tables where appropriate).
+- Always use Indian Rupees (₹) for values if most transactions are in rupees.
+- Give a strategic recommendation at the end of your analysis.
+"""
+                
+                # Call Gemini API
+                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+                gemini_payload = {
+                    "contents": [{
+                        "parts": [{"text": full_prompt}]
+                    }]
+                }
+                
+                headers = {"Content-Type": "application/json"}
+                gemini_req = urllib.request.Request(
+                    gemini_url,
+                    data=json.dumps(gemini_payload).encode('utf-8'),
+                    headers=headers,
+                    method='POST'
+                )
+                
+                with urllib.request.urlopen(gemini_req) as response:
+                    resp_bytes = response.read()
+                    resp_json = json.loads(resp_bytes.decode('utf-8'))
+                    
+                    # Extract text reply
+                    reply = ""
+                    if resp_json.get('candidates') and len(resp_json['candidates']) > 0:
+                        candidate = resp_json['candidates'][0]
+                        if candidate.get('content') and candidate['content'].get('parts'):
+                            parts = candidate['content']['parts']
+                            reply = "".join([p.get('text', '') for p in parts])
+                    
+                    if not reply:
+                        reply = "I parsed the response but could not retrieve a text answer. Please try again."
+                        
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'reply': reply}).encode('utf-8'))
+                    
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({'reply': f"### ❌ AI Integration Error\nFailed to connect to Gemini API. Details: `{str(e)}`"}).encode('utf-8'))
+        else:
+            self.send_response(404)
+            self.end_headers()
 
 if __name__ == '__main__':
     port = 3000
