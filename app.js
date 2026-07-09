@@ -1492,7 +1492,16 @@ function renderChat() {
 
 function detectStockSymbol(prompt) {
   const lower = prompt.toLowerCase();
-  const stopWords = new Set(['what', 'is', 'the', 'of', 'in', 'and', 'to', 'a', 'about', 'how', 'does', 'do', 'you', 'think', 'recommend', 'should', 'buy', 'sell', 'stock', 'share', 'shares', 'price', 'info', 'details', 'tell', 'me', 'on', 'for', 'with', 'at', 'any']);
+  const stopWords = new Set([
+    'what', 'is', 'the', 'of', 'in', 'and', 'to', 'a', 'about', 'how', 'does', 'do', 'you', 'think', 'recommend', 'should', 'buy', 'sell', 
+    'stock', 'share', 'shares', 'price', 'info', 'details', 'tell', 'me', 'on', 'for', 'with', 'at', 'any', 'invest', 'investment', 
+    'investments', 'portfolio', 'market', 'markets', 'recommendation', 'recommendations', 'grow', 'growth', 'saving', 'savings', 
+    'budget', 'budgets', 'spend', 'spending', 'spent', 'reduce', 'cost', 'costs', 'expense', 'expenses', 'income', 'yield', 
+    'return', 'returns', 'rate', 'rates', 'interest', 'debt', 'debts', 'tax', 'taxes', 'fund', 'funds', 'sip', 'sips', 'fd', 'fds', 
+    'transaction', 'transactions', 'help', 'guide', 'explain', 'show', 'view', 'display', 'check', 'analyze', 'analysis', 
+    'audit', 'track', 'chart', 'graph', 'report', 'reports', 'summary', 'detail', 'details', 'list', 'table', 'data', 'information',
+    'make', 'learn', 'get', 'create', 'add', 'edit', 'delete', 'remove', 'clear'
+  ]);
   const words = prompt.split(/\s+/).map(w => w.replace(/^[?.,!]+|[?.,!]+$/g, '').trim()).filter(w => w.length > 1);
   
   let detectedSymbolOrName = null;
