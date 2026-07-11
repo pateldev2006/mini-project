@@ -663,7 +663,12 @@ function bindUIControls() {
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAllDropdowns();
+    if (e.key === 'Escape') {
+      closeAllDropdowns();
+      closeBudgetModal();
+      closeTransactionModal();
+      closePaymentModal();
+    }
   });
 
   themeToggle.addEventListener('click', toggleTheme);
@@ -878,7 +883,7 @@ function bindUIControls() {
   const budgetForm = document.getElementById('budgetForm');
   const budgetModal = document.getElementById('budgetModal');
 
-  if (openBudgetModalBtn) openBudgetModalBtn.addEventListener('click', openBudgetModal);
+  if (openBudgetModalBtn) openBudgetModalBtn.addEventListener('click', (e) => { e.stopPropagation(); openBudgetModal(); });
   if (closeBudgetModalBtn) closeBudgetModalBtn.addEventListener('click', closeBudgetModal);
   if (cancelBudgetBtn) cancelBudgetBtn.addEventListener('click', closeBudgetModal);
   if (budgetModal) {
@@ -1122,9 +1127,6 @@ function bindUIControls() {
 function closeAllDropdowns() {
   closeProfileMenu();
   closeNotificationsPanel();
-  closeBudgetModal();
-  closeTransactionModal();
-  closePaymentModal();
   closeMobileSidebar();
 }
 
