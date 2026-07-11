@@ -4537,3 +4537,100 @@ body::after {
   border-color: #ef4444;
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
 }
+
+/* Premium Portfolio Cards Styling */
+.portfolio-val-card {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(139, 92, 246, 0.03) 100%), var(--surface) !important;
+  border: 1px solid rgba(14, 165, 233, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.05) !important;
+  border-left: 5px solid #0ea5e9 !important;
+}
+.portfolio-val-card:hover {
+  box-shadow: 0 12px 40px rgba(14, 165, 233, 0.15) !important;
+  transform: translateY(-4px);
+}
+
+.cash-bal-card {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(20, 184, 166, 0.03) 100%), var(--surface) !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.05) !important;
+  border-left: 5px solid #8b5cf6 !important;
+}
+.cash-bal-card:hover {
+  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.15) !important;
+  transform: translateY(-4px);
+}
+
+.total-pl-card {
+  border-left: 5px solid #14b8a6 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.total-pl-card.profit-glow {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.02) 100%), var(--surface) !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.05) !important;
+  border-left: 5px solid #22c55e !important;
+}
+.total-pl-card.profit-glow:hover {
+  box-shadow: 0 12px 40px rgba(34, 197, 94, 0.15) !important;
+  transform: translateY(-4px);
+}
+.total-pl-card.loss-glow {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.02) 100%), var(--surface) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.05) !important;
+  border-left: 5px solid #ef4444 !important;
+}
+.total-pl-card.loss-glow:hover {
+  box-shadow: 0 12px 40px rgba(239, 68, 68, 0.15) !important;
+  transform: translateY(-4px);
+}
+
+/* Ticker Badge Pill */
+.ticker-badge {
+  display: inline-block;
+  background: rgba(14, 165, 233, 0.08);
+  color: var(--primary);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.04);
+}
+.dark .ticker-badge {
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+/* Center statistics inside doughnut */
+.chart-center-stats span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--subtext);
+}
+.chart-center-stats strong {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 4px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+}
+
+/* Portfolio grid improvements */
+.portfolio-grid .chart-card {
+  padding: 24px;
+}
+.portfolio-grid .holdings-panel {
+  padding: 24px;
+}
+
+/* Dynamic glow values */
+.font-semibold {
+  font-weight: 600;
+}
+

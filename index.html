@@ -591,18 +591,19 @@
             </div>
           </div>
 
+
           <div class="overview-grid">
-            <article class="summary-card">
+            <article class="summary-card portfolio-val-card">
               <span>Total Portfolio Value</span>
               <strong id="portfolioTotalValue">₹10,00,000.00</strong>
               <p class="summary-meta">Holdings + Cash Balance</p>
             </article>
-            <article class="summary-card">
+            <article class="summary-card cash-bal-card">
               <span>Mock Cash Balance</span>
               <strong id="portfolioCashBalance">₹10,00,000.00</strong>
               <p class="summary-meta">Available to buy stocks</p>
             </article>
-            <article class="summary-card">
+            <article class="summary-card total-pl-card" id="portfolioPLCard">
               <span>Total Profit / Loss</span>
               <strong id="portfolioTotalPL">₹0.00</strong>
               <p class="summary-meta" id="portfolioPLPct">0.00% absolute return</p>
@@ -616,6 +617,10 @@
               </div>
               <div class="chart-container" style="position: relative; height: 250px; display: flex; align-items: center; justify-content: center;">
                 <canvas id="portfolioDoughnut"></canvas>
+                <div class="chart-center-stats" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
+                  <span style="font-size: 0.72rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500;">Holdings Value</span>
+                  <strong id="portfolioChartValue" style="font-size: 1.2rem; font-weight: 700; color: var(--text); margin-top: 2px; font-family: 'Outfit', sans-serif;">₹0.00</strong>
+                </div>
               </div>
             </section>
 
@@ -623,8 +628,8 @@
               <div class="card-head">
                 <h3>Current Holdings</h3>
               </div>
-              <div class="table-container">
-                <table>
+              <div class="table-wrap">
+                <table class="transaction-table">
                   <thead>
                     <tr>
                       <th>Ticker</th>
@@ -649,8 +654,8 @@
             <div class="card-head">
               <h3>Trade Activity Ledger</h3>
             </div>
-            <div class="table-container">
-              <table>
+            <div class="table-wrap">
+              <table class="transaction-table">
                 <thead>
                   <tr>
                     <th>Date</th>

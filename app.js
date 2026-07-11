@@ -3925,6 +3925,15 @@ function renderPortfolio() {
   document.getElementById('portfolioCashBalance').textContent = `₹${state.portfolioCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
   document.getElementById('portfolioTotalValue').textContent = `₹${totalVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
   
+  const plCard = document.getElementById('portfolioPLCard');
+  if (plCard) {
+    if (pl >= 0) {
+      plCard.className = 'summary-card total-pl-card profit-glow';
+    } else {
+      plCard.className = 'summary-card total-pl-card loss-glow';
+    }
+  }
+  
   const plEl = document.getElementById('portfolioTotalPL');
   const plPctEl = document.getElementById('portfolioPLPct');
   const plSign = pl >= 0 ? '+' : '';
@@ -3934,6 +3943,11 @@ function renderPortfolio() {
   plEl.className = plClass;
   plPctEl.textContent = `${plSign}${plPct.toFixed(2)}% absolute return`;
   plPctEl.className = `summary-meta ${plClass}`;
+  
+  const chartValEl = document.getElementById('portfolioChartValue');
+  if (chartValEl) {
+    chartValEl.textContent = `₹${holdingsVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  }
   
   // Holdings rows
   if (state.portfolioHoldings.length === 0) {
@@ -3949,7 +3963,7 @@ function renderPortfolio() {
       
       return `
         <tr>
-          <td><strong>${h.ticker}</strong></td>
+          <td><span class="ticker-badge">${h.ticker}</span></td>
           <td>${h.company}</td>
           <td>${h.shares}</td>
           <td>₹${h.avgPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
@@ -3976,7 +3990,7 @@ function renderPortfolio() {
         <tr>
           <td>${t.date}</td>
           <td><span class="status-chip ${typeClass}">${t.type}</span></td>
-          <td><strong>${t.ticker}</strong></td>
+          <td><span class="ticker-badge">${t.ticker}</span></td>
           <td>${t.shares}</td>
           <td>₹${t.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
           <td class="${plClass}">${plSign}₹${Math.abs(t.total).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
