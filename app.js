@@ -1,6 +1,9 @@
 const state = {
   currentPage: 'dashboard',
   theme: 'light',
+  portfolioCash: 1000000,
+  portfolioHoldings: [],
+  portfolioTrades: [],
   savings: [
     { id: 1, name: 'Emergency Fund', risk: 'Low Risk', riskLevel: 'low', balance: 12000, purpose: 'Recommended', progress: 80, returnRate: 3.5, icon: 'shield' },
     { id: 2, name: 'Mutual Funds', risk: 'Moderate Risk', riskLevel: 'moderate', balance: 8500, purpose: 'Recommended', progress: 58, returnRate: 8.8, icon: 'pie-chart' },
@@ -128,6 +131,28 @@ function init() {
     }
   }
 
+  // Load portfolio simulation state if it exists
+  const savedCash = localStorage.getItem('finsightPortfolioCash');
+  if (savedCash !== null) {
+    state.portfolioCash = parseFloat(savedCash);
+  }
+  const savedHoldings = localStorage.getItem('finsightPortfolioHoldings');
+  if (savedHoldings) {
+    try {
+      state.portfolioHoldings = JSON.parse(savedHoldings);
+    } catch (e) {
+      console.error('Error parsing saved holdings:', e);
+    }
+  }
+  const savedTrades = localStorage.getItem('finsightPortfolioTrades');
+  if (savedTrades) {
+    try {
+      state.portfolioTrades = JSON.parse(savedTrades);
+    } catch (e) {
+      console.error('Error parsing saved trades:', e);
+    }
+  }
+
   bindNavigation();
   initializeTransactions();
   renderBudgetCards();
@@ -142,10 +167,12 @@ function init() {
   setupStockSuggestions();
   updateNotificationBadge();
   initializeSavings();
+  setupPortfolio();
+  renderPortfolio();
 
   // Show default page on load, checking hash first
   const hash = window.location.hash.substring(1);
-  const validPages = ['dashboard', 'budget', 'stocks', 'advisor', 'savings', 'reports', 'import', 'profile'];
+  const validPages = ['dashboard', 'budget', 'stocks', 'advisor', 'savings', 'reports', 'import', 'profile', 'portfolio'];
   if (hash && validPages.includes(hash)) {
     showPage(hash);
   } else {
@@ -542,6 +569,11 @@ function showPage(targetPage) {
   });
 
   document.getElementById('globalSearch').value = '';
+
+  if (targetPage === 'portfolio') {
+    refreshPortfolioPrices();
+    renderPortfolio();
+  }
 }
 
 function initializeTransactions() {
@@ -3303,6 +3335,32 @@ async function handlePaymentSubmit(event) {
   const price = parseFloat(paymentForm.dataset.price) || 0;
   const totalCost = (price * shares);
   
+  // Calculate totalCost in INR
+  let totalCostINR = totalCost;
+  if (symbol === '$') {
+    totalCostINR = totalCost * 83.30;
+  } else if (symbol === '£') {
+    totalCostINR = totalCost * 105.50;
+  } else if (symbol === '€') {
+    totalCostINR = totalCost * 89.20;
+  }
+
+  // Include simulated brokerage & tax in the deduction
+  let brokerage = symbol === '₹' ? 120.00 : 1.50;
+  let tax = Math.max(0.10, totalCost * 0.0005);
+  if (symbol === '₹') tax = Math.max(10.00, totalCost * 0.0005);
+  let totalDeductionVal = totalCost + brokerage + tax;
+  let totalDeductionINR = totalDeductionVal;
+  if (symbol === '$') totalDeductionINR = totalDeductionVal * 83.30;
+  else if (symbol === '£') totalDeductionINR = totalDeductionVal * 105.50;
+  else if (symbol === '€') totalDeductionINR = totalDeductionVal * 89.20;
+
+  // Check mock cash balance
+  if (state.portfolioCash < totalDeductionINR) {
+    showToast(`Insufficient simulation funds. You need ₹${totalDeductionINR.toLocaleString('en-US', {maximumFractionDigits:2})} but only have ₹${state.portfolioCash.toLocaleString('en-US', {maximumFractionDigits:2})}.`, 'error');
+    return;
+  }
+  
   const originalText = confirmBtn.textContent;
   confirmBtn.textContent = 'Processing...';
   confirmBtn.disabled = true;
@@ -3318,16 +3376,45 @@ async function handlePaymentSubmit(event) {
   const successMessage = document.getElementById('successMessage');
   successMessage.textContent = `Bought ${shares} share${shares > 1 ? 's' : ''} of ${ticker} for a total value of ${symbol}${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} successfully.`;
   
-  let totalCostINR = totalCost;
-  if (symbol === '$') {
-    totalCostINR = totalCost * 83.30;
-  } else if (symbol === '£') {
-    totalCostINR = totalCost * 105.50;
-  } else if (symbol === '€') {
-    totalCostINR = totalCost * 89.20;
+  // Deduct from mock cash balance
+  state.portfolioCash -= totalDeductionINR;
+  localStorage.setItem('finsightPortfolioCash', state.portfolioCash.toString());
+
+  // Record/Update holdings
+  const costPerShareINR = totalCostINR / shares;
+  let holding = state.portfolioHoldings.find(h => h.ticker === ticker);
+  if (holding) {
+    const oldShares = holding.shares;
+    const newShares = oldShares + shares;
+    const newAvgPrice = ((oldShares * holding.avgPrice) + totalCostINR) / newShares;
+    holding.shares = newShares;
+    holding.avgPrice = newAvgPrice;
+    holding.currentPrice = costPerShareINR; // Init currentPrice to latest purchase price
+  } else {
+    state.portfolioHoldings.push({
+      ticker: ticker,
+      company: state.stockData.company || ticker,
+      shares: shares,
+      avgPrice: costPerShareINR,
+      currentPrice: costPerShareINR,
+      currency: '₹'
+    });
   }
-  
+  localStorage.setItem('finsightPortfolioHoldings', JSON.stringify(state.portfolioHoldings));
+
+  // Record trade log
   const dateStr = new Date().toISOString().split('T')[0];
+  state.portfolioTrades.unshift({
+    date: dateStr,
+    type: 'BUY',
+    ticker: ticker,
+    shares: shares,
+    price: costPerShareINR,
+    total: -totalDeductionINR
+  });
+  localStorage.setItem('finsightPortfolioTrades', JSON.stringify(state.portfolioTrades));
+
+  // Add ledger transaction log
   const newTx = {
     date: dateStr,
     description: `Bought ${shares} ${ticker} shares`,
@@ -3336,14 +3423,15 @@ async function handlePaymentSubmit(event) {
     type: 'Expense',
     status: 'Completed'
   };
-  
   state.transactions.unshift(newTx);
-  
   localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
   
   if (typeof updateTransactionListing === 'function') {
     updateTransactionListing();
   }
+
+  // Refresh Portfolio
+  renderPortfolio();
   
   confirmBtn.textContent = originalText;
   confirmBtn.disabled = false;
@@ -3632,4 +3720,402 @@ function initGlobalSearch() {
       searchInput.dispatchEvent(new Event('input'));
     }
   });
+}
+
+// === Portfolio Simulation System ===
+function setupPortfolio() {
+  const sellModal = document.getElementById('sellModal');
+  const sellForm = document.getElementById('sellForm');
+  const closeSellModalBtn = document.getElementById('closeSellModalBtn');
+  const cancelSellBtn = document.getElementById('cancelSellBtn');
+  const sellSharesInput = document.getElementById('sellShares');
+  const sellSuccessCloseBtn = document.getElementById('sellSuccessCloseBtn');
+
+  if (closeSellModalBtn) closeSellModalBtn.addEventListener('click', closeSellModal);
+  if (cancelSellBtn) cancelSellBtn.addEventListener('click', closeSellModal);
+  if (sellSuccessCloseBtn) sellSuccessCloseBtn.addEventListener('click', closeSellModal);
+  
+  if (sellModal) {
+    sellModal.addEventListener('click', (e) => {
+      if (e.target === sellModal) closeSellModal();
+    });
+  }
+
+  if (sellSharesInput) {
+    sellSharesInput.addEventListener('input', updateSellCalculations);
+  }
+
+  if (sellForm) {
+    sellForm.addEventListener('submit', handleSellSubmit);
+  }
+}
+
+function openSellModal(ticker) {
+  closeAllDropdowns();
+  
+  const sellModal = document.getElementById('sellModal');
+  const sellForm = document.getElementById('sellForm');
+  const sellSuccessContainer = document.getElementById('sellSuccessContainer');
+  
+  if (!sellModal) return;
+  
+  const holding = state.portfolioHoldings.find(h => h.ticker === ticker);
+  if (!holding) {
+    showToast(`No holding found for ${ticker}`, 'error');
+    return;
+  }
+  
+  document.getElementById('sellCompanyName').textContent = holding.company;
+  document.getElementById('sellTicker').textContent = holding.ticker;
+  document.getElementById('sellPrice').textContent = `₹${holding.currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  document.getElementById('sellSharesOwned').textContent = holding.shares;
+  
+  const sellSharesInput = document.getElementById('sellShares');
+  sellSharesInput.value = 1;
+  sellSharesInput.max = holding.shares;
+  sellSharesInput.disabled = false;
+  
+  sellForm.dataset.ticker = ticker;
+  sellForm.dataset.price = holding.currentPrice;
+  
+  // Reset visibility
+  sellForm.hidden = false;
+  sellSuccessContainer.hidden = true;
+  
+  const errorDiv = document.getElementById('sellFormError');
+  if (errorDiv) {
+    errorDiv.hidden = true;
+    errorDiv.textContent = '';
+  }
+  
+  updateSellCalculations();
+  
+  sellModal.hidden = false;
+  document.body.classList.add('menu-open');
+}
+
+function closeSellModal() {
+  const sellModal = document.getElementById('sellModal');
+  if (sellModal) {
+    sellModal.hidden = true;
+    document.body.classList.remove('menu-open');
+  }
+}
+
+function updateSellCalculations() {
+  const sellForm = document.getElementById('sellForm');
+  if (!sellForm) return;
+  
+  const price = parseFloat(sellForm.dataset.price) || 0;
+  const shares = parseInt(document.getElementById('sellShares').value) || 0;
+  
+  const proceeds = price * shares;
+  document.getElementById('sellProceeds').textContent = `₹${proceeds.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+}
+
+async function handleSellSubmit(event) {
+  event.preventDefault();
+  
+  const sellForm = document.getElementById('sellForm');
+  const confirmBtn = document.getElementById('confirmSellBtn');
+  const cancelBtn = document.getElementById('cancelSellBtn');
+  const closeBtn = document.getElementById('closeSellModalBtn');
+  const sellSuccessContainer = document.getElementById('sellSuccessContainer');
+  const sharesInput = document.getElementById('sellShares');
+  
+  if (!sellForm || !confirmBtn) return;
+  
+  const ticker = sellForm.dataset.ticker;
+  const price = parseFloat(sellForm.dataset.price) || 0;
+  const sharesToSell = parseInt(sharesInput.value) || 1;
+  
+  const holding = state.portfolioHoldings.find(h => h.ticker === ticker);
+  if (!holding) {
+    showToast('Holding not found', 'error');
+    return;
+  }
+  
+  if (sharesToSell > holding.shares) {
+    const errorDiv = document.getElementById('sellFormError');
+    if (errorDiv) {
+      errorDiv.textContent = `You can only sell up to ${holding.shares} shares.`;
+      errorDiv.hidden = false;
+    }
+    return;
+  }
+  
+  const originalText = confirmBtn.textContent;
+  confirmBtn.textContent = 'Processing...';
+  confirmBtn.disabled = true;
+  cancelBtn.disabled = true;
+  closeBtn.disabled = true;
+  sharesInput.disabled = true;
+  
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  
+  sellForm.hidden = true;
+  sellSuccessContainer.hidden = false;
+  
+  const proceeds = price * sharesToSell;
+  const successMessage = document.getElementById('sellSuccessMessage');
+  successMessage.textContent = `Sold ${sharesToSell} share${sharesToSell > 1 ? 's' : ''} of ${ticker} for ₹${proceeds.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} successfully.`;
+  
+  // Update mock cash balance
+  state.portfolioCash += proceeds;
+  localStorage.setItem('finsightPortfolioCash', state.portfolioCash.toString());
+  
+  // Deduct holdings shares
+  holding.shares -= sharesToSell;
+  if (holding.shares <= 0) {
+    state.portfolioHoldings = state.portfolioHoldings.filter(h => h.ticker !== ticker);
+  }
+  localStorage.setItem('finsightPortfolioHoldings', JSON.stringify(state.portfolioHoldings));
+  
+  // Record trade log
+  const dateStr = new Date().toISOString().split('T')[0];
+  state.portfolioTrades.unshift({
+    date: dateStr,
+    type: 'SELL',
+    ticker: ticker,
+    shares: sharesToSell,
+    price: price,
+    total: proceeds
+  });
+  localStorage.setItem('finsightPortfolioTrades', JSON.stringify(state.portfolioTrades));
+
+  // Add ledger transaction log
+  const newTx = {
+    date: dateStr,
+    description: `Sold ${sharesToSell} ${ticker} shares`,
+    category: 'Investment',
+    amount: `+₹${proceeds.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+    type: 'Income',
+    status: 'Completed'
+  };
+  state.transactions.unshift(newTx);
+  localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+  
+  if (typeof updateTransactionListing === 'function') {
+    updateTransactionListing();
+  }
+  
+  renderPortfolio();
+  
+  confirmBtn.textContent = originalText;
+  confirmBtn.disabled = false;
+  cancelBtn.disabled = false;
+  closeBtn.disabled = false;
+  sharesInput.disabled = false;
+  
+  showToast(`Successfully sold ${sharesToSell} shares of ${ticker}!`, 'success');
+}
+
+function renderPortfolio() {
+  const holdingsBody = document.getElementById('portfolioHoldingsBody');
+  const tradesBody = document.getElementById('portfolioTradesBody');
+  
+  if (!holdingsBody || !tradesBody) return;
+  
+  // Render balances
+  const holdingsVal = state.portfolioHoldings.reduce((sum, h) => sum + (h.shares * h.currentPrice), 0);
+  const totalVal = state.portfolioCash + holdingsVal;
+  const pl = totalVal - 1000000;
+  const plPct = (pl / 1000000) * 100;
+  
+  document.getElementById('portfolioCashBalance').textContent = `₹${state.portfolioCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  document.getElementById('portfolioTotalValue').textContent = `₹${totalVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  
+  const plEl = document.getElementById('portfolioTotalPL');
+  const plPctEl = document.getElementById('portfolioPLPct');
+  const plSign = pl >= 0 ? '+' : '';
+  const plClass = pl >= 0 ? 'portfolio-profit pulse-green' : 'portfolio-loss pulse-red';
+  
+  plEl.textContent = `${plSign}₹${pl.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  plEl.className = plClass;
+  plPctEl.textContent = `${plSign}${plPct.toFixed(2)}% absolute return`;
+  plPctEl.className = `summary-meta ${plClass}`;
+  
+  // Holdings rows
+  if (state.portfolioHoldings.length === 0) {
+    holdingsBody.innerHTML = `<tr><td colspan="8" class="text-center">No current holdings. Go to Stock Analyzer to search and buy stocks.</td></tr>`;
+  } else {
+    holdingsBody.innerHTML = state.portfolioHoldings.map(h => {
+      const cost = h.shares * h.avgPrice;
+      const val = h.shares * h.currentPrice;
+      const profit = val - cost;
+      const profitPct = cost > 0 ? (profit / cost) * 100 : 0;
+      const profitSign = profit >= 0 ? '+' : '';
+      const profitClass = profit >= 0 ? 'portfolio-profit' : 'portfolio-loss';
+      
+      return `
+        <tr>
+          <td><strong>${h.ticker}</strong></td>
+          <td>${h.company}</td>
+          <td>${h.shares}</td>
+          <td>₹${h.avgPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td>₹${h.currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td>₹${val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td class="${profitClass}">${profitSign}₹${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${profitSign}${profitPct.toFixed(2)}%)</td>
+          <td>
+            <button class="table-action-btn btn-sell" onclick="openSellModal('${h.ticker}')">Sell</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+  
+  // Trade Ledger rows
+  if (state.portfolioTrades.length === 0) {
+    tradesBody.innerHTML = `<tr><td colspan="6" class="text-center">No trades logged yet.</td></tr>`;
+  } else {
+    tradesBody.innerHTML = state.portfolioTrades.map(t => {
+      const typeClass = t.type === 'BUY' ? 'success' : 'warning';
+      const plSign = t.type === 'BUY' ? '-' : '+';
+      const plClass = t.type === 'BUY' ? 'portfolio-loss' : 'portfolio-profit';
+      return `
+        <tr>
+          <td>${t.date}</td>
+          <td><span class="status-chip ${typeClass}">${t.type}</span></td>
+          <td><strong>${t.ticker}</strong></td>
+          <td>${t.shares}</td>
+          <td>₹${t.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td class="${plClass}">${plSign}₹${Math.abs(t.total).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+  
+  // Re-draw chart
+  initPortfolioChart();
+}
+
+function initPortfolioChart() {
+  const canvas = document.getElementById('portfolioDoughnut');
+  if (!canvas) return;
+  
+  if (charts.portfolioChart) {
+    charts.portfolioChart.destroy();
+  }
+  
+  const holdingsVal = state.portfolioHoldings.reduce((sum, h) => sum + (h.shares * h.currentPrice), 0);
+  
+  let labels = [];
+  let data = [];
+  let bgColors = [];
+  
+  if (state.portfolioHoldings.length === 0) {
+    labels = ['Mock Cash Balance'];
+    data = [100];
+    bgColors = ['rgba(14, 165, 233, 0.45)'];
+  } else {
+    // Add holdings
+    state.portfolioHoldings.forEach((h, idx) => {
+      const val = h.shares * h.currentPrice;
+      const pct = holdingsVal > 0 ? (val / (holdingsVal + state.portfolioCash)) * 100 : 0;
+      labels.push(h.ticker);
+      data.push(pct);
+      
+      const colors = [
+        '#0ea5e9', '#818cf8', '#22c55e', '#a855f7', '#f43f5e', 
+        '#eab308', '#ec4899', '#14b8a6', '#f97316'
+      ];
+      bgColors.push(colors[idx % colors.length]);
+    });
+    
+    // Add Cash
+    const cashPct = (state.portfolioCash / (holdingsVal + state.portfolioCash)) * 100;
+    labels.push('Cash');
+    data.push(cashPct);
+    bgColors.push('rgba(148, 163, 184, 0.25)');
+  }
+  
+  const isDark = state.theme === 'dark';
+  const labelColor = isDark ? '#94a3b8' : '#64748b';
+  const borderVal = isDark ? '#1e293b' : '#ffffff';
+
+  charts.portfolioChart = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: bgColors,
+        borderWidth: 2,
+        borderColor: borderVal
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: labelColor,
+            font: {
+              family: 'Inter',
+              size: 11
+            },
+            padding: 12
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: ${context.raw.toFixed(1)}%`;
+            }
+          }
+        }
+      },
+      cutout: '65%'
+    }
+  });
+}
+
+async function refreshPortfolioPrices() {
+  if (state.portfolioHoldings.length === 0) return;
+  
+  for (let holding of state.portfolioHoldings) {
+    try {
+      const response = await fetch(`/api/stock?symbol=${encodeURIComponent(holding.ticker)}`);
+      if (response.ok) {
+        const info = await response.json();
+        if (info && info.price) {
+          const match = info.price.match(/^([^\d\s\-\+,]+)?\s*([\d\.,]+)/);
+          if (match) {
+            const sym = match[1] || '$';
+            let price = parseFloat(match[2].replace(/,/g, ''));
+            if (sym === '$') price = price * 83.30;
+            else if (sym === '£') price = price * 105.50;
+            else if (sym === '€') price = price * 89.20;
+            holding.currentPrice = price;
+          }
+        }
+      } else {
+        // Fallback: simulate minor random float fluctuation (e.g. -0.3% to +0.3%)
+        const delta = 1 + ((Math.random() - 0.5) * 0.006);
+        holding.currentPrice *= delta;
+      }
+    } catch (e) {
+      const delta = 1 + ((Math.random() - 0.5) * 0.006);
+      holding.currentPrice *= delta;
+    }
+  }
+  
+  localStorage.setItem('finsightPortfolioHoldings', JSON.stringify(state.portfolioHoldings));
+}
+
+function resetPortfolioData() {
+  if (confirm('Are you sure you want to clear your portfolio and reset your mock balance to ₹10,00,000?')) {
+    state.portfolioCash = 1000000;
+    state.portfolioHoldings = [];
+    state.portfolioTrades = [];
+    
+    localStorage.setItem('finsightPortfolioCash', '1000000');
+    localStorage.setItem('finsightPortfolioHoldings', JSON.stringify([]));
+    localStorage.setItem('finsightPortfolioTrades', JSON.stringify([]));
+    
+    renderPortfolio();
+    showToast('Simulation portfolio has been reset.', 'success');
+  }
 }

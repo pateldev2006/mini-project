@@ -4467,3 +4467,73 @@ body::after {
     display: none;
   }
 }
+
+/* Stock Portfolio Page Layout */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (max-width: 1024px) {
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.holdings-panel, .ledger-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.portfolio-profit {
+  color: #22c55e !important;
+}
+
+.portfolio-loss {
+  color: #ef4444 !important;
+}
+
+/* Pulsing text indicator for positive/negative returns */
+.pulse-green {
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.25);
+}
+
+.pulse-red {
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
+}
+
+.table-action-btn {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.table-action-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.3);
+}
+
+.table-action-btn.btn-sell {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.table-action-btn.btn-sell:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
