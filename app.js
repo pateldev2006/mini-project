@@ -5,40 +5,40 @@ const state = {
   portfolioHoldings: [],
   portfolioTrades: [],
   savings: [
-    { id: 1, name: 'Emergency Fund', risk: 'Low Risk', riskLevel: 'low', balance: 12000, purpose: 'Recommended', progress: 80, returnRate: 3.5, icon: 'shield' },
-    { id: 2, name: 'Mutual Funds', risk: 'Moderate Risk', riskLevel: 'moderate', balance: 8500, purpose: 'Recommended', progress: 58, returnRate: 8.8, icon: 'pie-chart' },
-    { id: 3, name: 'SIP', risk: 'Balanced', riskLevel: 'balanced', balance: 7200, purpose: 'Monthly plan', progress: 65, returnRate: 10.2, icon: 'clock' },
-    { id: 4, name: 'Stocks', risk: 'High Risk', riskLevel: 'high', balance: 14900, purpose: 'Long-term gain', progress: 42, returnRate: 13.7, icon: 'trending-up' },
-    { id: 5, name: 'Fixed Deposit', risk: 'Secure', riskLevel: 'secure', balance: 5000, purpose: 'Stable yield', progress: 90, returnRate: 5.1, icon: 'shield-check' }
+    { id: 1, name: 'Emergency Fund', risk: 'Low Risk', riskLevel: 'low', balance: 120000, purpose: 'Recommended', progress: 80, returnRate: 3.5, icon: 'shield' },
+    { id: 2, name: 'Mutual Funds', risk: 'Moderate Risk', riskLevel: 'moderate', balance: 285000, purpose: 'Recommended', progress: 58, returnRate: 8.8, icon: 'pie-chart' },
+    { id: 3, name: 'SIP', risk: 'Balanced', riskLevel: 'balanced', balance: 172000, purpose: 'Monthly plan', progress: 65, returnRate: 10.2, icon: 'clock' },
+    { id: 4, name: 'Stocks', risk: 'High Risk', riskLevel: 'high', balance: 349000, purpose: 'Long-term gain', progress: 42, returnRate: 13.7, icon: 'trending-up' },
+    { id: 5, name: 'Fixed Deposit', risk: 'Secure', riskLevel: 'secure', balance: 150000, purpose: 'Stable yield', progress: 90, returnRate: 5.1, icon: 'shield-check' }
   ],
   savingsFilter: 'all',
   savingsSort: 'balance-desc',
   transactions: [
-    { id: 1, date: '2026-06-10', description: 'Coffee subscription', category: 'Bills', amount: '-₹24.99', type: 'Expense', status: 'Completed' },
-    { id: 2, date: '2026-06-10', description: 'Grocery market', category: 'Food', amount: '-₹84.20', type: 'Expense', status: 'Completed' },
-    { id: 3, date: '2026-06-09', description: 'Monthly salary', category: 'Investment', amount: '+₹5,200.00', type: 'Income', status: 'Completed' },
-    { id: 4, date: '2026-06-08', description: 'Gym membership', category: 'Health', amount: '-₹54.00', type: 'Expense', status: 'Pending' },
-    { id: 5, date: '2026-06-07', description: 'Ride share', category: 'Transport', amount: '-₹18.40', type: 'Expense', status: 'Completed' },
-    { id: 6, date: '2026-06-06', description: 'Weekend dining', category: 'Entertainment', amount: '-₹120.30', type: 'Expense', status: 'Completed' },
-    { id: 7, date: '2026-06-05', description: 'Book purchase', category: 'Education', amount: '-₹35.00', type: 'Expense', status: 'Completed' },
-    { id: 8, date: '2026-06-04', description: 'Dividend payout', category: 'Investment', amount: '+₹420.00', type: 'Income', status: 'Completed' },
-    { id: 9, date: '2026-06-03', description: 'Taxi ride', category: 'Transport', amount: '-₹16.50', type: 'Expense', status: 'Completed' },
-    { id: 10, date: '2026-06-02', description: 'Pharmacy', category: 'Health', amount: '-₹30.00', type: 'Expense', status: 'Completed' },
-    { id: 11, date: '2026-06-01', description: 'Gadget purchase', category: 'Shopping', amount: '-₹235.00', type: 'Expense', status: 'Pending' },
-    { id: 12, date: '2026-05-31', description: 'Utility payment', category: 'Bills', amount: '-₹160.00', type: 'Expense', status: 'Completed' },
+    { id: 1, date: '2026-06-10', description: 'Coffee subscription', category: 'Bills', amount: '-₹250.00', type: 'Expense', status: 'Completed' },
+    { id: 2, date: '2026-06-10', description: 'Grocery market', category: 'Food', amount: '-₹840.00', type: 'Expense', status: 'Completed' },
+    { id: 3, date: '2026-06-09', description: 'Monthly salary', category: 'Investment', amount: '+₹2,00,000.00', type: 'Income', status: 'Completed' },
+    { id: 4, date: '2026-06-08', description: 'Gym membership', category: 'Health', amount: '-₹2,500.00', type: 'Expense', status: 'Pending' },
+    { id: 5, date: '2026-06-07', description: 'Ride share', category: 'Transport', amount: '-₹180.00', type: 'Expense', status: 'Completed' },
+    { id: 6, date: '2026-06-06', description: 'Weekend dining', category: 'Entertainment', amount: '-₹1,200.00', type: 'Expense', status: 'Completed' },
+    { id: 7, date: '2026-06-05', description: 'Book purchase', category: 'Education', amount: '-₹350.00', type: 'Expense', status: 'Completed' },
+    { id: 8, date: '2026-06-04', description: 'Dividend payout', category: 'Investment', amount: '+₹38,400.00', type: 'Income', status: 'Completed' },
+    { id: 9, date: '2026-06-03', description: 'Taxi ride', category: 'Transport', amount: '-₹165.00', type: 'Expense', status: 'Completed' },
+    { id: 10, date: '2026-06-02', description: 'Pharmacy', category: 'Health', amount: '-₹300.00', type: 'Expense', status: 'Completed' },
+    { id: 11, date: '2026-06-01', description: 'Gadget purchase', category: 'Shopping', amount: '-₹15,000.00', type: 'Expense', status: 'Pending' },
+    { id: 12, date: '2026-05-31', description: 'Utility payment', category: 'Bills', amount: '-₹3,500.00', type: 'Expense', status: 'Completed' },
   ],
   currentPageIndex: 1,
   rowsPerPage: 6,
   budgets: [
-    { label: 'Food', limit: 500, spent: 320, remaining: 180, status: 'On track' },
-    { label: 'Transport', limit: 220, spent: 144, remaining: 76, status: 'Good' },
-    { label: 'Shopping', limit: 750, spent: 620, remaining: 130, status: 'Review' },
-    { label: 'Bills', limit: 460, spent: 412, remaining: 48, status: 'Checked' },
-    { label: 'Health', limit: 190, spent: 116, remaining: 74, status: 'Stable' },
-    { label: 'Entertainment', limit: 260, spent: 198, remaining: 62, status: 'Good' },
-    { label: 'Education', limit: 180, spent: 90, remaining: 90, status: 'Balanced' },
-    { label: 'Investment', limit: 920, spent: 725, remaining: 195, status: 'On track' },
-    { label: 'Other', limit: 160, spent: 78, remaining: 82, status: 'Healthy' },
+    { label: 'Food', limit: 5000, spent: 3200, remaining: 1800, status: 'On track' },
+    { label: 'Transport', limit: 2200, spent: 1440, remaining: 760, status: 'Good' },
+    { label: 'Shopping', limit: 7500, spent: 6200, remaining: 1300, status: 'Review' },
+    { label: 'Bills', limit: 4600, spent: 4120, remaining: 480, status: 'Checked' },
+    { label: 'Health', limit: 1900, spent: 1160, remaining: 740, status: 'Stable' },
+    { label: 'Entertainment', limit: 2600, spent: 1980, remaining: 620, status: 'Good' },
+    { label: 'Education', limit: 1800, spent: 900, remaining: 900, status: 'Balanced' },
+    { label: 'Investment', limit: 9200, spent: 7250, remaining: 1950, status: 'On track' },
+    { label: 'Other', limit: 1600, spent: 780, remaining: 820, status: 'Healthy' },
   ],
   chatMessages: [],
   stockData: {
@@ -120,6 +120,20 @@ function init() {
     }
   }
   setupAuth();
+
+  // Clear legacy unscaled data from localStorage if present
+  const storedBudgets = localStorage.getItem('finsightBudgets');
+  if (storedBudgets) {
+    try {
+      const parsed = JSON.parse(storedBudgets);
+      const foodB = parsed.find(b => b.label === 'Food');
+      if (foodB && foodB.limit <= 500) {
+        localStorage.removeItem('finsightBudgets');
+        localStorage.removeItem('finsightTransactions');
+        console.log('Cleared legacy unscaled data from localStorage.');
+      }
+    } catch(e) {}
+  }
 
   // Load custom budgets if they exist
   const savedBudgets = localStorage.getItem('finsightBudgets');
@@ -2081,14 +2095,14 @@ function initCharts() {
           const index = activeElements[0].index;
           const label = charts.expenseDoughnut.data.labels[index];
           const val = charts.expenseDoughnut.data.datasets[0].data[index];
-          const calculatedAmount = (val / 100) * 10520;
+          const calculatedAmount = (val / 100) * 105200;
           
           centerLabel.textContent = label;
           centerValue.textContent = `₹${Math.round(calculatedAmount).toLocaleString('en-US')}`;
           centerLabel.style.color = charts.expenseDoughnut.data.datasets[0].backgroundColor[index];
         } else {
           centerLabel.textContent = 'Total Spent';
-          centerValue.textContent = '₹10,520';
+          centerValue.textContent = '₹1,05,200';
           centerLabel.style.color = 'var(--subtext)';
         }
       },
