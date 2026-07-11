@@ -181,25 +181,30 @@ function setupAuth() {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value.trim();
+      const emailLower = email.toLowerCase();
 
       const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
       
       let authenticated = false;
       let userName = "Arjun Singh";
+      let resolvedEmail = email;
 
-      if (email === 'arjun@finsight.ai' && password === 'admin') {
+      // Make default user check flexible (case-insensitive, optional dot, optional domain)
+      if ((emailLower === 'arjun@finsight.ai' || emailLower === 'arjun@finsightai' || emailLower === 'arjun') && password === 'admin') {
         authenticated = true;
-      } else if (users[email] && users[email].password === password) {
+        resolvedEmail = 'arjun@finsight.ai';
+      } else if (users[emailLower] && users[emailLower].password === password) {
         authenticated = true;
-        userName = users[email].name;
+        userName = users[emailLower].name;
+        resolvedEmail = emailLower;
       }
 
       if (authenticated) {
         localStorage.setItem('finsight_logged_in', 'true');
         localStorage.setItem('finsight_user_name', userName);
-        localStorage.setItem('finsight_user_email', email);
+        localStorage.setItem('finsight_user_email', resolvedEmail);
         
-        updateProfileInfo(userName, email);
+        updateProfileInfo(userName, resolvedEmail);
         
         showToast(`Welcome back, ${userName}!`, 'success');
         
@@ -221,6 +226,7 @@ function setupAuth() {
       const name = document.getElementById('signupName').value.trim();
       const email = document.getElementById('signupEmail').value.trim();
       const password = document.getElementById('signupPassword').value.trim();
+      const emailLower = email.toLowerCase();
 
       if (!name || !email || !password) {
         showToast('Please fill in all fields', 'error');
@@ -228,19 +234,19 @@ function setupAuth() {
       }
 
       const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
-      if (users[email] || email === 'arjun@finsight.ai') {
+      if (users[emailLower] || emailLower === 'arjun@finsight.ai' || emailLower === 'arjun@finsightai' || emailLower === 'arjun') {
         showToast('An account with this email already exists', 'error');
         return;
       }
 
-      users[email] = { name, password };
+      users[emailLower] = { name, password };
       localStorage.setItem('finsight_users', JSON.stringify(users));
 
       localStorage.setItem('finsight_logged_in', 'true');
       localStorage.setItem('finsight_user_name', name);
-      localStorage.setItem('finsight_user_email', email);
+      localStorage.setItem('finsight_user_email', emailLower);
 
-      updateProfileInfo(name, email);
+      updateProfileInfo(name, emailLower);
 
       showToast(`Account created! Welcome, ${name}!`, 'success');
 
