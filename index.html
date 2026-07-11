@@ -8,12 +8,78 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=25" />
+  <link rel="stylesheet" href="style.css?v=26" />
 </head>
 <body>
   <!-- Futuristic Background Canvas & Floating Objects -->
   <canvas id="bgCanvas"></canvas>
   <div id="floatingObjects" class="floating-objects"></div>
+
+  <!-- Premium Authentication Overlay -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-card glass-card">
+      <div class="auth-left">
+        <div class="auth-logo-section">
+          <img src="assets/logo.png" alt="FinSight AI logo" class="auth-logo" />
+          <h2>FinSight AI</h2>
+        </div>
+        <p class="auth-left-tagline">Smart Expenses. Smarter Future.</p>
+        <p class="auth-left-desc">Experience premium AI-driven wealth management, real-time stock analysis, and smart budgeting.</p>
+        <div class="auth-left-metrics">
+          <div class="auth-metric">
+            <span class="auth-metric-value">₹47.6K</span>
+            <span class="auth-metric-label">Managed Assets</span>
+          </div>
+          <div class="auth-metric">
+            <span class="auth-metric-value">24/7</span>
+            <span class="auth-metric-label">Active AI Advisor</span>
+          </div>
+        </div>
+      </div>
+      <div class="auth-right">
+        <!-- Sign In Form -->
+        <div id="loginFormContainer" class="auth-form-container">
+          <h3>Welcome Back</h3>
+          <p class="auth-subtitle">Log in to access your dashboard</p>
+          <form id="loginForm" autocomplete="on">
+            <div class="input-group">
+              <label for="loginEmail">Email Address</label>
+              <input type="email" id="loginEmail" placeholder="arjun@finsight.ai" required autocomplete="email" />
+            </div>
+            <div class="input-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Enter App</button>
+          </form>
+          <p class="auth-toggle-text">Don't have an account? <button type="button" id="switchToSignUp" class="link-btn">Sign Up</button></p>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div id="signupFormContainer" class="auth-form-container" hidden>
+          <h3>Create Account</h3>
+          <p class="auth-subtitle">Join FinSight AI to manage your future</p>
+          <form id="signupForm" autocomplete="on">
+            <div class="input-group">
+              <label for="signupName">Full Name</label>
+              <input type="text" id="signupName" placeholder="Arjun Singh" required autocomplete="name" />
+            </div>
+            <div class="input-group">
+              <label for="signupEmail">Email Address</label>
+              <input type="email" id="signupEmail" placeholder="arjun@finsight.ai" required autocomplete="email" />
+            </div>
+            <div class="input-group">
+              <label for="signupPassword">Password</label>
+              <input type="password" id="signupPassword" placeholder="••••••••" required autocomplete="new-password" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+          </form>
+          <p class="auth-toggle-text">Already have an account? <button type="button" id="switchToLogin" class="link-btn">Log In</button></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="app-shell">
     <aside class="sidebar" aria-label="Primary navigation">
       <div class="sidebar-top">
@@ -1052,6 +1118,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="app.js?v=27" defer></script>
+  <script src="app.js?v=28" defer></script>
 </body>
 </html>

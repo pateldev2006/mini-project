@@ -101,6 +101,23 @@ function init() {
   state.theme = localStorage.getItem('finsightTheme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   setTheme(state.theme);
 
+  // Authenticate user
+  const authOverlay = document.getElementById('authOverlay');
+  const isLoggedIn = localStorage.getItem('finsight_logged_in') === 'true';
+
+  if (isLoggedIn) {
+    if (authOverlay) {
+      authOverlay.style.display = 'none';
+      authOverlay.classList.add('fade-out');
+    }
+  } else {
+    if (authOverlay) {
+      authOverlay.style.display = 'flex';
+      authOverlay.classList.remove('fade-out');
+    }
+  }
+  setupAuth();
+
   // Load custom budgets if they exist
   const savedBudgets = localStorage.getItem('finsightBudgets');
   if (savedBudgets) {
@@ -133,6 +150,128 @@ function init() {
     showPage(hash);
   } else {
     showPage(state.currentPage);
+  }
+}
+
+function setupAuth() {
+  const authOverlay = document.getElementById('authOverlay');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const switchToSignUp = document.getElementById('switchToSignUp');
+  const switchToLogin = document.getElementById('switchToLogin');
+  const loginFormContainer = document.getElementById('loginFormContainer');
+  const signupFormContainer = document.getElementById('signupFormContainer');
+
+  if (switchToSignUp) {
+    switchToSignUp.addEventListener('click', () => {
+      loginFormContainer.hidden = true;
+      signupFormContainer.hidden = false;
+    });
+  }
+
+  if (switchToLogin) {
+    switchToLogin.addEventListener('click', () => {
+      signupFormContainer.hidden = true;
+      loginFormContainer.hidden = false;
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
+      
+      let authenticated = false;
+      let userName = "Arjun Singh";
+
+      if (email === 'arjun@finsight.ai' && password === 'admin') {
+        authenticated = true;
+      } else if (users[email] && users[email].password === password) {
+        authenticated = true;
+        userName = users[email].name;
+      }
+
+      if (authenticated) {
+        localStorage.setItem('finsight_logged_in', 'true');
+        localStorage.setItem('finsight_user_name', userName);
+        localStorage.setItem('finsight_user_email', email);
+        
+        updateProfileInfo(userName, email);
+        
+        showToast(`Welcome back, ${userName}!`, 'success');
+        
+        if (authOverlay) {
+          authOverlay.classList.add('fade-out');
+          setTimeout(() => {
+            authOverlay.style.display = 'none';
+          }, 800);
+        }
+      } else {
+        showToast('Invalid email or password. Try arjun@finsight.ai / admin', 'error');
+      }
+    });
+  }
+
+  if (signupForm) {
+    signupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value.trim();
+
+      if (!name || !email || !password) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
+      if (users[email] || email === 'arjun@finsight.ai') {
+        showToast('An account with this email already exists', 'error');
+        return;
+      }
+
+      users[email] = { name, password };
+      localStorage.setItem('finsight_users', JSON.stringify(users));
+
+      localStorage.setItem('finsight_logged_in', 'true');
+      localStorage.setItem('finsight_user_name', name);
+      localStorage.setItem('finsight_user_email', email);
+
+      updateProfileInfo(name, email);
+
+      showToast(`Account created! Welcome, ${name}!`, 'success');
+
+      if (authOverlay) {
+        authOverlay.classList.add('fade-out');
+        setTimeout(() => {
+          authOverlay.style.display = 'none';
+        }, 800);
+      }
+    });
+  }
+}
+
+function updateProfileInfo(name, email) {
+  const profileHeaderName = document.getElementById('profileHeaderName');
+  if (profileHeaderName) profileHeaderName.textContent = name;
+
+  const profileMainName = document.getElementById('profileMainName');
+  if (profileMainName) profileMainName.textContent = name;
+
+  const profileMainEmail = document.getElementById('profileMainEmail');
+  if (profileMainEmail) profileMainEmail.textContent = email;
+  
+  const savedProfile = localStorage.getItem('finsightUserProfile');
+  if (savedProfile) {
+    try {
+      const prof = JSON.parse(savedProfile);
+      prof.name = name;
+      prof.email = email;
+      localStorage.setItem('finsightUserProfile', JSON.stringify(prof));
+    } catch (e) {}
   }
 }
 
@@ -877,15 +1016,10 @@ function bindUIControls() {
   const logoutButton = document.getElementById('logoutButton');
   if (logoutButton) {
     logoutButton.addEventListener('click', () => {
-      // Clear all FinSight data from localStorage
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('finsight')) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+      // Clear session keys
+      localStorage.removeItem('finsight_logged_in');
+      localStorage.removeItem('finsight_user_name');
+      localStorage.removeItem('finsight_user_email');
       
       showToast('Signed out successfully. Reloading...', 'success');
       closeProfileMenu();
@@ -2827,6 +2961,12 @@ function initializeProfile() {
       console.error('Error parsing saved profile:', e);
     }
   }
+
+  // Override profile fields with logged-in credentials if present
+  const loggedInName = localStorage.getItem('finsight_user_name');
+  const loggedInEmail = localStorage.getItem('finsight_user_email');
+  if (loggedInName) state.profile.name = loggedInName;
+  if (loggedInEmail) state.profile.email = loggedInEmail;
 
   // Populate fields in DOM
   updateProfileDOM();
