@@ -2709,7 +2709,7 @@ function initCharts() {
     data: {
       labels: ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Entertainment'],
       datasets: [{
-        data: [18, 12, 24, 20, 10, 16],
+        data: [0, 0, 0, 0, 0, 0],
         backgroundColor: ['#38bdf8', '#34d399', '#4f46e5', '#818cf8', '#fbbf24', '#fb7185'],
         borderWidth: 0,
         cutout: '78%',
@@ -2725,18 +2725,19 @@ function initCharts() {
         const centerValue = document.querySelector('.doughnut-center-value');
         if (!centerLabel || !centerValue) return;
 
+        const currentTotal = charts.expenseDoughnut.data.datasets[0].data.reduce((a, b) => a + b, 0);
+
         if (activeElements && activeElements.length > 0) {
           const index = activeElements[0].index;
           const label = charts.expenseDoughnut.data.labels[index];
           const val = charts.expenseDoughnut.data.datasets[0].data[index];
-          const calculatedAmount = (val / 100) * 105200;
           
           centerLabel.textContent = label;
-          centerValue.textContent = `₹${Math.round(calculatedAmount).toLocaleString('en-US')}`;
+          centerValue.textContent = `₹${Math.round(val).toLocaleString('en-IN')}`;
           centerLabel.style.color = charts.expenseDoughnut.data.datasets[0].backgroundColor[index];
         } else {
           centerLabel.textContent = 'Total Spent';
-          centerValue.textContent = '₹1,05,200';
+          centerValue.textContent = `₹${Math.round(currentTotal).toLocaleString('en-IN')}`;
           centerLabel.style.color = 'var(--subtext)';
         }
       },
