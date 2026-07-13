@@ -85,6 +85,16 @@ def main():
         # Fallback to local directory if APPDATA is missing
         storage_path = os.path.abspath('user_data')
 
+    # Prevent WebView2 "The requested resource is in use" (0x800700AA) lock conflicts
+    lock_file = os.path.join(storage_path, 'EBWebView', 'lockfile')
+    if os.path.exists(lock_file):
+        try:
+            os.remove(lock_file)
+        except Exception:
+            # If the lockfile is currently held by a zombie/other process, use a PID-specific UDF fallback
+            storage_path = f"{storage_path}_{os.getpid()}"
+            print(f"[INFO] Storage path locked. Falling back to dynamic profile: {storage_path}")
+
     # Start the webview loop with persistence and debug/loopback-bypass enabled
     webview.start(private_mode=False, storage_path=storage_path, debug=True)
 
