@@ -380,6 +380,42 @@ function setupAuth() {
           if (error) throw error;
 
           const user = data.user;
+          
+          // Clear any pre-existing session data from memory & cache for a fresh start
+          localStorage.removeItem('finsightTransactions');
+          localStorage.removeItem('finsightBudgets');
+          localStorage.removeItem('finsightSavings');
+          localStorage.removeItem('finsightPortfolioCash');
+          localStorage.removeItem('finsightPortfolioHoldings');
+          localStorage.removeItem('finsightPortfolioTrades');
+
+          state.transactions = [];
+          state.savings = [
+            { id: 1, name: 'Emergency Fund', risk: 'Low Risk', riskLevel: 'low', balance: 0, progress: 0, returnRate: 3.5, icon: 'shield', purpose: 'Recommended' },
+            { id: 2, name: 'Mutual Funds', risk: 'Moderate Risk', riskLevel: 'moderate', balance: 0, progress: 0, returnRate: 8.8, icon: 'pie-chart', purpose: 'Recommended' },
+            { id: 3, name: 'SIP', risk: 'Balanced', riskLevel: 'balanced', balance: 0, progress: 0, returnRate: 10.2, icon: 'clock', purpose: 'Monthly plan' },
+            { id: 4, name: 'Stocks', risk: 'High Risk', riskLevel: 'high', balance: 0, progress: 0, returnRate: 13.7, icon: 'trending-up', purpose: 'Long-term gain' },
+            { id: 5, name: 'Fixed Deposit', risk: 'Secure', riskLevel: 'secure', balance: 0, progress: 0, returnRate: 5.1, icon: 'shield-check', purpose: 'Stable yield' }
+          ];
+          state.budgets = [
+            { label: 'Food', limit: 8000, spent: 0, remaining: 8000, status: 'Good' },
+            { label: 'Transport', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
+            { label: 'Shopping', limit: 10000, spent: 0, remaining: 10000, status: 'Good' },
+            { label: 'Bills', limit: 15000, spent: 0, remaining: 15000, status: 'Good' },
+            { label: 'Health', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
+            { label: 'Entertainment', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
+            { label: 'Education', limit: 3000, spent: 0, remaining: 3000, status: 'Good' },
+            { label: 'Investment', limit: 50000, spent: 0, remaining: 50000, status: 'Good' },
+            { label: 'Other', limit: 5000, spent: 0, remaining: 5000, status: 'Good' }
+          ];
+          state.portfolioCash = 1000000;
+          state.portfolioHoldings = [];
+          state.portfolioTrades = [];
+
+          updateTransactionListing();
+          updateAllDashboardValues();
+          renderSavingsCards();
+
           localStorage.setItem('finsight_logged_in', 'true');
           localStorage.setItem('finsight_supabase_user_id', user.id);
           localStorage.setItem('finsight_user_name', name);
@@ -387,7 +423,7 @@ function setupAuth() {
 
           updateProfileInfo(name, emailLower);
           
-          // Seeding the new cloud user profile with any current local state data
+          // Seed the new cloud user profile with this clean initial state
           await uploadLocalDataToSupabase(user.id);
           
           showToast(`Account created! Welcome, ${name}!`, 'success');
@@ -415,6 +451,41 @@ function setupAuth() {
         showToast('An account with this email already exists', 'error');
         return;
       }
+
+      // Clear any pre-existing session data from memory & cache for a fresh start
+      localStorage.removeItem('finsightTransactions');
+      localStorage.removeItem('finsightBudgets');
+      localStorage.removeItem('finsightSavings');
+      localStorage.removeItem('finsightPortfolioCash');
+      localStorage.removeItem('finsightPortfolioHoldings');
+      localStorage.removeItem('finsightPortfolioTrades');
+
+      state.transactions = [];
+      state.savings = [
+        { id: 1, name: 'Emergency Fund', risk: 'Low Risk', riskLevel: 'low', balance: 0, progress: 0, returnRate: 3.5, icon: 'shield', purpose: 'Recommended' },
+        { id: 2, name: 'Mutual Funds', risk: 'Moderate Risk', riskLevel: 'moderate', balance: 0, progress: 0, returnRate: 8.8, icon: 'pie-chart', purpose: 'Recommended' },
+        { id: 3, name: 'SIP', risk: 'Balanced', riskLevel: 'balanced', balance: 0, progress: 0, returnRate: 10.2, icon: 'clock', purpose: 'Monthly plan' },
+        { id: 4, name: 'Stocks', risk: 'High Risk', riskLevel: 'high', balance: 0, progress: 0, returnRate: 13.7, icon: 'trending-up', purpose: 'Long-term gain' },
+        { id: 5, name: 'Fixed Deposit', risk: 'Secure', riskLevel: 'secure', balance: 0, progress: 0, returnRate: 5.1, icon: 'shield-check', purpose: 'Stable yield' }
+      ];
+      state.budgets = [
+        { label: 'Food', limit: 8000, spent: 0, remaining: 8000, status: 'Good' },
+        { label: 'Transport', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
+        { label: 'Shopping', limit: 10000, spent: 0, remaining: 10000, status: 'Good' },
+        { label: 'Bills', limit: 15000, spent: 0, remaining: 15000, status: 'Good' },
+        { label: 'Health', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
+        { label: 'Entertainment', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
+        { label: 'Education', limit: 3000, spent: 0, remaining: 3000, status: 'Good' },
+        { label: 'Investment', limit: 50000, spent: 0, remaining: 50000, status: 'Good' },
+        { label: 'Other', limit: 5000, spent: 0, remaining: 5000, status: 'Good' }
+      ];
+      state.portfolioCash = 1000000;
+      state.portfolioHoldings = [];
+      state.portfolioTrades = [];
+
+      updateTransactionListing();
+      updateAllDashboardValues();
+      renderSavingsCards();
 
       users[emailLower] = { name, password };
       localStorage.setItem('finsight_users', JSON.stringify(users));
@@ -1351,6 +1422,14 @@ function bindUIControls() {
       localStorage.removeItem('finsight_logged_in');
       localStorage.removeItem('finsight_user_name');
       localStorage.removeItem('finsight_user_email');
+      
+      // Clear cached financial keys
+      localStorage.removeItem('finsightTransactions');
+      localStorage.removeItem('finsightBudgets');
+      localStorage.removeItem('finsightSavings');
+      localStorage.removeItem('finsightPortfolioCash');
+      localStorage.removeItem('finsightPortfolioHoldings');
+      localStorage.removeItem('finsightPortfolioTrades');
       
       showToast('Signed out successfully. Reloading...', 'success');
       closeProfileMenu();
