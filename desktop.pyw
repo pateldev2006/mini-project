@@ -91,9 +91,22 @@ def main():
         try:
             os.remove(lock_file)
         except Exception:
-            # If the lockfile is currently held by a zombie/other process, use a PID-specific UDF fallback
-            storage_path = f"{storage_path}_{os.getpid()}"
-            print(f"[INFO] Storage path locked. Falling back to dynamic profile: {storage_path}")
+            # If it's locked, find and terminate other zombie instances of desktop.pyw
+            try:
+                import subprocess
+                import time
+                current_pid = os.getpid()
+                # Run PowerShell command to find and terminate other processes running desktop.pyw
+                cmd = f'powershell -Command "Get-CimInstance Win32_Process -Filter \\"CommandLine like \'%desktop.pyw%\'\\" | Where-Object ProcessId -ne {current_pid} | ForEach-Object {{ Stop-Process -Id $_.ProcessId -Force }}"'
+                subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                time.sleep(0.5)
+                # Retry removing the lock file
+                if os.path.exists(lock_file):
+                    os.remove(lock_file)
+            except Exception as e:
+                # Fallback to dynamic path only if we fail to release the lock
+                storage_path = f"{storage_path}_{os.getpid()}"
+                print(f"[WARN] Failed to release lock. Falling back to dynamic profile: {storage_path}")
 
     # Start the webview loop with persistence enabled (debug disabled for production)
     webview.start(private_mode=False, storage_path=storage_path, debug=False)
