@@ -58,6 +58,7 @@ def main():
         for _ in range(50):
             if is_port_in_use(port):
                 server_ready = True
+                time.sleep(0.8)  # Let the HTTP server fully stabilize before loading page
                 break
             time.sleep(0.1)
             
