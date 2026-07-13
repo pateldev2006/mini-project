@@ -100,24 +100,43 @@ const savingsGoalCount = document.getElementById('savingsGoalCount');
 
 const charts = {};
 
+let supabaseClient = null;
+
 function init() {
   state.theme = localStorage.getItem('finsightTheme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   setTheme(state.theme);
 
+  // Initialize Supabase if credentials exist
+  initSupabase();
+
   // Authenticate user
   const authOverlay = document.getElementById('authOverlay');
   const isLoggedIn = localStorage.getItem('finsight_logged_in') === 'true';
+  const userId = localStorage.getItem('finsight_supabase_user_id');
+  const supabaseActive = localStorage.getItem('finsight_supabase_url') && localStorage.getItem('finsight_supabase_key');
 
-  if (isLoggedIn) {
+  const verifiedLoggedIn = isLoggedIn && (!supabaseActive || userId);
+
+  // Bind Supabase settings modals
+  bindSupabaseControls();
+
+  if (verifiedLoggedIn) {
     if (authOverlay) {
       authOverlay.style.display = 'none';
       authOverlay.classList.add('fade-out');
+    }
+    
+    // If Supabase is active, pull latest cloud state
+    if (supabaseClient && userId) {
+      fetchProfileData(userId);
+      fetchCloudData(userId);
     }
   } else {
     if (authOverlay) {
       authOverlay.style.display = 'flex';
       authOverlay.classList.remove('fade-out');
     }
+    localStorage.removeItem('finsight_logged_in');
   }
   setupAuth();
 
@@ -218,19 +237,62 @@ function setupAuth() {
   }
 
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value.trim();
       const emailLower = email.toLowerCase();
 
+      if (supabaseClient) {
+        // Cloud Auth Mode
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.textContent : 'Sign In';
+        if (submitBtn) {
+          submitBtn.textContent = 'Signing in...';
+          submitBtn.disabled = true;
+        }
+        
+        try {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: emailLower,
+            password: password
+          });
+          
+          if (error) throw error;
+          
+          const user = data.user;
+          localStorage.setItem('finsight_logged_in', 'true');
+          localStorage.setItem('finsight_supabase_user_id', user.id);
+          
+          await fetchProfileData(user.id);
+          await fetchCloudData(user.id);
+          
+          showToast(`Logged in successfully!`, 'success');
+          
+          if (authOverlay) {
+            authOverlay.classList.add('fade-out');
+            setTimeout(() => {
+              authOverlay.style.display = 'none';
+            }, 800);
+          }
+        } catch (err) {
+          showToast(`Login failed: ${err.message}`, 'error');
+        } finally {
+          if (submitBtn) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+          }
+        }
+        return;
+      }
+
+      // Local Fallback Auth Mode
       const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
       
       let authenticated = false;
       let userName = "Arjun Singh";
       let resolvedEmail = email;
 
-      // Make default user check flexible (case-insensitive, optional dot, optional domain)
       if ((emailLower === 'arjun@finsight.ai' || emailLower === 'arjun@finsightai' || emailLower === 'arjun') && password === 'admin') {
         authenticated = true;
         resolvedEmail = 'arjun@finsight.ai';
@@ -262,7 +324,7 @@ function setupAuth() {
   }
 
   if (signupForm) {
-    signupForm.addEventListener('submit', (e) => {
+    signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('signupName').value.trim();
       const email = document.getElementById('signupEmail').value.trim();
@@ -274,6 +336,59 @@ function setupAuth() {
         return;
       }
 
+      if (supabaseClient) {
+        // Cloud Signup Mode
+        const submitBtn = signupForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.textContent : 'Sign Up';
+        if (submitBtn) {
+          submitBtn.textContent = 'Creating account...';
+          submitBtn.disabled = true;
+        }
+
+        try {
+          const { data, error } = await supabaseClient.auth.signUp({
+            email: emailLower,
+            password: password,
+            options: {
+              data: {
+                name: name
+              }
+            }
+          });
+
+          if (error) throw error;
+
+          const user = data.user;
+          localStorage.setItem('finsight_logged_in', 'true');
+          localStorage.setItem('finsight_supabase_user_id', user.id);
+          localStorage.setItem('finsight_user_name', name);
+          localStorage.setItem('finsight_user_email', emailLower);
+
+          updateProfileInfo(name, emailLower);
+          
+          // Seeding the new cloud user profile with any current local state data
+          await uploadLocalDataToSupabase(user.id);
+          
+          showToast(`Account created! Welcome, ${name}!`, 'success');
+
+          if (authOverlay) {
+            authOverlay.classList.add('fade-out');
+            setTimeout(() => {
+              authOverlay.style.display = 'none';
+            }, 800);
+          }
+        } catch (err) {
+          showToast(`Sign up failed: ${err.message}`, 'error');
+        } finally {
+          if (submitBtn) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+          }
+        }
+        return;
+      }
+
+      // Local Fallback Signup Mode
       const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
       if (users[emailLower] || emailLower === 'arjun@finsight.ai' || emailLower === 'arjun@finsightai' || emailLower === 'arjun') {
         showToast('An account with this email already exists', 'error');
@@ -2473,6 +2588,7 @@ function handleCreateBudget(event) {
   
   // Persist in localStorage
   localStorage.setItem('finsightBudgets', JSON.stringify(state.budgets));
+  dbSync('budget');
   
   // Re-render
   renderBudgetCards();
@@ -2579,6 +2695,7 @@ function handleEditTransactionSubmit(event) {
 
   // Persist in localStorage
   localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+  dbSync('transaction', state.transactions[index]);
 
   // Re-render
   updateTransactionListing();
@@ -2633,6 +2750,7 @@ function deleteTransaction(id) {
   if (confirm(`Are you sure you want to delete the transaction "${desc}"?`)) {
     state.transactions = state.transactions.filter(t => t.id !== id);
     localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+    dbSync('transaction-delete', id);
     updateTransactionListing();
 
     // Add notification
@@ -3427,9 +3545,11 @@ async function handlePaymentSubmit(event) {
     total: -totalDeductionINR
   });
   localStorage.setItem('finsightPortfolioTrades', JSON.stringify(state.portfolioTrades));
+  dbSync('portfolio');
 
   // Add ledger transaction log
   const newTx = {
+    id: Date.now(),
     date: dateStr,
     description: `Bought ${shares} ${ticker} shares`,
     category: 'Investment',
@@ -3439,6 +3559,7 @@ async function handlePaymentSubmit(event) {
   };
   state.transactions.unshift(newTx);
   localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+  dbSync('transaction', newTx);
   
   if (typeof updateTransactionListing === 'function') {
     updateTransactionListing();
@@ -3896,9 +4017,11 @@ async function handleSellSubmit(event) {
     total: proceeds
   });
   localStorage.setItem('finsightPortfolioTrades', JSON.stringify(state.portfolioTrades));
+  dbSync('portfolio');
 
   // Add ledger transaction log
   const newTx = {
+    id: Date.now(),
     date: dateStr,
     description: `Sold ${sharesToSell} ${ticker} shares`,
     category: 'Investment',
@@ -3908,6 +4031,7 @@ async function handleSellSubmit(event) {
   };
   state.transactions.unshift(newTx);
   localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+  dbSync('transaction', newTx);
   
   if (typeof updateTransactionListing === 'function') {
     updateTransactionListing();
@@ -4142,8 +4266,321 @@ function resetPortfolioData() {
     localStorage.setItem('finsightPortfolioCash', '1000000');
     localStorage.setItem('finsightPortfolioHoldings', JSON.stringify([]));
     localStorage.setItem('finsightPortfolioTrades', JSON.stringify([]));
+    dbSync('portfolio');
     
     renderPortfolio();
     showToast('Simulation portfolio has been reset.', 'success');
+  }
+}
+
+// =========================================================================
+// Supabase Integration Modules
+// =========================================================================
+
+function initSupabase() {
+  const url = localStorage.getItem('finsight_supabase_url');
+  const key = localStorage.getItem('finsight_supabase_key');
+  const indicator = document.getElementById('supabaseSyncIndicator');
+  
+  if (url && key && window.supabase) {
+    try {
+      supabaseClient = window.supabase.createClient(url, key);
+      if (indicator) indicator.style.display = 'flex';
+      console.log('Supabase connection initialized successfully.');
+      return true;
+    } catch (e) {
+      console.error('Failed to initialize Supabase client:', e);
+      supabaseClient = null;
+      if (indicator) indicator.style.display = 'none';
+    }
+  } else {
+    supabaseClient = null;
+    if (indicator) indicator.style.display = 'none';
+  }
+  return false;
+}
+
+function bindSupabaseControls() {
+  const modal = document.getElementById('supabaseModal');
+  const connectBtn = document.getElementById('connectSupabaseBtn');
+  const closeBtn = document.getElementById('closeSupabaseModalBtn');
+  const form = document.getElementById('supabaseForm');
+  const clearBtn = document.getElementById('clearSupabaseBtn');
+  const urlInput = document.getElementById('supabaseUrlInput');
+  const keyInput = document.getElementById('supabaseKeyInput');
+  
+  if (connectBtn) {
+    connectBtn.addEventListener('click', () => {
+      urlInput.value = localStorage.getItem('finsight_supabase_url') || '';
+      keyInput.value = localStorage.getItem('finsight_supabase_key') || '';
+      modal.removeAttribute('hidden');
+      modal.style.display = 'flex';
+      closeProfileMenu();
+    });
+  }
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      modal.setAttribute('hidden', '');
+      modal.style.display = 'none';
+    });
+  }
+  
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to disconnect from Supabase Cloud? This will return the application to local storage mode.')) {
+        localStorage.removeItem('finsight_supabase_url');
+        localStorage.removeItem('finsight_supabase_key');
+        localStorage.removeItem('finsight_supabase_user_id');
+        localStorage.removeItem('finsight_logged_in');
+        
+        initSupabase();
+        modal.setAttribute('hidden', '');
+        modal.style.display = 'none';
+        showToast('Disconnected from Supabase Cloud.', 'info');
+        
+        window.location.reload();
+      }
+    });
+  }
+  
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      const key = keyInput.value.trim();
+      
+      localStorage.setItem('finsight_supabase_url', url);
+      localStorage.setItem('finsight_supabase_key', key);
+      
+      const success = initSupabase();
+      
+      modal.setAttribute('hidden', '');
+      modal.style.display = 'none';
+      
+      if (success) {
+        showToast('Successfully connected to Supabase Database!', 'success');
+        if (confirm('Database connected! Would you like to log in to your cloud database profile now?')) {
+          localStorage.removeItem('finsight_logged_in');
+          window.location.reload();
+        }
+      } else {
+        showToast('Connection failed. Please check your URL and Key.', 'error');
+      }
+    });
+  }
+}
+
+async function uploadLocalDataToSupabase(userId) {
+  if (!supabaseClient || !userId) return;
+  
+  showToast('Syncing local data to Supabase cloud...', 'info');
+  
+  try {
+    // 1. Sync Savings Goals
+    if (state.savings && state.savings.length > 0) {
+      const rows = state.savings.map(s => ({
+        user_id: userId,
+        name: s.name,
+        risk: s.risk,
+        risk_level: s.riskLevel,
+        balance: s.balance,
+        purpose: s.purpose,
+        progress: s.progress,
+        return_rate: s.returnRate,
+        icon: s.icon
+      }));
+      await supabaseClient.from('savings').delete().eq('user_id', userId);
+      await supabaseClient.from('savings').insert(rows);
+    }
+    
+    // 2. Sync Budgets
+    if (state.budgets && state.budgets.length > 0) {
+      const rows = state.budgets.map(b => ({
+        user_id: userId,
+        label: b.label,
+        limit: b.limit,
+        spent: b.spent,
+        status: b.status
+      }));
+      await supabaseClient.from('budgets').delete().eq('user_id', userId);
+      await supabaseClient.from('budgets').insert(rows);
+    }
+    
+    // 3. Sync Transactions
+    if (state.transactions && state.transactions.length > 0) {
+      const rows = state.transactions.map(t => {
+        let amountNum = parseFloat(t.amount.replace(/[^\d\.-]/g, ''));
+        if (isNaN(amountNum)) amountNum = 0;
+        return {
+          id: String(t.id),
+          user_id: userId,
+          date: t.date,
+          description: t.description,
+          category: t.category,
+          amount: amountNum,
+          type: t.type,
+          status: t.status
+        };
+      });
+      await supabaseClient.from('transactions').delete().eq('user_id', userId);
+      await supabaseClient.from('transactions').insert(rows);
+    }
+    
+    // 4. Sync Portfolio State
+    await supabaseClient.from('portfolio_state').upsert({
+      user_id: userId,
+      cash_balance: state.portfolioCash,
+      holdings: state.portfolioHoldings,
+      trades: state.portfolioTrades
+    });
+    
+    showToast('Cloud sync complete!', 'success');
+  } catch (e) {
+    console.error('Error uploading local data:', e);
+    showToast('Failed to sync some local data to the cloud.', 'warning');
+  }
+}
+
+async function fetchCloudData(userId) {
+  if (!supabaseClient || !userId) return;
+  
+  try {
+    // Fetch Savings
+    const { data: savingsData } = await supabaseClient.from('savings').select('*').eq('user_id', userId);
+    if (savingsData && savingsData.length > 0) {
+      state.savings = savingsData.map(s => ({
+        id: s.id,
+        name: s.name,
+        risk: s.risk,
+        riskLevel: s.risk_level,
+        balance: Number(s.balance),
+        purpose: s.purpose,
+        progress: s.progress,
+        returnRate: Number(s.return_rate),
+        icon: s.icon
+      }));
+      localStorage.setItem('finsightSavings', JSON.stringify(state.savings));
+    }
+    
+    // Fetch Budgets
+    const { data: budgetsData } = await supabaseClient.from('budgets').select('*').eq('user_id', userId);
+    if (budgetsData && budgetsData.length > 0) {
+      state.budgets = budgetsData.map(b => ({
+        label: b.label,
+        limit: Number(b.limit),
+        spent: Number(b.spent),
+        remaining: Math.max(0, Number(b.limit) - Number(b.spent)),
+        status: b.status
+      }));
+      localStorage.setItem('finsightBudgets', JSON.stringify(state.budgets));
+    }
+    
+    // Fetch Transactions
+    const { data: txData } = await supabaseClient.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false });
+    if (txData && txData.length > 0) {
+      state.transactions = txData.map(t => {
+        const sign = t.type === 'Income' ? '+' : '-';
+        return {
+          id: isNaN(Number(t.id)) ? t.id : Number(t.id),
+          date: t.date,
+          description: t.description,
+          category: t.category,
+          amount: `${sign}₹${Math.abs(Number(t.amount)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+          type: t.type,
+          status: t.status
+        };
+      });
+      localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+    }
+    
+    // Fetch Portfolio State
+    const { data: portfolioData } = await supabaseClient.from('portfolio_state').select('*').eq('user_id', userId).maybeSingle();
+    if (portfolioData) {
+      state.portfolioCash = Number(portfolioData.cash_balance);
+      state.portfolioHoldings = portfolioData.holdings || [];
+      state.portfolioTrades = portfolioData.trades || [];
+      
+      localStorage.setItem('finsightPortfolioCash', String(state.portfolioCash));
+      localStorage.setItem('finsightPortfolioHoldings', JSON.stringify(state.portfolioHoldings));
+      localStorage.setItem('finsightPortfolioTrades', JSON.stringify(state.portfolioTrades));
+    }
+    
+    // Trigger redraws
+    updateTransactionListing();
+    renderBudgetCards();
+    renderSavingsCards();
+    renderPortfolio();
+  } catch (e) {
+    console.error('Error fetching cloud data:', e);
+  }
+}
+
+async function fetchProfileData(userId) {
+  if (!supabaseClient || !userId) return;
+  try {
+    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', userId).maybeSingle();
+    if (profile) {
+      localStorage.setItem('finsight_user_name', profile.full_name || 'Arjun Singh');
+      localStorage.setItem('finsight_user_email', profile.email);
+      updateProfileInfo(profile.full_name || 'Arjun Singh', profile.email);
+    }
+  } catch (e) {
+    console.error('Error fetching profile:', e);
+  }
+}
+
+async function dbSync(type, data) {
+  if (!supabaseClient) return;
+  const userId = localStorage.getItem('finsight_supabase_user_id');
+  if (!userId) return;
+
+  try {
+    if (type === 'transaction') {
+      const t = data;
+      let amountNum = parseFloat(t.amount.replace(/[^\d\.-]/g, ''));
+      if (isNaN(amountNum)) amountNum = 0;
+      await supabaseClient.from('transactions').upsert({
+        id: String(t.id),
+        user_id: userId,
+        date: t.date,
+        description: t.description,
+        category: t.category,
+        amount: amountNum,
+        type: t.type,
+        status: t.status
+      });
+    } else if (type === 'transaction-delete') {
+      const id = data;
+      await supabaseClient.from('transactions').delete().eq('id', String(id)).eq('user_id', userId);
+    } else if (type === 'budget') {
+      const rows = state.budgets.map(b => ({
+        user_id: userId,
+        label: b.label,
+        limit: b.limit,
+        spent: b.spent,
+        status: b.status
+      }));
+      await supabaseClient.from('budgets').delete().eq('user_id', userId);
+      await supabaseClient.from('budgets').insert(rows);
+    } else if (type === 'portfolio') {
+      await supabaseClient.from('portfolio_state').upsert({
+        user_id: userId,
+        cash_balance: state.portfolioCash,
+        holdings: state.portfolioHoldings,
+        trades: state.portfolioTrades
+      });
+    }
+  } catch (e) {
+    console.error('Supabase DB Sync Error:', e);
+  }
+}
+
+function closeProfileMenu() {
+  const profileMenu = document.getElementById('profileMenu');
+  const profileMenuButton = document.getElementById('profileMenuButton');
+  if (profileMenu && profileMenuButton) {
+    profileMenu.hidden = true;
+    profileMenuButton.setAttribute('aria-expanded', 'false');
   }
 }

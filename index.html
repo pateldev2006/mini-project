@@ -157,6 +157,10 @@
           <div class="search-results-overlay" id="globalSearchResults" hidden></div>
         </div>
         <div class="topbar-actions">
+          <div id="supabaseSyncIndicator" class="sync-indicator" style="display: none;" title="Connected to Supabase Cloud">
+            <span class="sync-dot"></span>
+            <span class="sync-text">Cloud Active</span>
+          </div>
           <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
             <svg class="theme-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79Z" /></svg>
           </button>
@@ -191,6 +195,7 @@
             <div class="profile-menu" id="profileMenu" hidden>
               <button data-page="profile" class="panel-btn" type="button">View Profile</button>
               <button data-page="reports" class="panel-btn" type="button">Financial Reports</button>
+              <button id="connectSupabaseBtn" class="panel-btn" type="button" style="color: var(--primary); font-weight: 500;">🔌 Connect Supabase</button>
               <button id="logoutButton" class="panel-btn" type="button">Sign Out</button>
             </div>
           </div>
@@ -1281,7 +1286,35 @@
     </div>
   </div>
 
+  <!-- Supabase Config Modal -->
+  <div id="supabaseModal" class="modal-backdrop" hidden>
+    <div class="modal-dialog glass-card">
+      <div class="modal-header">
+        <h2>🔌 Connect Supabase Database</h2>
+        <button type="button" class="close-btn" id="closeSupabaseModalBtn">&times;</button>
+      </div>
+      <form id="supabaseForm">
+        <p style="color: var(--subtext); font-size: 0.9rem; line-height: 1.5; margin-bottom: 12px;">
+          Configure your Supabase credentials to enable secure user authentication and real-time cloud synchronization for your financial data.
+        </p>
+        <div class="form-group">
+          <label for="supabaseUrlInput">Supabase URL</label>
+          <input type="url" id="supabaseUrlInput" placeholder="https://your-project.supabase.co" required style="width: 100%; box-sizing: border-box;" />
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label for="supabaseKeyInput">Supabase Anon/Public Key</label>
+          <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required style="width: 100%; box-sizing: border-box;" />
+        </div>
+        <div class="modal-actions" style="margin-top: 24px; justify-content: flex-end; gap: 12px;">
+          <button type="button" id="clearSupabaseBtn" class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">Disconnect</button>
+          <button type="submit" class="btn btn-primary">Connect Database</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js?v=31" defer></script>
 </body>
 </html>
