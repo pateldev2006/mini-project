@@ -904,6 +904,78 @@ function updateAllDashboardValues() {
     }
   }
 
+  if (charts.portfolioRadar) {
+    let investmentTotal = 0;
+    let savingsTotal = 0;
+    state.transactions.forEach(t => {
+      const val = Math.abs(parseFloat(t.amount.replace(/[\₹\+,]/g, '')) || 0);
+      if (t.type === 'Expense' && t.category === 'Investment') {
+        investmentTotal += val;
+      }
+    });
+    state.savings.forEach(s => {
+      savingsTotal += s.balance;
+    });
+
+    // 1. Growth
+    let growth = 0;
+    if (totalIncome > 0) {
+      growth = Math.min(100, Math.round(((investmentTotal + savingsTotal) / totalIncome) * 100));
+    } else if (savingsTotal > 0) {
+      growth = 50;
+    }
+
+    // 2. Stability
+    let stability = 0;
+    if (totalIncome > 0) {
+      const savingsRate = (totalIncome - totalExpenses) / totalIncome;
+      stability = Math.min(100, Math.max(0, Math.round(savingsRate * 100)));
+    }
+
+    // 3. Liquidity
+    const emergencyFund = state.savings.find(s => s.name === 'Emergency Fund')?.balance || 0;
+    const fixedDeposit = state.savings.find(s => s.name === 'Fixed Deposit')?.balance || 0;
+    const totalAssets = state.portfolioCash + savingsTotal;
+    let liquidity = 0;
+    if (totalAssets > 0) {
+      liquidity = Math.min(100, Math.round(((state.portfolioCash + emergencyFund + fixedDeposit) / totalAssets) * 100));
+    }
+
+    // 4. Diversification
+    const activeSavingsCount = state.savings.filter(s => s.balance > 0).length;
+    const activeHoldingsCount = state.portfolioHoldings.length;
+    let diversification = 0;
+    if (activeSavingsCount > 0 || activeHoldingsCount > 0) {
+      diversification = Math.min(100, (activeSavingsCount * 15) + (activeHoldingsCount * 10));
+    }
+
+    // 5. Risk
+    let highRiskAssets = 0;
+    state.savings.forEach(s => {
+      if (s.riskLevel === 'high' || s.riskLevel === 'balanced') {
+        highRiskAssets += s.balance;
+      }
+    });
+    let risk = 0;
+    if (savingsTotal > 0) {
+      risk = Math.min(100, Math.round((highRiskAssets / savingsTotal) * 100));
+    }
+
+    // 6. Returns
+    let weightedReturn = 0;
+    state.savings.forEach(s => {
+      weightedReturn += s.balance * s.returnRate;
+    });
+    let returns = 0;
+    if (savingsTotal > 0) {
+      const avgReturnRate = weightedReturn / savingsTotal;
+      returns = Math.min(100, Math.round((avgReturnRate / 15) * 100));
+    }
+
+    charts.portfolioRadar.data.datasets[0].data = [growth, stability, liquidity, diversification, risk, returns];
+    charts.portfolioRadar.update();
+  }
+
   // Group monthly data
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
   const monthlyIncome = [0, 0, 0, 0, 0, 0];
@@ -2932,7 +3004,7 @@ function initCharts() {
       labels: ['Growth', 'Stability', 'Liquidity', 'Diversification', 'Risk', 'Returns'],
       datasets: [{
         label: 'Portfolio Metrics',
-        data: [82, 72, 68, 74, 60, 80],
+        data: [0, 0, 0, 0, 0, 0],
         backgroundColor: 'rgba(14, 165, 233, 0.15)',
         borderColor: '#0ea5e9',
         borderWidth: 2.5,
