@@ -3773,37 +3773,73 @@ function initGlobalSearch() {
   
   if (!searchInput || !resultsOverlay) return;
 
+  let activeIndex = -1;
+
   // Compile search data dynamically
-  const getSearchData = () => {
+  const getSearchData = (query) => {
     const data = [
-      { type: 'Page', title: 'Dashboard', keywords: ['home', 'dashboard', 'overview'], action: () => showPage('dashboard') },
-      { type: 'Page', title: 'Budget', keywords: ['budget', 'expenses', 'limits'], action: () => showPage('budget') },
-      { type: 'Page', title: 'Stock Analyzer', keywords: ['stocks', 'analyzer', 'market', 'trade', 'apple', 'aapl', 'tesla', 'tsla'], action: () => showPage('stocks') },
-      { type: 'Page', title: 'AI Advisor', keywords: ['ai', 'advisor', 'bot', 'help', 'chat'], action: () => showPage('advisor') },
-      { type: 'Page', title: 'AI Savings', keywords: ['savings', 'goals', 'emergency fund', 'retirement'], action: () => showPage('savings') },
-      { type: 'Page', title: 'Reports', keywords: ['reports', 'analytics', 'charts', 'summary'], action: () => showPage('reports') },
-      { type: 'Page', title: 'Bank Import', keywords: ['import', 'bank', 'csv', 'sync'], action: () => showPage('import') },
-      { type: 'Page', title: 'Profile', keywords: ['profile', 'settings', 'account'], action: () => showPage('profile') },
-      { type: 'Action', title: 'Create New Budget', keywords: ['create budget', 'new budget'], action: () => { showPage('budget'); openBudgetModal(); } },
-      { type: 'Action', title: 'Export Transactions (CSV)', keywords: ['export', 'csv', 'download'], action: () => { exportTransactionsToCSV(); } }
+      { type: 'Page', icon: '📄', title: 'Dashboard', meta: 'Navigate to overview & cash flows', keywords: ['home', 'dashboard', 'overview'], action: () => showPage('dashboard') },
+      { type: 'Page', icon: '📄', title: 'Budgets & Expense limits', meta: 'Manage category caps & limits', keywords: ['budget', 'expenses', 'limits'], action: () => showPage('budget') },
+      { type: 'Page', icon: '📄', title: 'Stock & Equity Analyzer', meta: 'Run live technical analysis', keywords: ['stocks', 'analyzer', 'market', 'trade', 'apple', 'aapl', 'tesla', 'tsla'], action: () => showPage('stocks') },
+      { type: 'Page', icon: '📄', title: 'AI Wealth Advisor', meta: 'Chat with FinSight assistant', keywords: ['ai', 'advisor', 'bot', 'help', 'chat'], action: () => showPage('advisor') },
+      { type: 'Page', icon: '📄', title: 'AI Savings Goals', meta: 'Review risk metrics & targets', keywords: ['savings', 'goals', 'emergency fund', 'retirement'], action: () => showPage('savings') },
+      { type: 'Page', icon: '📄', title: 'Financial Statement Reports', meta: 'Print ledger audits & statements', keywords: ['reports', 'analytics', 'charts', 'summary'], action: () => showPage('reports') },
+      { type: 'Page', icon: '📄', title: 'Bank Statement Import', meta: 'Import CSV or PDF ledger files', keywords: ['import', 'bank', 'csv', 'sync'], action: () => showPage('import') },
+      { type: 'Page', icon: '📄', title: 'Profile Settings', meta: 'Edit credentials & parameters', keywords: ['profile', 'settings', 'account'], action: () => showPage('profile') },
+      { type: 'Action', icon: '⚡', title: 'Create New Budget Category', meta: 'Define fresh category limit', keywords: ['create budget', 'new budget'], action: () => { showPage('budget'); openBudgetModal(); } },
+      { type: 'Action', icon: '⚡', title: 'Export Transactions (CSV)', meta: 'Download transaction ledger file', keywords: ['export', 'csv', 'download'], action: () => { exportTransactionsToCSV(); } },
+      { type: 'Action', icon: '🔌', title: 'Connect Supabase Database', meta: 'Set up cloud sync credentials', keywords: ['supabase', 'database', 'connect'], action: () => { showPage('profile'); const connectBtn = document.getElementById('connectSupabaseBtn'); if (connectBtn) connectBtn.click(); } },
+      { type: 'Action', icon: '🔑', title: 'Configure Gemini API Key', meta: 'Set up live AI Advisor key', keywords: ['gemini', 'api key', 'key'], action: () => { const keyBtn = document.getElementById('configApiKeyBtn'); if (keyBtn) keyBtn.click(); } }
     ];
 
+    // 1. Add Ticker Search Option (if query is a word)
+    const cleanQuery = query.trim().toUpperCase();
+    if (cleanQuery.length > 0 && /^[A-Z0-9\.\-]+$/.test(cleanQuery)) {
+      data.unshift({
+        type: 'Stock Ticker',
+        icon: '📈',
+        title: `Analyze Ticker: ${cleanQuery}`,
+        meta: `Launch live telemetry for ${cleanQuery}`,
+        keywords: [cleanQuery.toLowerCase()],
+        action: () => {
+          showPage('stocks');
+          const tickerInput = document.getElementById('stockTickerInput');
+          if (tickerInput) {
+            tickerInput.value = cleanQuery;
+            setStockDetails(cleanQuery);
+          }
+        }
+      });
+    }
+
+    // 2. Add Transactions
     if (state && state.transactions) {
       state.transactions.forEach(t => {
+        const descText = t.description || '';
         data.push({
           type: 'Transaction',
-          title: t.desc,
-          keywords: [t.desc.toLowerCase(), t.category.toLowerCase(), t.amount.toString()],
-          action: () => showPage('dashboard')
+          icon: '💸',
+          title: descText,
+          meta: `${t.category} • ${t.date}`,
+          badge: t.amount,
+          badgeClass: t.type === 'Income' ? 'income' : 'expense',
+          keywords: [descText.toLowerCase(), t.category.toLowerCase(), t.amount.toLowerCase(), t.date],
+          action: () => {
+            openEditTransactionModal(t.id);
+          }
         });
       });
     }
     
+    // 3. Add Savings
     if (state && state.savings) {
       state.savings.forEach(s => {
         data.push({
           type: 'Savings Goal',
+          icon: '🎯',
           title: s.name,
+          meta: `${s.risk} • Return Rate: ${s.returnRate}%`,
+          badge: `₹${s.balance.toLocaleString('en-IN')}`,
           keywords: [s.name.toLowerCase(), s.risk.toLowerCase()],
           action: () => showPage('savings')
         });
@@ -3813,6 +3849,44 @@ function initGlobalSearch() {
     return data;
   };
 
+  const renderResults = (results, query) => {
+    resultsOverlay.innerHTML = '';
+    activeIndex = -1;
+    
+    if (results.length === 0) {
+      resultsOverlay.innerHTML = `<div class="search-empty">No results found for "${query}"</div>`;
+      return;
+    }
+
+    results.forEach((res, index) => {
+      const itemEl = document.createElement('div');
+      itemEl.classList.add('search-result-item');
+      
+      let badgeHTML = '';
+      if (res.badge) {
+        const badgeClass = res.badgeClass ? ` ${res.badgeClass}` : '';
+        badgeHTML = `<div class="search-result-badge${badgeClass}">${res.badge}</div>`;
+      }
+
+      itemEl.innerHTML = `
+        <div class="search-result-icon">${res.icon}</div>
+        <div class="search-result-content">
+          <div class="search-result-title">${res.title}</div>
+          <div class="search-result-meta">${res.meta}</div>
+        </div>
+        ${badgeHTML}
+      `;
+
+      itemEl.addEventListener('click', () => {
+        res.action();
+        searchInput.value = '';
+        resultsOverlay.hidden = true;
+      });
+
+      resultsOverlay.appendChild(itemEl);
+    });
+  };
+
   searchInput.addEventListener('input', (e) => {
     const query = e.target.value.toLowerCase().trim();
     if (!query) {
@@ -3820,34 +3894,45 @@ function initGlobalSearch() {
       return;
     }
 
-    const searchData = getSearchData();
+    const searchData = getSearchData(query);
     const results = searchData.filter(item => 
       item.title.toLowerCase().includes(query) || 
+      item.type.toLowerCase().includes(query) ||
       item.keywords.some(k => k.includes(query))
     ).slice(0, 8); // Max 8 results
 
-    resultsOverlay.innerHTML = '';
-    
-    if (results.length === 0) {
-      resultsOverlay.innerHTML = `<div class="search-empty">No results found for "${query}"</div>`;
-    } else {
-      results.forEach(res => {
-        const itemEl = document.createElement('div');
-        itemEl.classList.add('search-result-item');
-        itemEl.innerHTML = `
-          <div class="search-result-title">${res.title}</div>
-          <div class="search-result-desc">${res.type}</div>
-        `;
-        itemEl.addEventListener('click', () => {
-          res.action();
-          searchInput.value = '';
-          resultsOverlay.hidden = true;
-        });
-        resultsOverlay.appendChild(itemEl);
-      });
-    }
-    
+    renderResults(results, query);
     resultsOverlay.hidden = false;
+  });
+
+  // Keyboard Navigation
+  searchInput.addEventListener('keydown', (e) => {
+    const items = resultsOverlay.querySelectorAll('.search-result-item');
+    if (resultsOverlay.hidden || items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (activeIndex >= 0 && items[activeIndex]) items[activeIndex].classList.remove('active');
+      activeIndex = (activeIndex + 1) % items.length;
+      items[activeIndex].classList.add('active');
+      items[activeIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (activeIndex >= 0 && items[activeIndex]) items[activeIndex].classList.remove('active');
+      activeIndex = (activeIndex - 1 + items.length) % items.length;
+      items[activeIndex].classList.add('active');
+      items[activeIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0 && items[activeIndex]) {
+        items[activeIndex].click();
+      } else if (items.length > 0) {
+        items[0].click();
+      }
+    } else if (e.key === 'Escape') {
+      resultsOverlay.hidden = true;
+      searchInput.blur();
+    }
   });
 
   // Hide on outside click
