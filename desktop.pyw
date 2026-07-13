@@ -43,8 +43,8 @@ def main():
     
     if is_port_in_use(port):
         if is_our_server(port):
-            print(f"FinSight server is already running on port {port}. Reusing the active process.")
-            start_server = False
+            print(f"FinSight server is already running on port {port}. Exiting duplicate launch.")
+            sys.exit(0)
         else:
             print(f"Port {port} is occupied by another application. Finding a free fallback port...")
             port = find_free_port(3001)
