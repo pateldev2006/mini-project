@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=31" />
+  <link rel="stylesheet" href="style.css?v=32" />
 </head>
 <body>
   <!-- Futuristic Background Canvas & Floating Objects -->
@@ -186,10 +186,10 @@
           </div>
           <div class="profile-wrapper">
             <button class="profile-btn" id="profileMenuButton" aria-label="Open profile menu" aria-controls="profileMenu" aria-expanded="false">
-              <img id="profileHeaderAvatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80" alt="Arjun Singh" />
+              <img id="profileHeaderAvatar" src="" alt="User" style="background: var(--accent-gradient);" />
               <div>
-                <span id="profileHeaderName">Arjun Singh</span>
-                <small>Premium Client</small>
+                <span id="profileHeaderName">New User</span>
+                <small>Free Account</small>
               </div>
             </button>
             <div class="profile-menu" id="profileMenu" hidden>
@@ -852,7 +852,7 @@
             <div class="preview-panel glass-card">
               <div class="card-head">
                 <h3>File Preview</h3>
-                <span class="preview-count">3 rows loaded</span>
+                <span class="preview-count">0 rows loaded</span>
               </div>
               <div class="table-wrap">
                 <table class="preview-table">
@@ -860,9 +860,7 @@
                     <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>
                   </thead>
                   <tbody id="previewTableBody">
-                    <tr><td>2026-05-02</td><td>Electricity bill</td><td>-₹120.00</td><td><span class="status-pill ready">Ready</span></td></tr>
-                    <tr><td>2026-05-05</td><td>Salary deposit</td><td><span class="amount-positive">+₹5,200.00</span></td><td><span class="status-pill ready">Ready</span></td></tr>
-                    <tr><td>2026-05-07</td><td>Groceries</td><td>-₹78.20</td><td><span class="status-pill ready">Ready</span></td></tr>
+                    <tr><td colspan="4" style="text-align: center; color: var(--subtext); padding: 20px;">Upload a bank statement to see preview here.</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -884,14 +882,14 @@
                 <div class="profile-cover-banner"></div>
                 <div class="profile-card-content">
                   <div class="profile-avatar-wrapper">
-                    <img id="profileMainAvatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80" alt="Arjun Singh" />
+                    <img id="profileMainAvatar" src="" alt="User" style="background: var(--accent-gradient);" />
                     <button class="avatar-edit-badge" id="avatarEditBtn" aria-label="Edit Avatar">
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                     </button>
                     <input type="file" id="profileAvatarInput" accept="image/*" style="display: none;" />
                   </div>
                   <div class="profile-name-container">
-                    <h2 id="profileMainName">Arjun Singh</h2>
+                    <h2 id="profileMainName">New User</h2>
                     <button class="name-edit-icon" id="nameEditBtn" aria-label="Edit Name">
                       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                     </button>
@@ -916,7 +914,7 @@
                   <div class="profile-contact-details">
                     <div class="contact-item">
                       <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg></span>
-                      <span id="profileMainEmail" style="cursor: pointer;">arjunsingh24@gmail.com</span>
+                      <span id="profileMainEmail" style="cursor: pointer;">email@example.com</span>
                     </div>
                     <div class="contact-item">
                       <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg></span>
@@ -1315,6 +1313,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=31" defer></script>
+  <script src="app.js?v=32" defer></script>
 </body>
 </html>
