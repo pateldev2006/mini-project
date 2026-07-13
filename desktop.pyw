@@ -95,8 +95,8 @@ def main():
             storage_path = f"{storage_path}_{os.getpid()}"
             print(f"[INFO] Storage path locked. Falling back to dynamic profile: {storage_path}")
 
-    # Start the webview loop with persistence and debug/loopback-bypass enabled
-    webview.start(private_mode=False, storage_path=storage_path, debug=True)
+    # Start the webview loop with persistence enabled (debug disabled for production)
+    webview.start(private_mode=False, storage_path=storage_path, debug=False)
 
 if __name__ == '__main__':
     main()
