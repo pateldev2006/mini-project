@@ -84,8 +84,8 @@ def main():
         # Fallback to local directory if APPDATA is missing
         storage_path = os.path.abspath('user_data')
 
-    # Start the webview loop with persistence and debug tools enabled
-    webview.start(private_mode=False, storage_path=storage_path, debug=True)
+    # Start the webview loop with persistence enabled (debug disabled for production)
+    webview.start(private_mode=False, storage_path=storage_path)
 
 if __name__ == '__main__':
     main()
