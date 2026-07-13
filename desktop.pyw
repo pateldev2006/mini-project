@@ -27,25 +27,42 @@ def find_free_port(start_port=3000):
                 return port
         port += 1
     return start_port
+def is_our_server(port):
+    import urllib.request
+    try:
+        with urllib.request.urlopen(f'http://127.0.0.1:{port}/', timeout=1) as r:
+            return r.status == 200
+    except Exception:
+        return False
 
 def main():
-    port = find_free_port(3000)
+    port = 3000
+    start_server = True
     
-    # Start the server on the discovered free port in a background thread
-    t = threading.Thread(target=start_local_server, args=(port,))
-    t.daemon = True
-    t.start()
-    
-    # Wait up to 5 seconds for the server to start listening
-    server_ready = False
-    for _ in range(50):
-        if is_port_in_use(port):
-            server_ready = True
-            break
-        time.sleep(0.1)
+    if is_port_in_use(port):
+        if is_our_server(port):
+            print(f"FinSight server is already running on port {port}. Reusing the active process.")
+            start_server = False
+        else:
+            print(f"Port {port} is occupied by another application. Finding a free fallback port...")
+            port = find_free_port(3001)
+            
+    if start_server:
+        # Start the server on the discovered free port in a background thread
+        t = threading.Thread(target=start_local_server, args=(port,))
+        t.daemon = True
+        t.start()
         
-    if not server_ready:
-        print("[ERROR] Local background server failed to start in time.")
+        # Wait up to 5 seconds for the server to start listening
+        server_ready = False
+        for _ in range(50):
+            if is_port_in_use(port):
+                server_ready = True
+                break
+            time.sleep(0.1)
+            
+        if not server_ready:
+            print("[ERROR] Local background server failed to start in time.")
         
     print(f"Launching desktop app wrapper pointing to: http://127.0.0.1:{port}")
     

@@ -296,10 +296,18 @@ function setupAuth() {
       if ((emailLower === 'arjun@finsight.ai' || emailLower === 'arjun@finsightai' || emailLower === 'arjun') && password === 'admin') {
         authenticated = true;
         resolvedEmail = 'arjun@finsight.ai';
-      } else if (users[emailLower] && users[emailLower].password === password) {
-        authenticated = true;
-        userName = users[emailLower].name;
-        resolvedEmail = emailLower;
+      } else {
+        const matchedKey = Object.keys(users).find(k => {
+          const cleanKey = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const cleanEmail = emailLower.replace(/[^a-z0-9]/g, '');
+          return cleanKey === cleanEmail || k.toLowerCase() === emailLower;
+        });
+        
+        if (matchedKey && users[matchedKey].password === password) {
+          authenticated = true;
+          userName = users[matchedKey].name;
+          resolvedEmail = matchedKey;
+        }
       }
 
       if (authenticated) {
