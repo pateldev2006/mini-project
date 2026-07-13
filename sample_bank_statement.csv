@@ -1,43 +1,26 @@
 Date,Description,Amount,Category
-2026-06-01,Opening Balance Transfer - Savings Account Carry Forward,1350865.00,Investment
-2026-06-01,Monthly Salary Credit - HDFC Payroll,200000.00,Investment
-2026-06-01,House Rent Payment,-18000.00,Bills
-2026-06-02,Electricity Bill - Tata Power,-3200.00,Bills
-2026-06-02,Broadband - Jio Fiber,-999.00,Bills
-2026-06-03,Swiggy Food Delivery,-485.00,Food
-2026-06-03,DMart Grocery Shopping,-3200.00,Food
-2026-06-04,Uber Ride to Office,-180.00,Transport
+2026-06-01,Opening Balance Transfer - Savings Account Carry Forward,1345297.00,Investment
+2026-06-01,Monthly Salary Credit - TCS Payroll,210000.00,Investment
+2026-06-01,House Rent Payment,-12000.00,Bills
+2026-06-02,Electricity Bill - MSEDCL,-2500.00,Bills
+2026-06-02,Broadband - Airtel Fiber,-999.00,Bills
+2026-06-03,Swiggy Food Delivery,-450.00,Food
+2026-06-03,Groceries - BigBasket,-3500.00,Food
+2026-06-04,Uber Premium Ride,-350.00,Transport
 2026-06-04,Metro Card Recharge,-500.00,Transport
-2026-06-05,Netflix Subscription,-649.00,Entertainment
-2026-06-05,Spotify Premium,-119.00,Entertainment
-2026-06-06,Apollo Pharmacy,-720.00,Health
-2026-06-06,Gym Membership - Cult.fit,-1500.00,Health
-2026-06-07,Amazon Shopping - Electronics,-4500.00,Shopping
-2026-06-07,Myntra Clothing Purchase,-2800.00,Shopping
-2026-06-08,Zerodha - SIP Mutual Fund,-10000.00,Investment
-2026-06-08,LIC Premium Payment,-3500.00,Investment
-2026-06-09,Zomato Weekend Dinner,-1250.00,Food
-2026-06-09,Movie Tickets - BookMyShow,-800.00,Entertainment
-2026-06-10,Ola Auto Ride,-140.00,Transport
-2026-06-10,Petrol - HP Station,-2500.00,Transport
-2026-06-11,Udemy Online Course,-499.00,Education
-2026-06-12,Mobile Recharge - Airtel,-699.00,Bills
-2026-06-13,Reliance Fresh Vegetables,-850.00,Food
-2026-06-14,Society Maintenance Fee,-4500.00,Bills
-2026-06-15,Dividend Credit - HDFC Bank,8500.00,Investment
-2026-06-15,Freelance Project Payment,25000.00,Investment
-2026-06-16,Flipkart - Home Appliance,-6200.00,Shopping
-2026-06-17,Doctor Consultation - Practo,-800.00,Health
-2026-06-18,Weekend Cafe Outing,-650.00,Entertainment
-2026-06-19,Swiggy Instamart Groceries,-1100.00,Food
-2026-06-20,Rapido Bike Taxi,-95.00,Transport
-2026-06-21,BookMyShow Events,-1200.00,Entertainment
-2026-06-22,Croma Electronics Store,-3500.00,Shopping
-2026-06-23,Water Bill - Municipal,-450.00,Bills
-2026-06-24,Dentist Visit,-2000.00,Health
-2026-06-25,Train Ticket - IRCTC,-1850.00,Transport
-2026-06-26,Starbucks Coffee,-380.00,Food
-2026-06-27,Gas Cylinder - Indane,-950.00,Bills
-2026-06-28,Coursera Subscription,-1200.00,Education
-2026-06-29,Charity Donation,-2000.00,Other
-2026-06-30,Miscellaneous Expenses,-750.00,Other
+2026-06-05,Netflix Premium,-649.00,Entertainment
+2026-06-05,Spotify Family Plan,-179.00,Entertainment
+2026-06-06,Doctor Consultation,-800.00,Health
+2026-06-06,Gym Membership,-1500.00,Health
+2026-06-07,Amazon Shopping - Clothes,-4500.00,Shopping
+2026-06-08,Mutual Fund SIP,-15000.00,Investment
+2026-06-09,Weekend Dining - Social,-2750.00,Food
+2026-06-09,Concert Tickets - BookMyShow,-3422.00,Entertainment
+2026-06-10,Ola Auto Ride,-150.00,Transport
+2026-06-10,Petrol - Bharat Petroleum,-2200.00,Transport
+2026-06-11,Udemy Coding Course,-499.00,Education
+2026-06-12,Mobile Bill - Jio,-699.00,Bills
+2026-06-13,Fresh Fruits & Vegetables,-500.00,Food
+2026-06-14,Water Bill - Municipal,-450.00,Bills
+2026-06-15,Coursera Specialization,-500.00,Education
+2026-06-16,Gift for Friend,-1200.00,Other
