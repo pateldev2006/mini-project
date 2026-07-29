@@ -93,10 +93,12 @@ function init() {
   // Initialize Supabase if credentials exist
   initSupabase();
 
-  // Authenticate user
-  const authOverlay = document.getElementById('authOverlay');
-  const isLoggedIn = localStorage.getItem('finsight_logged_in') === 'true';
-  const userId = localStorage.getItem('finsight_supabase_user_id');
+  // Ensure user is marked logged in by default (Login Page Removed)
+  localStorage.setItem('finsight_logged_in', 'true');
+  if (!localStorage.getItem('finsight_user_name')) {
+    localStorage.setItem('finsight_user_name', 'Arjun Singh');
+    localStorage.setItem('finsight_user_email', 'arjun@finsight.ai');
+  }
 
   // Ensure migration flag is set so data is never wiped
   if (!localStorage.getItem('finsight_v32_migrated')) {
@@ -106,24 +108,17 @@ function init() {
   // Bind Supabase settings modals
   bindSupabaseControls();
 
-  if (isLoggedIn) {
-    if (authOverlay) {
-      authOverlay.style.display = 'none';
-      authOverlay.classList.add('fade-out');
-    }
-    
-    // If Supabase is active and userId exists, pull latest cloud state
-    if (supabaseClient && userId) {
-      try {
-        fetchProfileData(userId);
-        fetchCloudData(userId);
-      } catch (e) {}
-    }
-  } else {
-    if (authOverlay) {
-      authOverlay.style.display = 'flex';
-      authOverlay.classList.remove('fade-out');
-    }
+  const authOverlay = document.getElementById('authOverlay');
+  if (authOverlay) {
+    authOverlay.style.display = 'none';
+  }
+
+  const userId = localStorage.getItem('finsight_supabase_user_id');
+  if (supabaseClient && userId) {
+    try {
+      fetchProfileData(userId);
+      fetchCloudData(userId);
+    } catch (e) {}
   }
   setupAuth();
 
