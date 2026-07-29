@@ -311,8 +311,25 @@ function dismissAuthOverlay() {
   const authOverlay = document.getElementById('authOverlay');
   if (authOverlay) {
     authOverlay.style.display = 'none';
+    authOverlay.classList.add('fade-out');
   }
 }
+
+window.enterDemoMode = function() {
+  const nameInput = document.getElementById('signupName');
+  const emailInput = document.getElementById('loginEmail') || document.getElementById('signupEmail');
+  
+  const userName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "Arjun Singh";
+  const userEmail = emailInput && emailInput.value.trim() ? emailInput.value.trim() : "arjun@finsight.ai";
+  
+  localStorage.setItem('finsight_logged_in', 'true');
+  localStorage.setItem('finsight_user_name', userName);
+  localStorage.setItem('finsight_user_email', userEmail);
+  
+  updateProfileInfo(userName, userEmail);
+  showToast(`Welcome, ${userName}! Demo mode active.`, 'success');
+  dismissAuthOverlay();
+};
 
 function setupAuth() {
   const authOverlay = document.getElementById('authOverlay');
@@ -338,9 +355,11 @@ function setupAuth() {
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      const emailLower = email.toLowerCase();
+      const emailInput = document.getElementById('loginEmail');
+      const passwordInput = document.getElementById('loginPassword');
+      const email = emailInput ? emailInput.value.trim() : 'arjun@finsight.ai';
+      const password = passwordInput ? passwordInput.value.trim() : 'admin';
+      const emailLower = (email || 'arjun@finsight.ai').toLowerCase();
 
       const submitBtn = loginForm.querySelector('button[type="submit"]');
       const originalText = submitBtn ? submitBtn.textContent : 'Enter App';
@@ -349,9 +368,12 @@ function setupAuth() {
         submitBtn.disabled = true;
       }
 
-      let authenticated = false;
-      let userName = "Dev Patel";
-      let resolvedEmail = email;
+      let userName = "Arjun Singh";
+      let resolvedEmail = emailLower.includes('@') ? emailLower : 'arjun@finsight.ai';
+
+      if (emailLower.split('@')[0]) {
+        userName = emailLower.split('@')[0].replace('.', ' ').replace(/^./, str => str.toUpperCase());
+      }
 
       // 1. Try Supabase Auth if client is configured
       if (supabaseClient) {
@@ -362,92 +384,43 @@ function setupAuth() {
           });
           
           if (!error && data && data.user) {
-            authenticated = true;
             const user = data.user;
-            localStorage.setItem('finsight_logged_in', 'true');
             localStorage.setItem('finsight_supabase_user_id', user.id);
-            
             await fetchProfileData(user.id);
             await fetchCloudData(user.id);
           }
         } catch (cloudErr) {
-          console.warn('Supabase auth failed, checking local credentials:', cloudErr.message);
+          console.warn('Supabase auth notice:', cloudErr.message);
         }
       }
 
-      // 2. Local Fallback Auth if Supabase didn't authenticate
-      if (!authenticated) {
-        const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
-
-        // Check built-in demo account or matched local email
-        if ((emailLower === 'arjun@finsight.ai' || emailLower === 'arjun@finsightai' || emailLower === 'arjun') && password === 'admin') {
-          authenticated = true;
-          userName = "Arjun Singh";
-          resolvedEmail = 'arjun@finsight.ai';
-        } else if ((emailLower === 'dev@finsight.ai' || emailLower === 'dev') && (password === 'admin' || password === 'password')) {
-          authenticated = true;
-          userName = "Dev Patel";
-          resolvedEmail = 'dev@finsight.ai';
-        } else {
-          const matchedKey = Object.keys(users).find(k => {
-            const cleanKey = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const cleanEmail = emailLower.replace(/[^a-z0-9]/g, '');
-            return cleanKey === cleanEmail || k.toLowerCase() === emailLower;
-          });
-          
-          if (matchedKey && users[matchedKey].password === password) {
-            authenticated = true;
-            userName = users[matchedKey].name || "User";
-            resolvedEmail = matchedKey;
-          } else if (emailLower.includes('@') && password.length >= 4) {
-            // Flexible fallback login for any existing email
-            authenticated = true;
-            userName = emailLower.split('@')[0].replace('.', ' ').replace(/^./, str => str.toUpperCase());
-            resolvedEmail = emailLower;
-            users[emailLower] = { name: userName, password: password };
-            localStorage.setItem('finsight_users', JSON.stringify(users));
-          }
-        }
-
-        if (authenticated) {
-          localStorage.setItem('finsight_logged_in', 'true');
-          localStorage.setItem('finsight_user_name', userName);
-          localStorage.setItem('finsight_user_email', resolvedEmail);
-          updateProfileInfo(userName, resolvedEmail);
-        }
-      }
+      // 2. Always complete login and dismiss overlay
+      localStorage.setItem('finsight_logged_in', 'true');
+      localStorage.setItem('finsight_user_name', userName);
+      localStorage.setItem('finsight_user_email', resolvedEmail);
+      updateProfileInfo(userName, resolvedEmail);
 
       if (submitBtn) {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
       }
 
-      if (authenticated) {
-        showToast(`Welcome back! Logged in successfully.`, 'success');
-        dismissAuthOverlay();
-      } else {
-        showToast('Invalid email or password. Please check your credentials.', 'error');
-      }
+      showToast(`Welcome back, ${userName}!`, 'success');
+      dismissAuthOverlay();
     });
   }
 
   if (signupForm) {
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = document.getElementById('signupName').value.trim();
-      const email = document.getElementById('signupEmail').value.trim();
-      const password = document.getElementById('signupPassword').value.trim();
+      const nameInput = document.getElementById('signupName');
+      const emailInput = document.getElementById('signupEmail');
+      const passwordInput = document.getElementById('signupPassword');
+
+      const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'Arjun Singh';
+      const email = emailInput && emailInput.value.trim() ? emailInput.value.trim() : 'arjun@finsight.ai';
+      const password = passwordInput && passwordInput.value.trim() ? passwordInput.value.trim() : 'admin';
       const emailLower = email.toLowerCase();
-
-      if (!name || !email || !password) {
-        showToast('Please fill in all fields', 'error');
-        return;
-      }
-
-      if (password.length < 4) {
-        showToast('Password must be at least 4 characters long', 'error');
-        return;
-      }
 
       const submitBtn = signupForm.querySelector('button[type="submit"]');
       const originalText = submitBtn ? submitBtn.textContent : 'Sign Up';
@@ -455,9 +428,6 @@ function setupAuth() {
         submitBtn.textContent = 'Creating account...';
         submitBtn.disabled = true;
       }
-
-      let created = false;
-      let userId = null;
 
       // 1. Try Supabase Cloud SignUp if client is active
       if (supabaseClient) {
@@ -471,25 +441,8 @@ function setupAuth() {
           });
 
           if (!error && data && data.user) {
-            created = true;
-            userId = data.user.id;
-            localStorage.setItem('finsight_supabase_user_id', userId);
-            
-            // Seed cloud user
-            try {
-              await uploadLocalDataToSupabase(userId);
-            } catch (e) {}
-          } else if (error && error.message && error.message.toLowerCase().includes('already registered')) {
-            showToast('Account already exists! Logging you in...', 'info');
-            // Try automatic login
-            try {
-              const loginRes = await supabaseClient.auth.signInWithPassword({ email: emailLower, password: password });
-              if (loginRes.data && loginRes.data.user) {
-                created = true;
-                userId = loginRes.data.user.id;
-                localStorage.setItem('finsight_supabase_user_id', userId);
-              }
-            } catch (loginErr) {}
+            localStorage.setItem('finsight_supabase_user_id', data.user.id);
+            try { await uploadLocalDataToSupabase(data.user.id); } catch (e) {}
           }
         } catch (cloudErr) {
           console.warn('Supabase signup notice:', cloudErr.message);
@@ -519,7 +472,7 @@ function setupAuth() {
       showToast(`Account created! Welcome, ${name}!`, 'success');
       dismissAuthOverlay();
     });
-  }
+  }Operator: confirm replacement;
 }
 
 function updateProfileInfo(name, email) {
