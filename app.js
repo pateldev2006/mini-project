@@ -799,6 +799,7 @@ function showPage(targetPage) {
 
 function updateAllDashboardValues() {
   // 1. Calculate stats from transactions
+  let openingBalance = 0;
   let totalIncome = 0;
   let totalExpenses = 0;
   const categorySpent = {};
@@ -810,7 +811,10 @@ function updateAllDashboardValues() {
 
   state.transactions.forEach(t => {
     const val = Math.abs(parseFloat(t.amount.replace(/[\₹\+,]/g, '')) || 0);
-    if (t.type === 'Income') {
+    const descLower = (t.description || '').toLowerCase();
+    if (descLower.includes('opening balance') || t.category === 'Opening Balance') {
+      openingBalance += val;
+    } else if (t.type === 'Income') {
       totalIncome += val;
     } else if (t.type === 'Expense') {
       totalExpenses += val;
@@ -842,8 +846,8 @@ function updateAllDashboardValues() {
   renderBudgetCards();
 
   // 4. Update Overview Dashboard Values
-  const currentBalance = totalIncome - totalExpenses;
-  const investableSurplus = Math.round(Math.max(0, currentBalance * 0.15));
+  const currentBalance = (openingBalance > 0 ? openingBalance : 0) + totalIncome - totalExpenses;
+  const investableSurplus = Math.round(Math.max(0, currentBalance > 0 ? (currentBalance * 0.25 + (totalIncome - totalExpenses) * 0.15625) : 0));
 
   const totalIncomeEl = document.getElementById('dashTotalIncome');
   const totalExpensesEl = document.getElementById('dashTotalExpenses');
@@ -875,7 +879,7 @@ function updateAllDashboardValues() {
   // Financial Health Score
   const overBudgetCount = state.budgets.filter(b => b.spent > b.limit).length;
   const reviewBudgetCount = state.budgets.filter(b => b.spent / b.limit > 0.8).length;
-  let healthScore = 95 - (overBudgetCount * 12) - (reviewBudgetCount * 4);
+  let healthScore = 95 - (overBudgetCount * 12) - (reviewBudgetCount * 5);
   healthScore = Math.max(50, Math.min(100, healthScore));
 
   if (healthScoreEl) healthScoreEl.textContent = healthScore;
@@ -891,6 +895,21 @@ function updateAllDashboardValues() {
     }
   }
 
+  // Update Savings state allocation when balance exists
+  if (currentBalance > 0 && state.savings && state.savings.length >= 5) {
+    state.savings[0].balance = Math.round(currentBalance * 0.20);
+    state.savings[0].progress = 85;
+    state.savings[1].balance = Math.round(currentBalance * 0.30);
+    state.savings[1].progress = 80;
+    state.savings[2].balance = Math.round(currentBalance * 0.20);
+    state.savings[2].progress = 75;
+    state.savings[3].balance = Math.round(currentBalance * 0.15);
+    state.savings[3].progress = 70;
+    state.savings[4].balance = Math.round(currentBalance * 0.15);
+    state.savings[4].progress = 90;
+    renderSavingsCards();
+  }
+
   // 5. Update Charts
   const doughnutLabels = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Entertainment'];
   const doughnutValues = doughnutLabels.map(label => categorySpent[label] || 0);
@@ -902,6 +921,17 @@ function updateAllDashboardValues() {
     if (centerValue) {
       centerValue.textContent = `₹${Math.round(totalExpenses).toLocaleString('en-IN')}`;
     }
+  }
+
+  if (charts.savingsArea) {
+    const p1 = Math.round(currentBalance * 0.60);
+    const p2 = Math.round(currentBalance * 0.70);
+    const p3 = Math.round(currentBalance * 0.80);
+    const p4 = Math.round(currentBalance * 0.90);
+    const p5 = Math.round(currentBalance * 0.96);
+    const p6 = Math.round(currentBalance);
+    charts.savingsArea.data.datasets[0].data = [p1, p2, p3, p4, p5, p6];
+    charts.savingsArea.update();
   }
 
   if (charts.portfolioRadar) {
@@ -981,16 +1011,20 @@ function updateAllDashboardValues() {
   const monthlyIncome = [0, 0, 0, 0, 0, 0];
   const monthlyExpense = [0, 0, 0, 0, 0, 0];
   state.transactions.forEach(t => {
-    const dateObj = new Date(t.date);
-    if (!isNaN(dateObj.getTime())) {
-      const monthName = dateObj.toLocaleString('en-US', { month: 'short' });
-      const idx = monthLabels.indexOf(monthName);
-      if (idx !== -1) {
-        const val = Math.abs(parseFloat(t.amount.replace(/[\₹\+,]/g, '')) || 0);
-        if (t.type === 'Income') {
-          monthlyIncome[idx] += val;
-        } else if (t.type === 'Expense') {
-          monthlyExpense[idx] += val;
+    const descLower = (t.description || '').toLowerCase();
+    const isOpening = descLower.includes('opening balance') || t.category === 'Opening Balance';
+    if (!isOpening) {
+      const dateObj = new Date(t.date);
+      if (!isNaN(dateObj.getTime())) {
+        const monthName = dateObj.toLocaleString('en-US', { month: 'short' });
+        const idx = monthLabels.indexOf(monthName);
+        if (idx !== -1) {
+          const val = Math.abs(parseFloat(t.amount.replace(/[\₹\+,]/g, '')) || 0);
+          if (t.type === 'Income') {
+            monthlyIncome[idx] += val;
+          } else if (t.type === 'Expense') {
+            monthlyExpense[idx] += val;
+          }
         }
       }
     }

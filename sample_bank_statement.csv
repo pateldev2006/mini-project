@@ -1,26 +1,34 @@
 Date,Description,Amount,Category
-2026-06-01,Opening Balance Transfer - Savings Account Carry Forward,1345297.00,Investment
-2026-06-01,Monthly Salary Credit - TCS Payroll,210000.00,Investment
-2026-06-01,House Rent Payment,-12000.00,Bills
-2026-06-02,Electricity Bill - MSEDCL,-2500.00,Bills
-2026-06-02,Broadband - Airtel Fiber,-999.00,Bills
-2026-06-03,Swiggy Food Delivery,-450.00,Food
-2026-06-03,Groceries - BigBasket,-3500.00,Food
-2026-06-04,Uber Premium Ride,-350.00,Transport
-2026-06-04,Metro Card Recharge,-500.00,Transport
-2026-06-05,Netflix Premium,-649.00,Entertainment
-2026-06-05,Spotify Family Plan,-179.00,Entertainment
-2026-06-06,Doctor Consultation,-800.00,Health
-2026-06-06,Gym Membership,-1500.00,Health
-2026-06-07,Amazon Shopping - Clothes,-4500.00,Shopping
-2026-06-08,Mutual Fund SIP,-15000.00,Investment
-2026-06-09,Weekend Dining - Social,-2750.00,Food
-2026-06-09,Concert Tickets - BookMyShow,-3422.00,Entertainment
-2026-06-10,Ola Auto Ride,-150.00,Transport
-2026-06-10,Petrol - Bharat Petroleum,-2200.00,Transport
-2026-06-11,Udemy Coding Course,-499.00,Education
-2026-06-12,Mobile Bill - Jio,-699.00,Bills
-2026-06-13,Fresh Fruits & Vegetables,-500.00,Food
-2026-06-14,Water Bill - Municipal,-450.00,Bills
-2026-06-15,Coursera Specialization,-500.00,Education
-2026-06-16,Gift for Friend,-1200.00,Other
+2026-01-01,Opening Balance Transfer - Savings Carry Forward,1340000.00,Investment
+2026-01-05,Monthly Salary Credit - Month 1,30000.00,Investment
+2026-01-10,House Rent Payment,-3000.00,Bills
+2026-01-15,Electricity & Water,-1500.00,Bills
+2026-01-20,Groceries & Food,-1500.00,Food
+2026-02-05,Monthly Salary Credit - Month 2,32000.00,Investment
+2026-02-10,House Rent Payment,-3000.00,Bills
+2026-02-14,Dining & Entertainment,-1500.00,Entertainment
+2026-02-18,Groceries,-1000.00,Food
+2026-02-22,Metro & Travel,-1000.00,Transport
+2026-03-05,Monthly Salary Credit - Month 3,33000.00,Investment
+2026-03-10,House Rent & Utility,-3000.00,Bills
+2026-03-15,Groceries & Supermarket,-1500.00,Food
+2026-03-20,Medical & Health,-1000.00,Health
+2026-03-25,Shopping & Apparel,-1000.00,Shopping
+2026-04-05,Monthly Salary Credit - Month 4,35000.00,Investment
+2026-04-10,House Rent Payment,-2000.00,Bills
+2026-04-15,Groceries,-1000.00,Food
+2026-04-18,Uber Rides,-1000.00,Transport
+2026-04-22,Movie & Streaming,-1500.00,Entertainment
+2026-04-28,Online Course,-1500.00,Education
+2026-05-05,Monthly Salary Credit - Month 5,35000.00,Investment
+2026-05-10,Broadband & Bills,-500.00,Bills
+2026-05-15,Groceries,-900.00,Food
+2026-05-18,Cab Rides,-1500.00,Transport
+2026-05-22,Pharmacy & Gym,-1500.00,Health
+2026-05-25,Shopping,-2000.00,Shopping
+2026-05-28,Mutual Fund SIP,-600.00,Investment
+2026-06-05,Monthly Salary Credit - Month 6,35000.00,Investment
+2026-06-10,Entertainment & Concert,-1250.00,Entertainment
+2026-06-12,Swiggy & Zomato,-900.00,Food
+2026-06-15,Mutual Fund Investment,-6850.00,Investment
+2026-06-20,Miscellaneous Expenses,-1500.00,Other
