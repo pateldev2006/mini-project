@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=34" />
+  <link rel="stylesheet" href="style.css?v=35" />
 </head>
 <body>
   <!-- Futuristic Background Canvas & Floating Objects -->
@@ -589,10 +589,10 @@
           <div class="page-head split">
             <div>
               <span class="eyebrow">Stock Portfolio</span>
-              <h1>Track your mock investments and balances</h1>
+              <h1>Track your stock investments and balances</h1>
             </div>
             <div style="display: flex; gap: 12px; align-items: center;">
-              <button class="btn btn-outline" onclick="resetPortfolioData()">Reset Simulation</button>
+              <button class="btn btn-outline" onclick="resetPortfolioData()">Reset Portfolio</button>
             </div>
           </div>
 
@@ -600,13 +600,13 @@
           <div class="overview-grid">
             <article class="summary-card portfolio-val-card">
               <span>Total Portfolio Value</span>
-              <strong id="portfolioTotalValue">₹10,00,000.00</strong>
+              <strong id="portfolioTotalValue">₹4,00,000.00</strong>
               <p class="summary-meta">Holdings + Cash Balance</p>
             </article>
             <article class="summary-card cash-bal-card">
-              <span>Mock Cash Balance</span>
+              <span>Available Cash Balance</span>
               <strong id="portfolioCashBalance">₹4,00,000.00</strong>
-              <p class="summary-meta">Reflected from Investible Surplus & Savings</p>
+              <p class="summary-meta">Debited from Investible Surplus & Savings</p>
             </article>
             <article class="summary-card total-pl-card" id="portfolioPLCard">
               <span>Total Profit / Loss</span>
@@ -1147,9 +1147,8 @@
           <div class="form-group">
             <label for="paymentMethod">Select Payment Method</label>
             <select id="paymentMethod" class="select-input">
-              <option value="wallet">FinSight Mock Wallet (Balance: ₹48,200.00)</option>
-              <option value="card">Dummy Credit Card (•••• •••• •••• 4242)</option>
-              <option value="upi">Mock UPI Address (arjunsingh@okaxis)</option>
+              <option value="bank">Bank Account (Primary Savings Account)</option>
+              <option value="card">Credit Card (HDFC Visa Platinum)</option>
             </select>
           </div>
 
@@ -1313,6 +1312,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=34" defer></script>
+  <script src="app.js?v=35" defer></script>
 </body>
 </html>

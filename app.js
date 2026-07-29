@@ -4134,9 +4134,13 @@ async function handlePaymentSubmit(event) {
   else if (symbol === '£') totalDeductionINR = totalDeductionVal * 105.50;
   else if (symbol === '€') totalDeductionINR = totalDeductionVal * 89.20;
 
-  // Check mock cash balance
+  // Get selected payment method name (Bank Account / Credit Card)
+  const paymentMethodEl = document.getElementById('paymentMethod');
+  const selectedMethodName = paymentMethodEl ? paymentMethodEl.options[paymentMethodEl.selectedIndex].text.split('(')[0].trim() : 'Bank Account';
+
+  // Check available surplus cash balance
   if (state.portfolioCash < totalDeductionINR) {
-    showToast(`Insufficient simulation funds. You need ₹${totalDeductionINR.toLocaleString('en-US', {maximumFractionDigits:2})} but only have ₹${state.portfolioCash.toLocaleString('en-US', {maximumFractionDigits:2})}.`, 'error');
+    showToast(`Insufficient surplus balance. Required: ₹${totalDeductionINR.toLocaleString('en-IN', {maximumFractionDigits:2})}, Available: ₹${state.portfolioCash.toLocaleString('en-IN', {maximumFractionDigits:2})}.`, 'error');
     return;
   }
   
@@ -4153,9 +4157,9 @@ async function handlePaymentSubmit(event) {
   paymentSuccessContainer.hidden = false;
   
   const successMessage = document.getElementById('successMessage');
-  successMessage.textContent = `Bought ${shares} share${shares > 1 ? 's' : ''} of ${ticker} for a total value of ${symbol}${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} successfully.`;
+  successMessage.textContent = `Bought ${shares} share${shares > 1 ? 's' : ''} of ${ticker} for ${symbol}${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} via ${selectedMethodName}. Debited from Investible Surplus.`;
   
-  // Deduct from mock cash balance
+  // Deduct from available cash balance
   state.portfolioCash -= totalDeductionINR;
   localStorage.setItem('finsightPortfolioCash', state.portfolioCash.toString());
 
@@ -4194,11 +4198,11 @@ async function handlePaymentSubmit(event) {
   localStorage.setItem('finsightPortfolioTrades', JSON.stringify(state.portfolioTrades));
   dbSync('portfolio');
 
-  // Add ledger transaction log
+  // Add ledger transaction log (Investment Expense)
   const newTx = {
     id: Date.now(),
     date: dateStr,
-    description: `Bought ${shares} ${ticker} shares`,
+    description: `Bought ${shares} ${ticker} shares (${selectedMethodName})`,
     category: 'Investment',
     amount: `-₹${totalCostINR.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
     type: 'Expense',
@@ -4210,6 +4214,11 @@ async function handlePaymentSubmit(event) {
   
   if (typeof updateTransactionListing === 'function') {
     updateTransactionListing();
+  }
+
+  // Update Overview Dashboard (debits Investible Surplus & Current Balance)
+  if (typeof updateAllDashboardValues === 'function') {
+    updateAllDashboardValues();
   }
 
   // Refresh Portfolio
@@ -4889,7 +4898,7 @@ function initPortfolioChart() {
   let bgColors = [];
   
   if (state.portfolioHoldings.length === 0) {
-    labels = ['Mock Cash Balance'];
+    labels = ['Available Cash Balance'];
     data = [100];
     bgColors = ['rgba(14, 165, 233, 0.45)'];
   } else {
