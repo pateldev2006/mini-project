@@ -175,30 +175,112 @@ function init() {
     } catch (e) {
       console.error('Error parsing saved budgets:', e);
     }
+function saveAllState() {
+  localStorage.setItem('finsightSavings', JSON.stringify(state.savings || []));
+  localStorage.setItem('finsightBudgets', JSON.stringify(state.budgets || []));
+  localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions || []));
+  localStorage.setItem('finsightPortfolioCash', state.portfolioCash !== undefined ? state.portfolioCash.toString() : '0');
+  localStorage.setItem('finsightPortfolioHoldings', JSON.stringify(state.portfolioHoldings || []));
+  localStorage.setItem('finsightPortfolioTrades', JSON.stringify(state.portfolioTrades || []));
+  localStorage.setItem('finsightUserProfile', JSON.stringify(state.profile || {}));
+}
+
+function loadAllState() {
+  // 1. Load Transactions
+  const savedTransactions = localStorage.getItem('finsightTransactions');
+  if (savedTransactions) {
+    try {
+      const parsed = JSON.parse(savedTransactions);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        state.transactions = parsed;
+      }
+    } catch (e) {
+      console.error('Error parsing saved transactions:', e);
+    }
+  } else {
+    // Default initial transactions so new/reopened app starts with non-zero financial data
+    const today = new Date().toISOString().split('T')[0];
+    state.transactions = [
+      { id: 1, date: today, description: 'Opening Balance', category: 'Opening Balance', amount: '+₹45,000.00', type: 'Income', status: 'Completed' },
+      { id: 2, date: today, description: 'Monthly Salary Credit', category: 'Income', amount: '+₹18,500.00', type: 'Income', status: 'Completed' },
+      { id: 3, date: today, description: 'Supermarket Grocery & Food', category: 'Food', amount: '-₹1,280.00', type: 'Expense', status: 'Completed' },
+      { id: 4, date: today, description: 'Metro & Fuel Refill', category: 'Transport', amount: '-₹850.00', type: 'Expense', status: 'Completed' },
+      { id: 5, date: today, description: 'Electricity & Wifi Bill', category: 'Bills', amount: '-₹1,420.00', type: 'Expense', status: 'Completed' }
+    ];
+    localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
   }
 
-  // Load portfolio simulation state if it exists
+  // 2. Load Budgets
+  const savedBudgets = localStorage.getItem('finsightBudgets');
+  if (savedBudgets) {
+    try {
+      const parsed = JSON.parse(savedBudgets);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        state.budgets = parsed;
+      }
+    } catch (e) {
+      console.error('Error parsing saved budgets:', e);
+    }
+  }
+
+  // 3. Load Savings
+  const savedSavings = localStorage.getItem('finsightSavings');
+  if (savedSavings) {
+    try {
+      const parsed = JSON.parse(savedSavings);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        state.savings = parsed;
+      }
+    } catch (e) {
+      console.error('Error parsing saved savings:', e);
+    }
+  }
+
+  // 4. Load Portfolio Cash
   const savedCash = localStorage.getItem('finsightPortfolioCash');
-  if (savedCash !== null) {
+  if (savedCash !== null && !isNaN(parseFloat(savedCash))) {
     state.portfolioCash = parseFloat(savedCash);
   }
+
+  // 5. Load Portfolio Holdings
   const savedHoldings = localStorage.getItem('finsightPortfolioHoldings');
   if (savedHoldings) {
     try {
-      state.portfolioHoldings = JSON.parse(savedHoldings);
+      const parsed = JSON.parse(savedHoldings);
+      if (Array.isArray(parsed)) {
+        state.portfolioHoldings = parsed;
+      }
     } catch (e) {
       console.error('Error parsing saved holdings:', e);
     }
   }
+
+  // 6. Load Portfolio Trades
   const savedTrades = localStorage.getItem('finsightPortfolioTrades');
   if (savedTrades) {
     try {
-      state.portfolioTrades = JSON.parse(savedTrades);
+      const parsed = JSON.parse(savedTrades);
+      if (Array.isArray(parsed)) {
+        state.portfolioTrades = parsed;
+      }
     } catch (e) {
       console.error('Error parsing saved trades:', e);
     }
   }
 
+  // 7. Load Profile
+  const savedProfile = localStorage.getItem('finsightUserProfile');
+  if (savedProfile) {
+    try {
+      state.profile = { ...state.profile, ...JSON.parse(savedProfile) };
+    } catch (e) {
+      console.error('Error parsing saved profile:', e);
+    }
+  }
+}
+
+function init() {
+  loadAllState();
   bindNavigation();
   initializeTransactions();
   renderBudgetCards();
@@ -917,23 +999,24 @@ function updateAllDashboardValues() {
     }
   }
 
-  // Update Savings state allocation when balance exists
-  if (currentBalance > 0 && state.savings && state.savings.length >= 5) {
-    state.savings[0].balance = Math.round(currentBalance * 0.20);
+  // Update Savings state allocation dynamically from available balance
+  const effectiveBal = currentBalance > 0 ? currentBalance : (openingBalance > 0 ? openingBalance : 40000);
+  if (state.savings && state.savings.length >= 5) {
+    state.savings[0].balance = Math.round(effectiveBal * 0.20);
     state.savings[0].progress = 85;
-    state.savings[1].balance = Math.round(currentBalance * 0.30);
+    state.savings[1].balance = Math.round(effectiveBal * 0.30);
     state.savings[1].progress = 80;
-    state.savings[2].balance = Math.round(currentBalance * 0.20);
+    state.savings[2].balance = Math.round(effectiveBal * 0.20);
     state.savings[2].progress = 75;
-    state.savings[3].balance = Math.round(currentBalance * 0.15);
+    state.savings[3].balance = Math.round(effectiveBal * 0.15);
     state.savings[3].progress = 70;
-    state.savings[4].balance = Math.round(currentBalance * 0.15);
+    state.savings[4].balance = Math.round(effectiveBal * 0.15);
     state.savings[4].progress = 90;
     renderSavingsCards();
   }
 
   // Update Stock Portfolio Cash Balance dynamically from Investible Surplus / Current Savings
-  const baseCash = investableSurplus > 0 ? investableSurplus : (currentBalance > 0 ? currentBalance : 0);
+  const baseCash = investableSurplus > 0 ? investableSurplus : (currentBalance > 0 ? currentBalance : 1000000);
   if (baseCash > 0) {
     state.portfolioBaseCapital = baseCash;
     let netStockSpend = 0;
@@ -947,9 +1030,11 @@ function updateAllDashboardValues() {
       });
     }
     state.portfolioCash = Math.max(0, baseCash - netStockSpend);
-    localStorage.setItem('finsightPortfolioCash', state.portfolioCash.toString());
     renderPortfolio();
   }
+
+  // Save all updated state to localStorage so reopening app maintains all values
+  saveAllState();
 
   // 5. Update Charts
   const doughnutLabels = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Entertainment'];
