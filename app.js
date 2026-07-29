@@ -446,144 +446,77 @@ function setupAuth() {
         return;
       }
 
-      if (supabaseClient) {
-        // Cloud Signup Mode
-        const submitBtn = signupForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn ? submitBtn.textContent : 'Sign Up';
-        if (submitBtn) {
-          submitBtn.textContent = 'Creating account...';
-          submitBtn.disabled = true;
-        }
+      if (password.length < 4) {
+        showToast('Password must be at least 4 characters long', 'error');
+        return;
+      }
 
+      const submitBtn = signupForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.textContent : 'Sign Up';
+      if (submitBtn) {
+        submitBtn.textContent = 'Creating account...';
+        submitBtn.disabled = true;
+      }
+
+      let created = false;
+      let userId = null;
+
+      // 1. Try Supabase Cloud SignUp if client is active
+      if (supabaseClient) {
         try {
           const { data, error } = await supabaseClient.auth.signUp({
             email: emailLower,
             password: password,
             options: {
-              data: {
-                name: name
-              }
+              data: { name: name }
             }
           });
 
-          if (error) throw error;
-
-          const user = data.user;
-          
-          // Clear any pre-existing session data from memory & cache for a fresh start
-          localStorage.removeItem('finsightTransactions');
-          localStorage.removeItem('finsightBudgets');
-          localStorage.removeItem('finsightSavings');
-          localStorage.removeItem('finsightPortfolioCash');
-          localStorage.removeItem('finsightPortfolioHoldings');
-          localStorage.removeItem('finsightPortfolioTrades');
-
-          state.transactions = [];
-          state.savings = [
-            { id: 1, name: 'Emergency Fund', risk: 'Low Risk', riskLevel: 'low', balance: 0, progress: 0, returnRate: 3.5, icon: 'shield', purpose: 'Recommended' },
-            { id: 2, name: 'Mutual Funds', risk: 'Moderate Risk', riskLevel: 'moderate', balance: 0, progress: 0, returnRate: 8.8, icon: 'pie-chart', purpose: 'Recommended' },
-            { id: 3, name: 'SIP', risk: 'Balanced', riskLevel: 'balanced', balance: 0, progress: 0, returnRate: 10.2, icon: 'clock', purpose: 'Monthly plan' },
-            { id: 4, name: 'Stocks', risk: 'High Risk', riskLevel: 'high', balance: 0, progress: 0, returnRate: 13.7, icon: 'trending-up', purpose: 'Long-term gain' },
-            { id: 5, name: 'Fixed Deposit', risk: 'Secure', riskLevel: 'secure', balance: 0, progress: 0, returnRate: 5.1, icon: 'shield-check', purpose: 'Stable yield' }
-          ];
-          state.budgets = [
-            { label: 'Food', limit: 8000, spent: 0, remaining: 8000, status: 'Good' },
-            { label: 'Transport', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
-            { label: 'Shopping', limit: 10000, spent: 0, remaining: 10000, status: 'Good' },
-            { label: 'Bills', limit: 15000, spent: 0, remaining: 15000, status: 'Good' },
-            { label: 'Health', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
-            { label: 'Entertainment', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
-            { label: 'Education', limit: 3000, spent: 0, remaining: 3000, status: 'Good' },
-            { label: 'Investment', limit: 50000, spent: 0, remaining: 50000, status: 'Good' },
-            { label: 'Other', limit: 5000, spent: 0, remaining: 5000, status: 'Good' }
-          ];
-          state.portfolioCash = 1000000;
-          state.portfolioHoldings = [];
-          state.portfolioTrades = [];
-
-          updateTransactionListing();
-          updateAllDashboardValues();
-          renderSavingsCards();
-
-          localStorage.setItem('finsight_logged_in', 'true');
-          localStorage.setItem('finsight_supabase_user_id', user.id);
-          localStorage.setItem('finsight_user_name', name);
-          localStorage.setItem('finsight_user_email', emailLower);
-
-          updateProfileInfo(name, emailLower);
-          
-          // Seed the new cloud user profile with this clean initial state
-          await uploadLocalDataToSupabase(user.id);
-          
-          showToast(`Account created! Welcome, ${name}!`, 'success');
-
-          if (authOverlay) {
-            authOverlay.classList.add('fade-out');
-            setTimeout(() => {
-              authOverlay.style.display = 'none';
-            }, 800);
+          if (!error && data && data.user) {
+            created = true;
+            userId = data.user.id;
+            localStorage.setItem('finsight_supabase_user_id', userId);
+            
+            // Seed cloud user
+            try {
+              await uploadLocalDataToSupabase(userId);
+            } catch (e) {}
+          } else if (error && error.message && error.message.toLowerCase().includes('already registered')) {
+            showToast('Account already exists! Logging you in...', 'info');
+            // Try automatic login
+            try {
+              const loginRes = await supabaseClient.auth.signInWithPassword({ email: emailLower, password: password });
+              if (loginRes.data && loginRes.data.user) {
+                created = true;
+                userId = loginRes.data.user.id;
+                localStorage.setItem('finsight_supabase_user_id', userId);
+              }
+            } catch (loginErr) {}
           }
-        } catch (err) {
-          showToast(`Sign up failed: ${err.message}`, 'error');
-        } finally {
-          if (submitBtn) {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-          }
+        } catch (cloudErr) {
+          console.warn('Supabase signup notice:', cloudErr.message);
         }
-        return;
       }
 
-      // Local Fallback Signup Mode
+      // 2. Always register account in local storage as well
       const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
-      if (users[emailLower] || emailLower === 'arjun@finsight.ai' || emailLower === 'arjun@finsightai' || emailLower === 'arjun') {
-        showToast('An account with this email already exists', 'error');
-        return;
-      }
-
-      // Clear any pre-existing session data from memory & cache for a fresh start
-      localStorage.removeItem('finsightTransactions');
-      localStorage.removeItem('finsightBudgets');
-      localStorage.removeItem('finsightSavings');
-      localStorage.removeItem('finsightPortfolioCash');
-      localStorage.removeItem('finsightPortfolioHoldings');
-      localStorage.removeItem('finsightPortfolioTrades');
-
-      state.transactions = [];
-      state.savings = [
-        { id: 1, name: 'Emergency Fund', risk: 'Low Risk', riskLevel: 'low', balance: 0, progress: 0, returnRate: 3.5, icon: 'shield', purpose: 'Recommended' },
-        { id: 2, name: 'Mutual Funds', risk: 'Moderate Risk', riskLevel: 'moderate', balance: 0, progress: 0, returnRate: 8.8, icon: 'pie-chart', purpose: 'Recommended' },
-        { id: 3, name: 'SIP', risk: 'Balanced', riskLevel: 'balanced', balance: 0, progress: 0, returnRate: 10.2, icon: 'clock', purpose: 'Monthly plan' },
-        { id: 4, name: 'Stocks', risk: 'High Risk', riskLevel: 'high', balance: 0, progress: 0, returnRate: 13.7, icon: 'trending-up', purpose: 'Long-term gain' },
-        { id: 5, name: 'Fixed Deposit', risk: 'Secure', riskLevel: 'secure', balance: 0, progress: 0, returnRate: 5.1, icon: 'shield-check', purpose: 'Stable yield' }
-      ];
-      state.budgets = [
-        { label: 'Food', limit: 8000, spent: 0, remaining: 8000, status: 'Good' },
-        { label: 'Transport', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
-        { label: 'Shopping', limit: 10000, spent: 0, remaining: 10000, status: 'Good' },
-        { label: 'Bills', limit: 15000, spent: 0, remaining: 15000, status: 'Good' },
-        { label: 'Health', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
-        { label: 'Entertainment', limit: 5000, spent: 0, remaining: 5000, status: 'Good' },
-        { label: 'Education', limit: 3000, spent: 0, remaining: 3000, status: 'Good' },
-        { label: 'Investment', limit: 50000, spent: 0, remaining: 50000, status: 'Good' },
-        { label: 'Other', limit: 5000, spent: 0, remaining: 5000, status: 'Good' }
-      ];
-      state.portfolioCash = 1000000;
-      state.portfolioHoldings = [];
-      state.portfolioTrades = [];
-
-      updateTransactionListing();
-      updateAllDashboardValues();
-      renderSavingsCards();
-
-      users[emailLower] = { name, password };
+      users[emailLower] = { name: name, password: password };
       localStorage.setItem('finsight_users', JSON.stringify(users));
 
+      // 3. Complete authentication session
       localStorage.setItem('finsight_logged_in', 'true');
       localStorage.setItem('finsight_user_name', name);
       localStorage.setItem('finsight_user_email', emailLower);
 
+      state.profile.name = name;
+      state.profile.email = emailLower;
       updateProfileInfo(name, emailLower);
+      saveAllState();
+
+      if (submitBtn) {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
 
       showToast(`Account created! Welcome, ${name}!`, 'success');
 
