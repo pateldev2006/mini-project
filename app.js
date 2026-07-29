@@ -1,7 +1,7 @@
 const state = {
   currentPage: 'dashboard',
   theme: 'light',
-  portfolioCash: 1000000,
+  portfolioCash: 0,
   portfolioHoldings: [],
   portfolioTrades: [],
   savings: [
@@ -103,22 +103,24 @@ function loadAllState() {
     try {
       const parsed = JSON.parse(savedTransactions);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        state.transactions = parsed;
+        const dummyDescriptions = ['opening balance', 'monthly salary credit', 'supermarket grocery & food', 'metro & fuel refill', 'electricity & wifi bill'];
+        const isLegacyDummy = parsed.every(t => dummyDescriptions.includes((t.description || '').toLowerCase()));
+        if (isLegacyDummy) {
+          state.transactions = [];
+          localStorage.setItem('finsightTransactions', JSON.stringify([]));
+        } else {
+          state.transactions = parsed;
+        }
+      } else {
+        state.transactions = [];
       }
     } catch (e) {
       console.error('Error parsing saved transactions:', e);
+      state.transactions = [];
     }
   } else {
-    // Default initial transactions so new/reopened app starts with non-zero financial data
-    const today = new Date().toISOString().split('T')[0];
-    state.transactions = [
-      { id: 1, date: today, description: 'Opening Balance', category: 'Opening Balance', amount: '+₹45,000.00', type: 'Income', status: 'Completed' },
-      { id: 2, date: today, description: 'Monthly Salary Credit', category: 'Income', amount: '+₹18,500.00', type: 'Income', status: 'Completed' },
-      { id: 3, date: today, description: 'Supermarket Grocery & Food', category: 'Food', amount: '-₹1,280.00', type: 'Expense', status: 'Completed' },
-      { id: 4, date: today, description: 'Metro & Fuel Refill', category: 'Transport', amount: '-₹850.00', type: 'Expense', status: 'Completed' },
-      { id: 5, date: today, description: 'Electricity & Wifi Bill', category: 'Bills', amount: '-₹1,420.00', type: 'Expense', status: 'Completed' }
-    ];
-    localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
+    state.transactions = [];
+    localStorage.setItem('finsightTransactions', JSON.stringify([]));
   }
 
   // 2. Load Budgets
@@ -874,20 +876,30 @@ function updateAllDashboardValues() {
   const expenseTrendEl = document.getElementById('dashExpenseTrend');
 
   if (incomeTrendEl) {
-    const diffPct = ((totalIncome - 238400) / 238400) * 100;
-    incomeTrendEl.textContent = `${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(1)}%`;
-    incomeTrendEl.className = `trend ${diffPct >= 0 ? 'up' : 'down'}`;
+    if (totalIncome === 0) {
+      incomeTrendEl.textContent = '0.0% vs default';
+      incomeTrendEl.className = 'trend';
+    } else {
+      const diffPct = ((totalIncome - 238400) / 238400) * 100;
+      incomeTrendEl.textContent = `${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(1)}% vs default`;
+      incomeTrendEl.className = `trend ${diffPct >= 0 ? 'up' : 'down'}`;
+    }
   }
   if (expenseTrendEl) {
-    const diffPct = ((totalExpenses - 105200) / 105200) * 100;
-    expenseTrendEl.textContent = `${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(1)}%`;
-    expenseTrendEl.className = `trend ${diffPct <= 0 ? 'down' : 'up'}`;
+    if (totalExpenses === 0) {
+      expenseTrendEl.textContent = '0.0% vs default';
+      expenseTrendEl.className = 'trend';
+    } else {
+      const diffPct = ((totalExpenses - 105200) / 105200) * 100;
+      expenseTrendEl.textContent = `${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(1)}% vs default`;
+      expenseTrendEl.className = `trend ${diffPct <= 0 ? 'down' : 'up'}`;
+    }
   }
 
   // Financial Health Score
   const overBudgetCount = state.budgets.filter(b => b.spent > b.limit).length;
   const reviewBudgetCount = state.budgets.filter(b => b.spent / b.limit > 0.8).length;
-  let healthScore = 95 - (overBudgetCount * 12) - (reviewBudgetCount * 5);
+  let healthScore = state.transactions.length === 0 ? 100 : (95 - (overBudgetCount * 12) - (reviewBudgetCount * 5));
   healthScore = Math.max(50, Math.min(100, healthScore));
 
   if (healthScoreEl) healthScoreEl.textContent = healthScore;
@@ -903,39 +915,37 @@ function updateAllDashboardValues() {
     }
   }
 
-  // Update Savings state allocation dynamically from available balance
-  const effectiveBal = currentBalance > 0 ? currentBalance : (openingBalance > 0 ? openingBalance : 40000);
+  // Update Savings state allocation dynamically from available balance (0 if no statement uploaded)
+  const effectiveBal = currentBalance > 0 ? currentBalance : (openingBalance > 0 ? openingBalance : 0);
   if (state.savings && state.savings.length >= 5) {
     state.savings[0].balance = Math.round(effectiveBal * 0.20);
-    state.savings[0].progress = 85;
+    state.savings[0].progress = effectiveBal > 0 ? 85 : 0;
     state.savings[1].balance = Math.round(effectiveBal * 0.30);
-    state.savings[1].progress = 80;
+    state.savings[1].progress = effectiveBal > 0 ? 80 : 0;
     state.savings[2].balance = Math.round(effectiveBal * 0.20);
-    state.savings[2].progress = 75;
+    state.savings[2].progress = effectiveBal > 0 ? 75 : 0;
     state.savings[3].balance = Math.round(effectiveBal * 0.15);
-    state.savings[3].progress = 70;
+    state.savings[3].progress = effectiveBal > 0 ? 70 : 0;
     state.savings[4].balance = Math.round(effectiveBal * 0.15);
-    state.savings[4].progress = 90;
+    state.savings[4].progress = effectiveBal > 0 ? 90 : 0;
     renderSavingsCards();
   }
 
-  // Update Stock Portfolio Cash Balance dynamically from Investible Surplus / Current Savings
-  const baseCash = investableSurplus > 0 ? investableSurplus : (currentBalance > 0 ? currentBalance : 1000000);
-  if (baseCash > 0) {
-    state.portfolioBaseCapital = baseCash;
-    let netStockSpend = 0;
-    if (state.portfolioTrades && state.portfolioTrades.length > 0) {
-      state.portfolioTrades.forEach(t => {
-        if (t.type === 'BUY') {
-          netStockSpend += Math.abs(t.total || 0);
-        } else if (t.type === 'SELL') {
-          netStockSpend -= Math.abs(t.total || 0);
-        }
-      });
-    }
-    state.portfolioCash = Math.max(0, baseCash - netStockSpend);
-    renderPortfolio();
+  // Update Stock Portfolio Cash Balance dynamically from Investible Surplus / Current Savings (0 if no statement uploaded)
+  const baseCash = investableSurplus > 0 ? investableSurplus : (currentBalance > 0 ? currentBalance : 0);
+  state.portfolioBaseCapital = baseCash;
+  let netStockSpend = 0;
+  if (state.portfolioTrades && state.portfolioTrades.length > 0) {
+    state.portfolioTrades.forEach(t => {
+      if (t.type === 'BUY') {
+        netStockSpend += Math.abs(t.total || 0);
+      } else if (t.type === 'SELL') {
+        netStockSpend -= Math.abs(t.total || 0);
+      }
+    });
   }
+  state.portfolioCash = Math.max(0, baseCash - netStockSpend);
+  renderPortfolio();
 
   // Save all updated state to localStorage so reopening app maintains all values
   saveAllState();
@@ -1075,9 +1085,20 @@ function initializeTransactions() {
   const savedTransactions = localStorage.getItem('finsightTransactions');
   if (savedTransactions) {
     try {
-      state.transactions = JSON.parse(savedTransactions);
+      const parsed = JSON.parse(savedTransactions);
+      if (Array.isArray(parsed)) {
+        const dummyDescriptions = ['opening balance', 'monthly salary credit', 'supermarket grocery & food', 'metro & fuel refill', 'electricity & wifi bill'];
+        const isLegacyDummy = parsed.length > 0 && parsed.every(t => dummyDescriptions.includes((t.description || '').toLowerCase()));
+        if (isLegacyDummy) {
+          state.transactions = [];
+          localStorage.setItem('finsightTransactions', JSON.stringify([]));
+        } else {
+          state.transactions = parsed;
+        }
+      }
     } catch (e) {
       console.error('Error parsing saved transactions:', e);
+      state.transactions = [];
     }
   }
 
