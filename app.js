@@ -97,59 +97,33 @@ function init() {
   const authOverlay = document.getElementById('authOverlay');
   const isLoggedIn = localStorage.getItem('finsight_logged_in') === 'true';
   const userId = localStorage.getItem('finsight_supabase_user_id');
-  const supabaseActive = localStorage.getItem('finsight_supabase_url') && localStorage.getItem('finsight_supabase_key');
 
-  const verifiedLoggedIn = isLoggedIn && (!supabaseActive || userId);
+  // Ensure migration flag is set so data is never wiped
+  if (!localStorage.getItem('finsight_v32_migrated')) {
+    localStorage.setItem('finsight_v32_migrated', 'true');
+  }
 
   // Bind Supabase settings modals
   bindSupabaseControls();
 
-  // ── v32 one-time migration: wipe all old dummy / stale financial data ──
-  const needsMigration = !localStorage.getItem('finsight_v32_migrated');
-  if (needsMigration) {
-    console.log('[v32 migration] Clearing all old financial data for clean slate...');
-    localStorage.removeItem('finsightTransactions');
-    localStorage.removeItem('finsightBudgets');
-    localStorage.removeItem('finsightSavings');
-    localStorage.removeItem('finsightPortfolioCash');
-    localStorage.removeItem('finsightPortfolioHoldings');
-    localStorage.removeItem('finsightPortfolioTrades');
-
-    // Also wipe cloud data if Supabase is active
-    if (supabaseClient && userId) {
-      supabaseClient.from('user_data').upsert({
-        user_id: userId,
-        transactions: [],
-        budgets: state.budgets,
-        savings: state.savings,
-        portfolio_cash: 1000000,
-        portfolio_holdings: [],
-        portfolio_trades: []
-      }, { onConflict: 'user_id' }).then(() => {
-        console.log('[v32 migration] Cloud data reset complete.');
-      });
-    }
-
-    localStorage.setItem('finsight_v32_migrated', 'true');
-  }
-
-  if (verifiedLoggedIn) {
+  if (isLoggedIn) {
     if (authOverlay) {
       authOverlay.style.display = 'none';
       authOverlay.classList.add('fade-out');
     }
     
-    // If Supabase is active and NOT migrating, pull latest cloud state
-    if (supabaseClient && userId && !needsMigration) {
-      fetchProfileData(userId);
-      fetchCloudData(userId);
+    // If Supabase is active and userId exists, pull latest cloud state
+    if (supabaseClient && userId) {
+      try {
+        fetchProfileData(userId);
+        fetchCloudData(userId);
+      } catch (e) {}
     }
   } else {
     if (authOverlay) {
       authOverlay.style.display = 'flex';
       authOverlay.classList.remove('fade-out');
     }
-    localStorage.removeItem('finsight_logged_in');
   }
   setupAuth();
 
