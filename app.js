@@ -910,6 +910,25 @@ function updateAllDashboardValues() {
     renderSavingsCards();
   }
 
+  // Update Stock Portfolio Cash Balance dynamically from Investible Surplus / Current Savings
+  const baseCash = investableSurplus > 0 ? investableSurplus : (currentBalance > 0 ? currentBalance : 0);
+  if (baseCash > 0) {
+    state.portfolioBaseCapital = baseCash;
+    let netStockSpend = 0;
+    if (state.portfolioTrades && state.portfolioTrades.length > 0) {
+      state.portfolioTrades.forEach(t => {
+        if (t.type === 'BUY') {
+          netStockSpend += Math.abs(t.total || 0);
+        } else if (t.type === 'SELL') {
+          netStockSpend -= Math.abs(t.total || 0);
+        }
+      });
+    }
+    state.portfolioCash = Math.max(0, baseCash - netStockSpend);
+    localStorage.setItem('finsightPortfolioCash', state.portfolioCash.toString());
+    renderPortfolio();
+  }
+
   // 5. Update Charts
   const doughnutLabels = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Entertainment'];
   const doughnutValues = doughnutLabels.map(label => categorySpent[label] || 0);
@@ -4770,8 +4789,9 @@ function renderPortfolio() {
   // Render balances
   const holdingsVal = state.portfolioHoldings.reduce((sum, h) => sum + (h.shares * h.currentPrice), 0);
   const totalVal = state.portfolioCash + holdingsVal;
-  const pl = totalVal - 1000000;
-  const plPct = (pl / 1000000) * 100;
+  const baseCapital = (state.portfolioBaseCapital && state.portfolioBaseCapital > 0) ? state.portfolioBaseCapital : (totalVal > 0 ? totalVal : 1000000);
+  const pl = totalVal - baseCapital;
+  const plPct = baseCapital > 0 ? (pl / baseCapital) * 100 : 0;
   
   document.getElementById('portfolioCashBalance').textContent = `₹${state.portfolioCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
   document.getElementById('portfolioTotalValue').textContent = `₹${totalVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -4971,12 +4991,13 @@ async function refreshPortfolioPrices() {
 }
 
 function resetPortfolioData() {
-  if (confirm('Are you sure you want to clear your portfolio and reset your mock balance to ₹10,00,000?')) {
-    state.portfolioCash = 1000000;
+  const baseCash = (state.portfolioBaseCapital && state.portfolioBaseCapital > 0) ? state.portfolioBaseCapital : 1000000;
+  if (confirm(`Are you sure you want to clear your portfolio and reset your mock balance to ₹${Math.round(baseCash).toLocaleString('en-IN')}?`)) {
+    state.portfolioCash = baseCash;
     state.portfolioHoldings = [];
     state.portfolioTrades = [];
     
-    localStorage.setItem('finsightPortfolioCash', '1000000');
+    localStorage.setItem('finsightPortfolioCash', baseCash.toString());
     localStorage.setItem('finsightPortfolioHoldings', JSON.stringify([]));
     localStorage.setItem('finsightPortfolioTrades', JSON.stringify([]));
     dbSync('portfolio');
