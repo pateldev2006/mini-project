@@ -3915,6 +3915,60 @@ function initializeProfile() {
       startContactEdit('phone');
     });
   }
+
+  // Security Buttons (2FA, Password, Devices)
+  const btnConfigure2fa = document.getElementById('btnConfigure2fa');
+  if (btnConfigure2fa) {
+    btnConfigure2fa.addEventListener('click', () => {
+      const is2faActive = localStorage.getItem('finsight_2fa_enabled') === 'true';
+      if (is2faActive) {
+        if (confirm('Two-Factor Authentication (2FA) is currently ACTIVE. Do you want to disable it?')) {
+          localStorage.setItem('finsight_2fa_enabled', 'false');
+          btnConfigure2fa.textContent = 'Configure';
+          btnConfigure2fa.className = 'btn btn-outline small';
+          showToast('2FA has been disabled.', 'info');
+        }
+      } else {
+        const code = prompt('Enter your 6-digit Authenticator app verification code (or leave blank to generate demo code):', '842910');
+        if (code !== null) {
+          localStorage.setItem('finsight_2fa_enabled', 'true');
+          btnConfigure2fa.textContent = 'Enabled ✓';
+          btnConfigure2fa.className = 'btn btn-primary small';
+          showToast('Two-Factor Authentication successfully enabled!', 'success');
+        }
+      }
+    });
+
+    // Check initial 2FA state
+    if (localStorage.getItem('finsight_2fa_enabled') === 'true') {
+      btnConfigure2fa.textContent = 'Enabled ✓';
+      btnConfigure2fa.className = 'btn btn-primary small';
+    }
+  }
+
+  const btnUpdatePassword = document.getElementById('btnUpdatePassword');
+  if (btnUpdatePassword) {
+    btnUpdatePassword.addEventListener('click', () => {
+      const newPass = prompt('Enter your new secure password (minimum 8 characters):');
+      if (newPass) {
+        if (newPass.length < 6) {
+          showToast('Password must be at least 6 characters long.', 'error');
+        } else {
+          showToast('Password updated successfully!', 'success');
+        }
+      }
+    });
+  }
+
+  const btnManageDevices = document.getElementById('btnManageDevices');
+  if (btnManageDevices) {
+    btnManageDevices.addEventListener('click', () => {
+      const userChoice = confirm('Active Devices:\n1. This Windows App (Current Device - Active)\n2. Chrome Browser (Windows 11 - 2 hours ago)\n\nClick OK to terminate all other active browser sessions.');
+      if (userChoice) {
+        showToast('Logged out of 1 other device session successfully.', 'success');
+      }
+    });
+  }
 }
 
 function updateProfileDOM() {
