@@ -5191,8 +5191,12 @@ function resetPortfolioData() {
 // =========================================================================
 
 function initSupabase() {
-  const url = localStorage.getItem('finsight_supabase_url');
-  const key = localStorage.getItem('finsight_supabase_key');
+  // Hardcoded project credentials (anon key is safe for frontend)
+  const DEFAULT_SUPABASE_URL = 'https://kipytpcxmalfbixaloeo.supabase.co';
+  const DEFAULT_SUPABASE_KEY = 'sb_publishable_UXlgx_j8ZjpZHxNyu6QxRw_T2-DEUpV';
+
+  const url = localStorage.getItem('finsight_supabase_url') || DEFAULT_SUPABASE_URL;
+  const key = localStorage.getItem('finsight_supabase_key') || DEFAULT_SUPABASE_KEY;
   const indicator = document.getElementById('supabaseSyncIndicator');
   
   if (url && key && window.supabase) {
