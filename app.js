@@ -351,25 +351,27 @@ function setupAuth() {
       e.preventDefault();
       const emailInput = document.getElementById('loginEmail');
       const passwordInput = document.getElementById('loginPassword');
-      const email = emailInput ? emailInput.value.trim() : 'arjun@finsight.ai';
-      const password = passwordInput ? passwordInput.value.trim() : 'admin';
-      const emailLower = (email || 'arjun@finsight.ai').toLowerCase();
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value.trim() : '';
+      const emailLower = email.toLowerCase();
+
+      if (!email || !password) {
+        showToast('Please enter both email and password.', 'error');
+        return;
+      }
 
       const submitBtn = loginForm.querySelector('button[type="submit"]');
-      const originalText = submitBtn ? submitBtn.textContent : 'Enter App';
+      const originalText = submitBtn ? submitBtn.textContent : 'Sign In';
       if (submitBtn) {
         submitBtn.textContent = 'Authenticating...';
         submitBtn.disabled = true;
       }
 
-      let userName = "Arjun Singh";
-      let resolvedEmail = emailLower.includes('@') ? emailLower : 'arjun@finsight.ai';
+      let authenticated = false;
+      let userName = '';
+      let resolvedEmail = emailLower;
 
-      if (emailLower.split('@')[0]) {
-        userName = emailLower.split('@')[0].replace('.', ' ').replace(/^./, str => str.toUpperCase());
-      }
-
-      // 1. Try Supabase Auth if client is configured
+      // 1. Try Supabase Auth
       if (supabaseClient) {
         try {
           const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -378,29 +380,43 @@ function setupAuth() {
           });
           
           if (!error && data && data.user) {
+            authenticated = true;
             const user = data.user;
+            userName = (user.user_metadata && user.user_metadata.name) || emailLower.split('@')[0].replace('.', ' ').replace(/^./, s => s.toUpperCase());
             localStorage.setItem('finsight_supabase_user_id', user.id);
             await fetchProfileData(user.id);
             await fetchCloudData(user.id);
           }
         } catch (cloudErr) {
-          console.warn('Supabase auth notice:', cloudErr.message);
+          console.warn('Supabase auth error:', cloudErr.message);
         }
       }
 
-      // 2. Always complete login and dismiss overlay
-      localStorage.setItem('finsight_logged_in', 'true');
-      localStorage.setItem('finsight_user_name', userName);
-      localStorage.setItem('finsight_user_email', resolvedEmail);
-      updateProfileInfo(userName, resolvedEmail);
+      // 2. If Supabase didn't authenticate, check local accounts
+      if (!authenticated) {
+        const users = JSON.parse(localStorage.getItem('finsight_users') || '{}');
+        if (users[emailLower] && users[emailLower].password === password) {
+          authenticated = true;
+          userName = users[emailLower].name || emailLower.split('@')[0].replace('.', ' ').replace(/^./, s => s.toUpperCase());
+        }
+      }
 
+      // 3. Result
       if (submitBtn) {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
       }
 
-      showToast(`Welcome back, ${userName}!`, 'success');
-      dismissAuthOverlay();
+      if (authenticated) {
+        localStorage.setItem('finsight_logged_in', 'true');
+        localStorage.setItem('finsight_user_name', userName);
+        localStorage.setItem('finsight_user_email', resolvedEmail);
+        updateProfileInfo(userName, resolvedEmail);
+        showToast(`Welcome back, ${userName}!`, 'success');
+        dismissAuthOverlay();
+      } else {
+        showToast('Invalid email or password. Please sign up first.', 'error');
+      }
     });
   }
 
