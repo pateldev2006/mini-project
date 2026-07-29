@@ -443,7 +443,7 @@ function setupAuth() {
       showToast(`Account created! Welcome, ${name}!`, 'success');
       dismissAuthOverlay();
     });
-  }Operator: confirm replacement;
+  }
 }
 
 function updateProfileInfo(name, email) {
