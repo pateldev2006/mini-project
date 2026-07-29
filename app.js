@@ -4134,12 +4134,14 @@ async function handlePaymentSubmit(event) {
   else if (symbol === '£') totalDeductionINR = totalDeductionVal * 105.50;
   else if (symbol === '€') totalDeductionINR = totalDeductionVal * 89.20;
 
-  // Get selected payment method name (Bank Account / Credit Card)
+  // Get selected payment method details
   const paymentMethodEl = document.getElementById('paymentMethod');
-  const selectedMethodName = paymentMethodEl ? paymentMethodEl.options[paymentMethodEl.selectedIndex].text.split('(')[0].trim() : 'Bank Account';
+  const paymentMethodVal = paymentMethodEl ? paymentMethodEl.value : 'bank';
+  const isCreditCard = paymentMethodVal === 'card';
+  const selectedMethodName = isCreditCard ? 'Credit Card' : 'Bank Account';
 
-  // Check available surplus cash balance
-  if (state.portfolioCash < totalDeductionINR) {
+  // Only check cash balance if purchasing via Bank Account (Investible Surplus)
+  if (!isCreditCard && state.portfolioCash < totalDeductionINR) {
     showToast(`Insufficient surplus balance. Required: ₹${totalDeductionINR.toLocaleString('en-IN', {maximumFractionDigits:2})}, Available: ₹${state.portfolioCash.toLocaleString('en-IN', {maximumFractionDigits:2})}.`, 'error');
     return;
   }
@@ -4151,17 +4153,23 @@ async function handlePaymentSubmit(event) {
   closeBtn.disabled = true;
   sharesInput.disabled = true;
   
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 1200));
   
   paymentForm.hidden = true;
   paymentSuccessContainer.hidden = false;
   
   const successMessage = document.getElementById('successMessage');
-  successMessage.textContent = `Bought ${shares} share${shares > 1 ? 's' : ''} of ${ticker} for ${symbol}${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} via ${selectedMethodName}. Debited from Investible Surplus.`;
+  if (isCreditCard) {
+    successMessage.textContent = `Bought ${shares} share${shares > 1 ? 's' : ''} of ${ticker} for ${symbol}${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} via Credit Card. Stock added to Portfolio without debiting Investible Surplus!`;
+  } else {
+    successMessage.textContent = `Bought ${shares} share${shares > 1 ? 's' : ''} of ${ticker} for ${symbol}${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} via Bank Account. Debited from Investible Surplus.`;
+  }
   
-  // Deduct from available cash balance
-  state.portfolioCash -= totalDeductionINR;
-  localStorage.setItem('finsightPortfolioCash', state.portfolioCash.toString());
+  // Deduct from cash balance ONLY IF Bank Account was used!
+  if (!isCreditCard) {
+    state.portfolioCash -= totalDeductionINR;
+    localStorage.setItem('finsightPortfolioCash', state.portfolioCash.toString());
+  }
 
   // Record/Update holdings
   const costPerShareINR = totalCostINR / shares;
@@ -4185,7 +4193,7 @@ async function handlePaymentSubmit(event) {
   }
   localStorage.setItem('finsightPortfolioHoldings', JSON.stringify(state.portfolioHoldings));
 
-  // Record trade log
+  // Record trade log with method
   const dateStr = new Date().toISOString().split('T')[0];
   state.portfolioTrades.unshift({
     date: dateStr,
@@ -4193,21 +4201,35 @@ async function handlePaymentSubmit(event) {
     ticker: ticker,
     shares: shares,
     price: costPerShareINR,
-    total: -totalDeductionINR
+    total: -totalDeductionINR,
+    method: selectedMethodName
   });
   localStorage.setItem('finsightPortfolioTrades', JSON.stringify(state.portfolioTrades));
   dbSync('portfolio');
 
-  // Add ledger transaction log (Investment Expense)
-  const newTx = {
-    id: Date.now(),
-    date: dateStr,
-    description: `Bought ${shares} ${ticker} shares (${selectedMethodName})`,
-    category: 'Investment',
-    amount: `-₹${totalCostINR.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-    type: 'Expense',
-    status: 'Completed'
-  };
+  // Add ledger transaction log
+  let newTx;
+  if (isCreditCard) {
+    newTx = {
+      id: Date.now(),
+      date: dateStr,
+      description: `Bought ${shares} ${ticker} shares (Credit Card)`,
+      category: 'Bills',
+      amount: `-₹${totalCostINR.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      type: 'Expense',
+      status: 'Completed'
+    };
+  } else {
+    newTx = {
+      id: Date.now(),
+      date: dateStr,
+      description: `Bought ${shares} ${ticker} shares (Bank Account)`,
+      category: 'Investment',
+      amount: `-₹${totalCostINR.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      type: 'Expense',
+      status: 'Completed'
+    };
+  }
   state.transactions.unshift(newTx);
   localStorage.setItem('finsightTransactions', JSON.stringify(state.transactions));
   dbSync('transaction', newTx);
@@ -4216,7 +4238,7 @@ async function handlePaymentSubmit(event) {
     updateTransactionListing();
   }
 
-  // Update Overview Dashboard (debits Investible Surplus & Current Balance)
+  // Update Overview Dashboard (debits Investible Surplus if Bank Account used)
   if (typeof updateAllDashboardValues === 'function') {
     updateAllDashboardValues();
   }
@@ -4802,9 +4824,14 @@ function renderPortfolio() {
   const pl = totalVal - baseCapital;
   const plPct = baseCapital > 0 ? (pl / baseCapital) * 100 : 0;
   
-  document.getElementById('portfolioCashBalance').textContent = `₹${state.portfolioCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-  document.getElementById('portfolioTotalValue').textContent = `₹${totalVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-  
+  const cashBalEl = document.getElementById('portfolioCashBalance');
+  const totalValEl = document.getElementById('portfolioTotalValue');
+  const holdingsValEl = document.getElementById('portfolioHoldingsValue');
+
+  if (cashBalEl) cashBalEl.textContent = `₹${state.portfolioCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  if (totalValEl) totalValEl.textContent = `₹${totalVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  if (holdingsValEl) holdingsValEl.textContent = `₹${holdingsVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
   const plCard = document.getElementById('portfolioPLCard');
   if (plCard) {
     if (pl >= 0) {
@@ -4819,10 +4846,14 @@ function renderPortfolio() {
   const plSign = pl >= 0 ? '+' : '';
   const plClass = pl >= 0 ? 'portfolio-profit pulse-green' : 'portfolio-loss pulse-red';
   
-  plEl.textContent = `${plSign}₹${pl.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-  plEl.className = plClass;
-  plPctEl.textContent = `${plSign}${plPct.toFixed(2)}% absolute return`;
-  plPctEl.className = `summary-meta ${plClass}`;
+  if (plEl) {
+    plEl.textContent = `${plSign}₹${pl.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    plEl.className = plClass;
+  }
+  if (plPctEl) {
+    plPctEl.textContent = `${plSign}${plPct.toFixed(2)}% absolute return`;
+    plPctEl.className = `summary-meta ${plClass}`;
+  }
   
   const chartValEl = document.getElementById('portfolioChartValue');
   if (chartValEl) {
@@ -4831,7 +4862,7 @@ function renderPortfolio() {
   
   // Holdings rows
   if (state.portfolioHoldings.length === 0) {
-    holdingsBody.innerHTML = `<tr><td colspan="8" class="text-center">No current holdings. Go to Stock Analyzer to search and buy stocks.</td></tr>`;
+    holdingsBody.innerHTML = `<tr><td colspan="8" class="text-center">No current holdings. Go to Stock Analyzer or use Quick Launcher to search and buy stocks.</td></tr>`;
   } else {
     holdingsBody.innerHTML = state.portfolioHoldings.map(h => {
       const cost = h.shares * h.avgPrice;
@@ -4851,7 +4882,10 @@ function renderPortfolio() {
           <td>₹${val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
           <td class="${profitClass}">${profitSign}₹${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${profitSign}${profitPct.toFixed(2)}%)</td>
           <td>
-            <button class="table-action-btn btn-sell" onclick="openSellModal('${h.ticker}')">Sell</button>
+            <div style="display: flex; gap: 6px;">
+              <button class="table-action-btn btn-buy" onclick="openBuyMoreModal('${h.ticker}')">+ Buy</button>
+              <button class="table-action-btn btn-sell" onclick="openSellModal('${h.ticker}')">Sell</button>
+            </div>
           </td>
         </tr>
       `;
@@ -4860,12 +4894,16 @@ function renderPortfolio() {
   
   // Trade Ledger rows
   if (state.portfolioTrades.length === 0) {
-    tradesBody.innerHTML = `<tr><td colspan="6" class="text-center">No trades logged yet.</td></tr>`;
+    tradesBody.innerHTML = `<tr><td colspan="7" class="text-center">No trades logged yet.</td></tr>`;
   } else {
     tradesBody.innerHTML = state.portfolioTrades.map(t => {
       const typeClass = t.type === 'BUY' ? 'success' : 'warning';
       const plSign = t.type === 'BUY' ? '-' : '+';
       const plClass = t.type === 'BUY' ? 'portfolio-loss' : 'portfolio-profit';
+      const methodLabel = t.method || (t.type === 'BUY' ? 'Bank Account' : 'Bank Credit');
+      const methodClass = methodLabel.toLowerCase().includes('credit') ? 'card-chip' : 'bank-chip';
+      const methodIcon = methodLabel.toLowerCase().includes('credit') ? '💳' : '🏦';
+
       return `
         <tr>
           <td>${t.date}</td>
@@ -4874,6 +4912,7 @@ function renderPortfolio() {
           <td>${t.shares}</td>
           <td>₹${t.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
           <td class="${plClass}">${plSign}₹${Math.abs(t.total).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td><span class="method-chip ${methodClass}">${methodIcon} ${methodLabel}</span></td>
         </tr>
       `;
     }).join('');
@@ -4881,6 +4920,40 @@ function renderPortfolio() {
   
   // Re-draw chart
   initPortfolioChart();
+}
+
+function launchQuickTrade() {
+  const input = document.getElementById('quickTradeInput');
+  if (!input || !input.value.trim()) return;
+  const symbol = input.value.trim().toUpperCase();
+  document.getElementById('globalSearch').value = symbol;
+  if (typeof handleSearchSubmit === 'function') {
+    handleSearchSubmit(symbol);
+  }
+}
+
+async function openBuyMoreModal(ticker) {
+  try {
+    const searchRes = await fetch(`/api/search?q=${encodeURIComponent(ticker)}`);
+    if (searchRes.ok) {
+      const suggestions = await searchRes.json();
+      if (suggestions && suggestions.length > 0) {
+        const stockRes = await fetch(`/api/stock?symbol=${suggestions[0].symbol}`);
+        if (stockRes.ok) {
+          state.stockData = await stockRes.json();
+        }
+      }
+    }
+  } catch (e) {}
+  
+  if (!state.stockData || state.stockData.ticker !== ticker) {
+    state.stockData = {
+      ticker: ticker,
+      company: ticker,
+      price: '₹1,000.00'
+    };
+  }
+  openPaymentModal();
 }
 
 function initPortfolioChart() {

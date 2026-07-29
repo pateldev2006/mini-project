@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=36" />
+  <link rel="stylesheet" href="style.css?v=37" />
 </head>
 <body>
   <!-- Futuristic Background Canvas & Floating Objects -->
@@ -588,47 +588,88 @@
         <section id="portfolio" class="page">
           <div class="page-head split">
             <div>
-              <span class="eyebrow">Stock Portfolio</span>
+              <span class="eyebrow">Stock Portfolio & Asset Telemetry</span>
               <h1>Track your stock investments and balances</h1>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <button class="btn btn-outline" onclick="refreshPortfolioPrices()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg> Refresh Quotes</button>
+              <button class="btn btn-primary" onclick="showPage('stocks')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> + Buy Stocks</button>
             </div>
           </div>
 
-
-          <div class="overview-grid">
+          <div class="overview-grid portfolio-4-cards">
             <article class="summary-card portfolio-val-card">
-              <span>Total Portfolio Value</span>
+              <div class="summary-card-header">
+                <span>Total Portfolio Value</span>
+                <div class="card-icon-badge blue-glow"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+              </div>
               <strong id="portfolioTotalValue">₹4,00,000.00</strong>
-              <p class="summary-meta">Holdings + Cash Balance</p>
+              <p class="summary-meta">Holdings + Available Cash</p>
             </article>
+
             <article class="summary-card cash-bal-card">
-              <span>Available Cash Balance</span>
+              <div class="summary-card-header">
+                <span>Available Cash Balance</span>
+                <div class="card-icon-badge purple-glow"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></div>
+              </div>
               <strong id="portfolioCashBalance">₹4,00,000.00</strong>
-              <p class="summary-meta">Debited from Investible Surplus & Savings</p>
+              <p class="summary-meta">Debited via Bank Account</p>
             </article>
+
+            <article class="summary-card holdings-val-card">
+              <div class="summary-card-header">
+                <span>Active Holdings Value</span>
+                <div class="card-icon-badge cyan-glow"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+              </div>
+              <strong id="portfolioHoldingsValue">₹0.00</strong>
+              <p class="summary-meta">Total Equity Market Cap</p>
+            </article>
+
             <article class="summary-card total-pl-card" id="portfolioPLCard">
-              <span>Total Profit / Loss</span>
-              <strong id="portfolioTotalPL">₹0.00</strong>
+              <div class="summary-card-header">
+                <span>Total Profit / Loss</span>
+                <div class="card-icon-badge green-glow"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+              </div>
+              <strong id="portfolioTotalPL">+₹0.00</strong>
               <p class="summary-meta" id="portfolioPLPct">0.00% absolute return</p>
             </article>
           </div>
 
           <div class="portfolio-grid">
-            <section class="chart-card glass-card">
-              <div class="card-head">
-                <h3>Holdings Allocation</h3>
-              </div>
-              <div class="chart-container" style="position: relative; height: 250px; display: flex; align-items: center; justify-content: center;">
-                <canvas id="portfolioDoughnut"></canvas>
-                <div class="chart-center-stats" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
-                  <span style="font-size: 0.72rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500;">Holdings Value</span>
-                  <strong id="portfolioChartValue" style="font-size: 1.2rem; font-weight: 700; color: var(--text); margin-top: 2px; font-family: 'Outfit', sans-serif;">₹0.00</strong>
+            <div class="portfolio-left-col">
+              <section class="chart-card glass-card">
+                <div class="card-head">
+                  <h3>Holdings Allocation</h3>
+                  <span>Asset distribution</span>
                 </div>
-              </div>
-            </section>
+                <div class="chart-container" style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center; padding: 12px 0;">
+                  <canvas id="portfolioDoughnut"></canvas>
+                  <div class="chart-center-stats" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
+                    <span style="font-size: 0.72rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Holdings Value</span>
+                    <strong id="portfolioChartValue" style="font-size: 1.25rem; font-weight: 700; color: var(--text); margin-top: 2px; font-family: 'Outfit', sans-serif;">₹0.00</strong>
+                  </div>
+                </div>
+              </section>
+
+              <section class="glass-card quick-trade-card" style="margin-top: 24px; padding: 20px;">
+                <div class="card-head" style="margin-bottom: 12px;">
+                  <h3>Quick Stock Launcher</h3>
+                  <span>Instant trade terminal</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--subtext); margin-bottom: 14px;">Search any stock ticker to analyze and buy via Bank Account or Credit Card.</p>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="quickTradeInput" class="text-input" placeholder="e.g. AAPL, TCS, RELIANCE..." style="flex: 1; text-transform: uppercase;" />
+                  <button class="btn btn-primary" onclick="launchQuickTrade()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analyze</button>
+                </div>
+              </section>
+            </div>
 
             <section class="holdings-panel glass-card">
-              <div class="card-head">
-                <h3>Current Holdings</h3>
+              <div class="card-head split" style="margin-bottom: 12px;">
+                <div>
+                  <h3>Current Holdings</h3>
+                  <span>Your active stock equity positions</span>
+                </div>
               </div>
               <div class="table-wrap">
                 <table class="transaction-table">
@@ -653,19 +694,23 @@
           </div>
 
           <section class="ledger-panel glass-card" style="margin-top: 24px;">
-            <div class="card-head">
-              <h3>Trade Activity Ledger</h3>
+            <div class="card-head split" style="margin-bottom: 12px;">
+              <div>
+                <h3>Trade Activity Ledger</h3>
+                <span>Full history of equity purchases & sales</span>
+              </div>
             </div>
             <div class="table-wrap">
               <table class="transaction-table">
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>Type</th>
+                    <th>Action</th>
                     <th>Ticker</th>
                     <th>Shares</th>
                     <th>Price</th>
                     <th>Total Cash Flow</th>
+                    <th>Payment Method</th>
                   </tr>
                 </thead>
                 <tbody id="portfolioTradesBody">
@@ -1309,6 +1354,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=36" defer></script>
+  <script src="app.js?v=37" defer></script>
 </body>
 </html>
