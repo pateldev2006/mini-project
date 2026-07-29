@@ -4933,3 +4933,26 @@ body::after {
   font-weight: 500;
 }
 
+/* Strict Circular Chart Container */
+.circular-chart-box {
+  position: relative !important;
+  width: 200px !important;
+  height: 200px !important;
+  max-width: 200px !important;
+  max-height: 200px !important;
+  min-width: 200px !important;
+  min-height: 200px !important;
+  margin: 0 auto 20px auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.circular-chart-box canvas {
+  width: 200px !important;
+  height: 200px !important;
+  max-width: 200px !important;
+  max-height: 200px !important;
+  display: block !important;
+}
+

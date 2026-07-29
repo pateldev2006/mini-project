@@ -4961,6 +4961,12 @@ function initPortfolioChart() {
   const legendGrid = document.getElementById('portfolioLegendGrid');
   if (!canvas) return;
   
+  // Force strict 1:1 pixel square dimensions on canvas to prevent any oval distortion
+  canvas.style.width = '200px';
+  canvas.style.height = '200px';
+  canvas.width = 200;
+  canvas.height = 200;
+
   if (charts.portfolioChart) {
     charts.portfolioChart.destroy();
   }
