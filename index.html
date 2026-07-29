@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=38" />
+  <link rel="stylesheet" href="style.css?v=39" />
 </head>
 <body>
   <!-- Futuristic Background Canvas & Floating Objects -->
@@ -637,16 +637,16 @@
 
           <div class="portfolio-grid">
             <div class="portfolio-left-col">
-              <section class="chart-card glass-card">
-                <div class="card-head">
+              <section class="chart-card glass-card" style="padding: 24px;">
+                <div class="card-head" style="margin-bottom: 20px;">
                   <h3>Holdings Allocation</h3>
                   <span>Asset distribution</span>
                 </div>
-                <div class="chart-container" style="position: relative; height: 220px; display: flex; align-items: center; justify-content: center; padding: 12px 0;">
+                <div class="chart-container" style="position: relative; width: 100%; max-width: 220px; height: 220px; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;">
                   <canvas id="portfolioDoughnut"></canvas>
-                  <div class="chart-center-stats" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
-                    <span style="font-size: 0.7rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Holdings Value</span>
-                    <strong id="portfolioChartValue" style="font-size: 1.2rem; font-weight: 700; color: var(--text); margin-top: 2px; font-family: 'Outfit', sans-serif;">₹0.00</strong>
+                  <div class="chart-center-stats" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center; width: 100%;">
+                    <span style="font-size: 0.68rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Holdings Value</span>
+                    <strong id="portfolioChartValue" style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-top: 2px; font-family: 'Outfit', sans-serif;">₹0.00</strong>
                   </div>
                 </div>
                 <div id="portfolioLegendGrid" class="portfolio-legend-grid">
@@ -1345,6 +1345,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=38" defer></script>
+  <script src="app.js?v=39" defer></script>
 </body>
 </html>
