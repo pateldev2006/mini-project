@@ -283,26 +283,55 @@ function init() {
   }
 }
 
+window.toggleAuthForm = function(mode) {
+  const loginFormContainer = document.getElementById('loginFormContainer');
+  const signupFormContainer = document.getElementById('signupFormContainer');
+  if (mode === 'signup') {
+    if (loginFormContainer) {
+      loginFormContainer.hidden = true;
+      loginFormContainer.style.display = 'none';
+    }
+    if (signupFormContainer) {
+      signupFormContainer.hidden = false;
+      signupFormContainer.style.display = 'block';
+    }
+  } else {
+    if (signupFormContainer) {
+      signupFormContainer.hidden = true;
+      signupFormContainer.style.display = 'none';
+    }
+    if (loginFormContainer) {
+      loginFormContainer.hidden = false;
+      loginFormContainer.style.display = 'block';
+    }
+  }
+};
+
+function dismissAuthOverlay() {
+  const authOverlay = document.getElementById('authOverlay');
+  if (authOverlay) {
+    authOverlay.style.display = 'none';
+  }
+}
+
 function setupAuth() {
   const authOverlay = document.getElementById('authOverlay');
   const loginForm = document.getElementById('loginForm');
   const signupForm = document.getElementById('signupForm');
   const switchToSignUp = document.getElementById('switchToSignUp');
   const switchToLogin = document.getElementById('switchToLogin');
-  const loginFormContainer = document.getElementById('loginFormContainer');
-  const signupFormContainer = document.getElementById('signupFormContainer');
 
   if (switchToSignUp) {
-    switchToSignUp.addEventListener('click', () => {
-      loginFormContainer.hidden = true;
-      signupFormContainer.hidden = false;
+    switchToSignUp.addEventListener('click', (e) => {
+      e && e.preventDefault();
+      window.toggleAuthForm('signup');
     });
   }
 
   if (switchToLogin) {
-    switchToLogin.addEventListener('click', () => {
-      signupFormContainer.hidden = true;
-      loginFormContainer.hidden = false;
+    switchToLogin.addEventListener('click', (e) => {
+      e && e.preventDefault();
+      window.toggleAuthForm('login');
     });
   }
 
@@ -395,12 +424,7 @@ function setupAuth() {
 
       if (authenticated) {
         showToast(`Welcome back! Logged in successfully.`, 'success');
-        if (authOverlay) {
-          authOverlay.classList.add('fade-out');
-          setTimeout(() => {
-            authOverlay.style.display = 'none';
-          }, 800);
-        }
+        dismissAuthOverlay();
       } else {
         showToast('Invalid email or password. Please check your credentials.', 'error');
       }
@@ -493,13 +517,7 @@ function setupAuth() {
       }
 
       showToast(`Account created! Welcome, ${name}!`, 'success');
-
-      if (authOverlay) {
-        authOverlay.classList.add('fade-out');
-        setTimeout(() => {
-          authOverlay.style.display = 'none';
-        }, 800);
-      }
+      dismissAuthOverlay();
     });
   }
 }

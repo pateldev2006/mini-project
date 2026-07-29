@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=48" />
+  <link rel="stylesheet" href="style.css?v=49" />
 </head>
 <body>
   <!-- Futuristic Background Canvas & Floating Objects -->
@@ -52,7 +52,7 @@
             </div>
             <button type="submit" class="btn btn-primary btn-block">Enter App</button>
           </form>
-          <p class="auth-toggle-text">Don't have an account? <button type="button" id="switchToSignUp" class="link-btn">Sign Up</button></p>
+          <p class="auth-toggle-text">Don't have an account? <button type="button" id="switchToSignUp" class="link-btn" onclick="toggleAuthForm('signup')">Sign Up</button></p>
         </div>
 
         <!-- Sign Up Form -->
@@ -74,7 +74,7 @@
             </div>
             <button type="submit" class="btn btn-primary btn-block">Create Account</button>
           </form>
-          <p class="auth-toggle-text">Already have an account? <button type="button" id="switchToLogin" class="link-btn">Log In</button></p>
+          <p class="auth-toggle-text">Already have an account? <button type="button" id="switchToLogin" class="link-btn" onclick="toggleAuthForm('login')">Log In</button></p>
         </div>
       </div>
     </div>
@@ -1346,6 +1346,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=48" defer></script>
+  <script src="app.js?v=49" defer></script>
 </body>
 </html>
