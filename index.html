@@ -8,13 +8,104 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=54" />
+  <link rel="stylesheet" href="style.css?v=55" />
 </head>
 <body>
   <!-- Futuristic Background Canvas & Floating Objects -->
   <canvas id="bgCanvas"></canvas>
   <div id="floatingObjects" class="floating-objects"></div>
 
+  <!-- ===== PREMIUM AUTH OVERLAY ===== -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-card">
+      <!-- Left Branding Panel -->
+      <div class="auth-left">
+        <div>
+          <div class="auth-logo-section">
+            <img src="assets/logo.png" alt="FinSight AI" class="auth-logo" />
+            <h2>FinSight AI</h2>
+          </div>
+          <p class="auth-left-tagline">Smart Expenses. Smarter Future.</p>
+          <p class="auth-left-desc">
+            AI-powered personal finance dashboard with intelligent budgeting,
+            real-time stock analysis, portfolio management, and predictive insights
+            — all in one beautiful interface.
+          </p>
+        </div>
+        <div class="auth-left-metrics">
+          <div class="auth-metric">
+            <span class="auth-metric-value">₹382K</span>
+            <span class="auth-metric-label">Assets Managed</span>
+          </div>
+          <div class="auth-metric">
+            <span class="auth-metric-value">96%</span>
+            <span class="auth-metric-label">Accuracy</span>
+          </div>
+          <div class="auth-metric">
+            <span class="auth-metric-value">24/7</span>
+            <span class="auth-metric-label">AI Insights</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Form Panel -->
+      <div class="auth-right">
+        <!-- Login Form -->
+        <div id="loginFormContainer" class="auth-form-container">
+          <h3>Welcome back</h3>
+          <p class="auth-subtitle">Sign in to continue to your dashboard</p>
+          <form id="loginForm" autocomplete="on">
+            <div class="input-group">
+              <label for="loginEmail">Email address</label>
+              <input type="email" id="loginEmail" placeholder="you@example.com" required autocomplete="email" />
+            </div>
+            <div class="input-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+          </form>
+          <p class="auth-toggle-text">
+            Don't have an account?
+            <button type="button" class="link-btn" id="switchToSignUp">Create one</button>
+          </p>
+          <div class="auth-divider">
+            <span>or</span>
+          </div>
+          <button type="button" class="btn btn-outline btn-block" id="quickDemoBtn">Quick Demo — Skip Login</button>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div id="signupFormContainer" class="auth-form-container" hidden style="display:none;">
+          <h3>Create account</h3>
+          <p class="auth-subtitle">Start your free FinSight AI experience</p>
+          <form id="signupForm" autocomplete="on">
+            <div class="input-group">
+              <label for="signupName">Full name</label>
+              <input type="text" id="signupName" placeholder="Arjun Singh" required autocomplete="name" />
+            </div>
+            <div class="input-group">
+              <label for="signupEmail">Email address</label>
+              <input type="email" id="signupEmail" placeholder="you@example.com" required autocomplete="email" />
+            </div>
+            <div class="input-group">
+              <label for="signupPassword">Password</label>
+              <input type="password" id="signupPassword" placeholder="Create a password" required minlength="4" autocomplete="new-password" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+          </form>
+          <p class="auth-toggle-text">
+            Already have an account?
+            <button type="button" class="link-btn" id="switchToLogin">Sign in</button>
+          </p>
+          <div class="auth-divider">
+            <span>or</span>
+          </div>
+          <button type="button" class="btn btn-outline btn-block" id="quickDemoBtnSignup">Quick Demo — Skip Signup</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 
   <div class="app-shell">
@@ -1283,6 +1374,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=54" defer></script>
+  <script src="app.js?v=55" defer></script>
 </body>
 </html>

@@ -199,32 +199,41 @@ function init() {
   // Initialize Supabase if credentials exist
   initSupabase();
 
-  // Ensure user is marked logged in by default
-  localStorage.setItem('finsight_logged_in', 'true');
-  if (!localStorage.getItem('finsight_user_name')) {
-    localStorage.setItem('finsight_user_name', 'Arjun Singh');
-    localStorage.setItem('finsight_user_email', 'arjun@finsight.ai');
-  }
-
   if (!localStorage.getItem('finsight_v32_migrated')) {
     localStorage.setItem('finsight_v32_migrated', 'true');
   }
 
   bindSupabaseControls();
+  setupAuth();
 
   const authOverlay = document.getElementById('authOverlay');
-  if (authOverlay) {
-    authOverlay.style.display = 'none';
-  }
+  const isLoggedIn = localStorage.getItem('finsight_logged_in') === 'true';
 
-  const userId = localStorage.getItem('finsight_supabase_user_id');
-  if (supabaseClient && userId) {
-    try {
-      fetchProfileData(userId);
-      fetchCloudData(userId);
-    } catch (e) {}
+  if (!isLoggedIn) {
+    // Show login overlay, hide app
+    if (authOverlay) {
+      authOverlay.style.display = 'flex';
+      authOverlay.classList.remove('fade-out');
+    }
+    const appShell = document.querySelector('.app-shell');
+    if (appShell) appShell.style.visibility = 'hidden';
+  } else {
+    // User is logged in — hide overlay, show app
+    if (authOverlay) {
+      authOverlay.style.display = 'none';
+      authOverlay.classList.add('fade-out');
+    }
+    const appShell = document.querySelector('.app-shell');
+    if (appShell) appShell.style.visibility = 'visible';
+
+    const userId = localStorage.getItem('finsight_supabase_user_id');
+    if (supabaseClient && userId) {
+      try {
+        fetchProfileData(userId);
+        fetchCloudData(userId);
+      } catch (e) {}
+    }
   }
-  setupAuth();
 
   bindNavigation();
   initializeTransactions();
@@ -281,26 +290,40 @@ window.toggleAuthForm = function(mode) {
 function dismissAuthOverlay() {
   const authOverlay = document.getElementById('authOverlay');
   if (authOverlay) {
-    authOverlay.style.display = 'none';
     authOverlay.classList.add('fade-out');
+    // After the CSS transition ends, fully hide
+    setTimeout(() => {
+      authOverlay.style.display = 'none';
+    }, 800);
   }
+  // Reveal the app shell
+  const appShell = document.querySelector('.app-shell');
+  if (appShell) appShell.style.visibility = 'visible';
+  // Navigate to dashboard
+  showPage('dashboard');
 }
 
 window.enterDemoMode = function() {
-  const nameInput = document.getElementById('signupName');
-  const emailInput = document.getElementById('loginEmail') || document.getElementById('signupEmail');
-  
-  const userName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "Arjun Singh";
-  const userEmail = emailInput && emailInput.value.trim() ? emailInput.value.trim() : "arjun@finsight.ai";
-  
   localStorage.setItem('finsight_logged_in', 'true');
-  localStorage.setItem('finsight_user_name', userName);
-  localStorage.setItem('finsight_user_email', userEmail);
+  localStorage.setItem('finsight_user_name', 'Arjun Singh');
+  localStorage.setItem('finsight_user_email', 'arjun@finsight.ai');
   
-  updateProfileInfo(userName, userEmail);
-  showToast(`Welcome, ${userName}! Demo mode active.`, 'success');
+  state.profile.name = 'Arjun Singh';
+  state.profile.email = 'arjun@finsight.ai';
+  updateProfileInfo('Arjun Singh', 'arjun@finsight.ai');
+  showToast('Welcome, Arjun! Demo mode active.', 'success');
   dismissAuthOverlay();
 };
+
+function signOut() {
+  localStorage.removeItem('finsight_logged_in');
+  localStorage.removeItem('finsight_user_name');
+  localStorage.removeItem('finsight_user_email');
+  localStorage.removeItem('finsight_supabase_user_id');
+  showToast('Signed out successfully.', 'success');
+  // Reload the page to show login screen
+  setTimeout(() => { window.location.reload(); }, 600);
+}
 
 function setupAuth() {
   const authOverlay = document.getElementById('authOverlay');
@@ -443,6 +466,16 @@ function setupAuth() {
       showToast(`Account created! Welcome, ${name}!`, 'success');
       dismissAuthOverlay();
     });
+  }
+
+  // Quick Demo buttons
+  const quickDemoBtn = document.getElementById('quickDemoBtn');
+  const quickDemoBtnSignup = document.getElementById('quickDemoBtnSignup');
+  if (quickDemoBtn) {
+    quickDemoBtn.addEventListener('click', () => { window.enterDemoMode(); });
+  }
+  if (quickDemoBtnSignup) {
+    quickDemoBtnSignup.addEventListener('click', () => { window.enterDemoMode(); });
   }
 }
 
