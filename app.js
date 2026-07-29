@@ -86,43 +86,6 @@ const charts = {};
 
 let supabaseClient = null;
 
-function init() {
-  state.theme = localStorage.getItem('finsightTheme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  setTheme(state.theme);
-
-  // Initialize Supabase if credentials exist
-  initSupabase();
-
-  // Ensure user is marked logged in by default (Login Page Removed)
-  localStorage.setItem('finsight_logged_in', 'true');
-  if (!localStorage.getItem('finsight_user_name')) {
-    localStorage.setItem('finsight_user_name', 'Arjun Singh');
-    localStorage.setItem('finsight_user_email', 'arjun@finsight.ai');
-  }
-
-  // Ensure migration flag is set so data is never wiped
-  if (!localStorage.getItem('finsight_v32_migrated')) {
-    localStorage.setItem('finsight_v32_migrated', 'true');
-  }
-
-  // Bind Supabase settings modals
-  bindSupabaseControls();
-
-  const authOverlay = document.getElementById('authOverlay');
-  if (authOverlay) {
-    authOverlay.style.display = 'none';
-  }
-
-  const userId = localStorage.getItem('finsight_supabase_user_id');
-  if (supabaseClient && userId) {
-    try {
-      fetchProfileData(userId);
-      fetchCloudData(userId);
-    } catch (e) {}
-  }
-  setupAuth();
-}
-
 function saveAllState() {
   localStorage.setItem('finsightSavings', JSON.stringify(state.savings || []));
   localStorage.setItem('finsightBudgets', JSON.stringify(state.budgets || []));
@@ -229,6 +192,40 @@ function loadAllState() {
 
 function init() {
   loadAllState();
+
+  state.theme = localStorage.getItem('finsightTheme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  setTheme(state.theme);
+
+  // Initialize Supabase if credentials exist
+  initSupabase();
+
+  // Ensure user is marked logged in by default
+  localStorage.setItem('finsight_logged_in', 'true');
+  if (!localStorage.getItem('finsight_user_name')) {
+    localStorage.setItem('finsight_user_name', 'Arjun Singh');
+    localStorage.setItem('finsight_user_email', 'arjun@finsight.ai');
+  }
+
+  if (!localStorage.getItem('finsight_v32_migrated')) {
+    localStorage.setItem('finsight_v32_migrated', 'true');
+  }
+
+  bindSupabaseControls();
+
+  const authOverlay = document.getElementById('authOverlay');
+  if (authOverlay) {
+    authOverlay.style.display = 'none';
+  }
+
+  const userId = localStorage.getItem('finsight_supabase_user_id');
+  if (supabaseClient && userId) {
+    try {
+      fetchProfileData(userId);
+      fetchCloudData(userId);
+    } catch (e) {}
+  }
+  setupAuth();
+
   bindNavigation();
   initializeTransactions();
   renderBudgetCards();
