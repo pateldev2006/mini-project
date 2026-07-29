@@ -4958,6 +4958,7 @@ async function openBuyMoreModal(ticker) {
 
 function initPortfolioChart() {
   const canvas = document.getElementById('portfolioDoughnut');
+  const legendGrid = document.getElementById('portfolioLegendGrid');
   if (!canvas) return;
   
   if (charts.portfolioChart) {
@@ -4969,35 +4970,55 @@ function initPortfolioChart() {
   let labels = [];
   let data = [];
   let bgColors = [];
+  const palette = [
+    '#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', 
+    '#ec4899', '#3b82f6', '#a855f7', '#14b8a6', '#f97316'
+  ];
   
-  if (state.portfolioHoldings.length === 0) {
-    labels = ['Available Cash Balance'];
+  if (state.portfolioHoldings.length === 0 || holdingsVal === 0) {
+    labels = ['No Holdings'];
     data = [100];
-    bgColors = ['rgba(14, 165, 233, 0.45)'];
+    bgColors = ['rgba(148, 163, 184, 0.12)'];
+    
+    if (legendGrid) {
+      legendGrid.innerHTML = `
+        <div class="empty-legend-badge">
+          <span class="legend-dot muted-dot"></span>
+          <span>No active stock holdings in portfolio</span>
+        </div>
+      `;
+    }
   } else {
-    // Add holdings
+    let legendHTML = '';
     state.portfolioHoldings.forEach((h, idx) => {
       const val = h.shares * h.currentPrice;
-      const pct = holdingsVal > 0 ? (val / (holdingsVal + state.portfolioCash)) * 100 : 0;
+      const pct = (val / holdingsVal) * 100;
       labels.push(h.ticker);
-      data.push(pct);
+      data.push(val);
       
-      const colors = [
-        '#0ea5e9', '#818cf8', '#22c55e', '#a855f7', '#f43f5e', 
-        '#eab308', '#ec4899', '#14b8a6', '#f97316'
-      ];
-      bgColors.push(colors[idx % colors.length]);
+      const color = palette[idx % palette.length];
+      bgColors.push(color);
+
+      legendHTML += `
+        <div class="legend-item-pill">
+          <div class="legend-pill-left">
+            <span class="legend-dot" style="background-color: ${color}; box-shadow: 0 0 8px ${color}80;"></span>
+            <span class="legend-ticker">${h.ticker}</span>
+          </div>
+          <div class="legend-pill-right">
+            <span class="legend-pct">${pct.toFixed(1)}%</span>
+            <span class="legend-val">₹${Math.round(val).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+      `;
     });
     
-    // Add Cash
-    const cashPct = (state.portfolioCash / (holdingsVal + state.portfolioCash)) * 100;
-    labels.push('Cash');
-    data.push(cashPct);
-    bgColors.push('rgba(148, 163, 184, 0.25)');
+    if (legendGrid) {
+      legendGrid.innerHTML = legendHTML;
+    }
   }
   
   const isDark = state.theme === 'dark';
-  const labelColor = isDark ? '#94a3b8' : '#64748b';
   const borderVal = isDark ? '#1e293b' : '#ffffff';
 
   charts.portfolioChart = new Chart(canvas, {
@@ -5008,7 +5029,9 @@ function initPortfolioChart() {
         data: data,
         backgroundColor: bgColors,
         borderWidth: 2,
-        borderColor: borderVal
+        borderColor: borderVal,
+        borderRadius: state.portfolioHoldings.length > 0 ? 4 : 0,
+        hoverOffset: 6
       }]
     },
     options: {
@@ -5016,25 +5039,20 @@ function initPortfolioChart() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'bottom',
-          labels: {
-            color: labelColor,
-            font: {
-              family: 'Inter',
-              size: 11
-            },
-            padding: 12
-          }
+          display: false
         },
         tooltip: {
+          enabled: state.portfolioHoldings.length > 0,
           callbacks: {
             label: function(context) {
-              return `${context.label}: ${context.raw.toFixed(1)}%`;
+              const val = context.raw || 0;
+              const pct = holdingsVal > 0 ? ((val / holdingsVal) * 100).toFixed(1) : '0';
+              return `${context.label}: ₹${Math.round(val).toLocaleString('en-IN')} (${pct}%)`;
             }
           }
         }
       },
-      cutout: '65%'
+      cutout: '74%'
     }
   });
 }

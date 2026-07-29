@@ -4847,3 +4847,89 @@ body::after {
   border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
+/* Custom Legend Grid for Holdings Allocation */
+.portfolio-legend-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.legend-item-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(148, 163, 184, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  transition: all 0.2s ease;
+}
+
+.legend-item-pill:hover {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.25);
+  transform: translateX(2px);
+}
+
+.legend-pill-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-pill-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.muted-dot {
+  background: #64748b;
+}
+
+.legend-ticker {
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
+.legend-pct {
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(14, 165, 233, 0.12);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+.legend-val {
+  font-weight: 600;
+  color: var(--subtext);
+}
+
+.empty-legend-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(148, 163, 184, 0.05);
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  color: var(--subtext);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=37" />
+  <link rel="stylesheet" href="style.css?v=38" />
 </head>
 <body>
   <!-- Futuristic Background Canvas & Floating Objects -->
@@ -642,24 +642,15 @@
                   <h3>Holdings Allocation</h3>
                   <span>Asset distribution</span>
                 </div>
-                <div class="chart-container" style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center; padding: 12px 0;">
+                <div class="chart-container" style="position: relative; height: 220px; display: flex; align-items: center; justify-content: center; padding: 12px 0;">
                   <canvas id="portfolioDoughnut"></canvas>
                   <div class="chart-center-stats" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
-                    <span style="font-size: 0.72rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Holdings Value</span>
-                    <strong id="portfolioChartValue" style="font-size: 1.25rem; font-weight: 700; color: var(--text); margin-top: 2px; font-family: 'Outfit', sans-serif;">₹0.00</strong>
+                    <span style="font-size: 0.7rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Holdings Value</span>
+                    <strong id="portfolioChartValue" style="font-size: 1.2rem; font-weight: 700; color: var(--text); margin-top: 2px; font-family: 'Outfit', sans-serif;">₹0.00</strong>
                   </div>
                 </div>
-              </section>
-
-              <section class="glass-card quick-trade-card" style="margin-top: 24px; padding: 20px;">
-                <div class="card-head" style="margin-bottom: 12px;">
-                  <h3>Quick Stock Launcher</h3>
-                  <span>Instant trade terminal</span>
-                </div>
-                <p style="font-size: 0.85rem; color: var(--subtext); margin-bottom: 14px;">Search any stock ticker to analyze and buy via Bank Account or Credit Card.</p>
-                <div style="display: flex; gap: 8px;">
-                  <input type="text" id="quickTradeInput" class="text-input" placeholder="e.g. AAPL, TCS, RELIANCE..." style="flex: 1; text-transform: uppercase;" />
-                  <button class="btn btn-primary" onclick="launchQuickTrade()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analyze</button>
+                <div id="portfolioLegendGrid" class="portfolio-legend-grid">
+                  <!-- Custom Legend Pills rendered dynamically -->
                 </div>
               </section>
             </div>
@@ -1354,6 +1345,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=37" defer></script>
+  <script src="app.js?v=38" defer></script>
 </body>
 </html>
