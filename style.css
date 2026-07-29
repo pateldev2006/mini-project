@@ -414,6 +414,8 @@ button {
 }
 
 .topbar {
+  position: relative;
+  z-index: 500;
   border-bottom: 1px solid var(--border);
   background: var(--surface-glass);
   backdrop-filter: blur(16px);
@@ -493,15 +495,15 @@ button {
   position: absolute;
   right: 0;
   top: calc(100% + 10px);
-  background: var(--surface);
+  background: var(--surface-strong);
   border: 1px solid var(--border);
   border-radius: 18px;
-  box-shadow: var(--shadow);
-  z-index: 40;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  z-index: 1000 !important;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .notif-panel {
@@ -627,13 +629,8 @@ button {
   background: rgba(14, 165, 233, 0.12);
 }
 
-/* Overlay shown when profile menu is open to dim the page and focus menu */
 .menu-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(2, 6, 23, 0.28);
-  backdrop-filter: blur(4px);
-  z-index: 20;
+  display: none !important;
 }
 
 /* Ensure topbar actions and dropdowns sit above the overlay for switching */

@@ -1705,8 +1705,6 @@ function openNotificationsPanel() {
   if (!panel) return;
   panel.hidden = false;
   renderNotificationsPanel();
-  if (menuOverlay) menuOverlay.hidden = false;
-  document.body.classList.add('menu-open');
   const notificationsButton = document.getElementById('notificationsButton');
   if (notificationsButton) notificationsButton.setAttribute('aria-expanded', 'true');
   panel.onclick = (ev) => ev.stopPropagation();
@@ -1716,8 +1714,6 @@ function closeNotificationsPanel() {
   const panel = document.getElementById('notifPanel');
   if (!panel) return;
   panel.hidden = true;
-  if (menuOverlay) menuOverlay.hidden = true;
-  document.body.classList.remove('menu-open');
   const notificationsButton = document.getElementById('notificationsButton');
   if (notificationsButton) notificationsButton.setAttribute('aria-expanded', 'false');
 }
@@ -1735,8 +1731,6 @@ function toggleProfileMenu() {
 function openProfileMenu() {
   if (!profileMenu) return;
   profileMenu.hidden = false;
-  if (menuOverlay) menuOverlay.hidden = false;
-  document.body.classList.add('menu-open');
   if (profileMenuButton) profileMenuButton.setAttribute('aria-expanded', 'true');
   profileMenu.onclick = (ev) => ev.stopPropagation();
 }
@@ -1744,8 +1738,6 @@ function openProfileMenu() {
 function closeProfileMenu() {
   if (!profileMenu) return;
   profileMenu.hidden = true;
-  if (menuOverlay) menuOverlay.hidden = true;
-  document.body.classList.remove('menu-open');
   if (profileMenuButton) profileMenuButton.setAttribute('aria-expanded', 'false');
 }
 
