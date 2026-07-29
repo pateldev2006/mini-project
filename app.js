@@ -53,7 +53,8 @@ const state = {
 };
 
 const pages = document.querySelectorAll('.page');
-const navLinks = document.querySelectorAll('.sidebar-link');
+const railIcons = document.querySelectorAll('.rail-icon[data-page]');
+const flyoutLinks = document.querySelectorAll('.flyout-link[data-page]');
 const profileMenu = document.getElementById('profileMenu');
 const profileMenuButton = document.getElementById('profileMenuButton');
 const transactionBody = document.getElementById('transactionBody');
@@ -755,18 +756,32 @@ function applyThemeToCharts() {
 }
 
 function bindNavigation() {
-  navLinks.forEach((link) => {
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
+  // Rail icon clicks
+  document.querySelectorAll('.rail-icon[data-page]').forEach((icon) => {
+    icon.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const target = icon.dataset.page;
+      if (target) showPage(target);
+    });
+  });
+
+  // Flyout link clicks
+  document.querySelectorAll('.flyout-link[data-page]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const target = link.dataset.page;
       if (target) {
         showPage(target);
-        closeMobileSidebar();
+        closeFlyout();
       }
     });
   });
 
+  // Other data-page buttons (landing page CTAs, footer links, etc.)
   document.querySelectorAll('[data-page]').forEach((button) => {
+    if (button.classList.contains('rail-icon') || button.classList.contains('flyout-link') || button.classList.contains('flyout-brand-link')) return;
     button.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -785,11 +800,18 @@ function showPage(targetPage) {
     page.classList.toggle('page-active', page.id === targetPage);
   });
 
-  navLinks.forEach((link) => {
+  // Update rail icons active state
+  document.querySelectorAll('.rail-icon[data-page]').forEach((icon) => {
+    icon.classList.toggle('active', icon.dataset.page === targetPage);
+  });
+
+  // Update flyout links active state
+  document.querySelectorAll('.flyout-link[data-page]').forEach((link) => {
     link.classList.toggle('active', link.dataset.page === targetPage);
   });
 
-  document.getElementById('globalSearch').value = '';
+  const searchEl = document.getElementById('globalSearch');
+  if (searchEl) searchEl.value = '';
 
   if (targetPage === 'portfolio') {
     refreshPortfolioPrices();
@@ -1477,17 +1499,28 @@ function bindUIControls() {
     });
   }
 
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener('click', (e) => {
+  // Flyout toggle button
+  const flyoutToggle = document.getElementById('flyoutToggle');
+  if (flyoutToggle) {
+    flyoutToggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (window.innerWidth <= 768) {
-        closeMobileSidebar();
-      } else {
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar) sidebar.classList.toggle('collapsed');
-      }
+      toggleFlyout();
     });
+  }
+
+  // Flyout close button
+  const flyoutCloseBtn = document.getElementById('flyoutClose');
+  if (flyoutCloseBtn) {
+    flyoutCloseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeFlyout();
+    });
+  }
+
+  // Flyout backdrop
+  const flyoutBackdrop = document.getElementById('flyoutBackdrop');
+  if (flyoutBackdrop) {
+    flyoutBackdrop.addEventListener('click', closeFlyout);
   }
 
   // Payment Modal bindings
@@ -1651,7 +1684,7 @@ function bindUIControls() {
 function closeAllDropdowns() {
   closeProfileMenu();
   closeNotificationsPanel();
-  closeMobileSidebar();
+  closeFlyout();
 }
 
 function toggleNotificationsPanel(e) {
@@ -3577,16 +3610,36 @@ function initializeSavings() {
   renderSavingsCards();
 }
 
+// Flyout navigation functions
+function openFlyout() {
+  const flyout = document.getElementById('navFlyout');
+  const backdrop = document.getElementById('flyoutBackdrop');
+  if (flyout) flyout.classList.add('open');
+  if (backdrop) backdrop.classList.add('visible');
+}
+
+function closeFlyout() {
+  const flyout = document.getElementById('navFlyout');
+  const backdrop = document.getElementById('flyoutBackdrop');
+  if (flyout) flyout.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('visible');
+}
+
+function toggleFlyout() {
+  const flyout = document.getElementById('navFlyout');
+  if (flyout && flyout.classList.contains('open')) {
+    closeFlyout();
+  } else {
+    openFlyout();
+  }
+}
+
 function openMobileSidebar() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) sidebar.classList.add('open');
-  if (menuOverlay) menuOverlay.removeAttribute('hidden');
+  openFlyout();
 }
 
 function closeMobileSidebar() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) sidebar.classList.remove('open');
-  if (menuOverlay) menuOverlay.setAttribute('hidden', '');
+  closeFlyout();
 }
 
 let suggestionDebounceTimeout = null;
