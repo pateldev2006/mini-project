@@ -121,29 +121,8 @@ function init() {
     } catch (e) {}
   }
   setupAuth();
+}
 
-  // Clear legacy unscaled data from localStorage if present
-  const storedBudgets = localStorage.getItem('finsightBudgets');
-  if (storedBudgets) {
-    try {
-      const parsed = JSON.parse(storedBudgets);
-      const foodB = parsed.find(b => b.label === 'Food');
-      if (foodB && foodB.limit <= 500) {
-        localStorage.removeItem('finsightBudgets');
-        localStorage.removeItem('finsightTransactions');
-        console.log('Cleared legacy unscaled data from localStorage.');
-      }
-    } catch(e) {}
-  }
-
-  // Load custom budgets if they exist
-  const savedBudgets = localStorage.getItem('finsightBudgets');
-  if (savedBudgets) {
-    try {
-      state.budgets = JSON.parse(savedBudgets);
-    } catch (e) {
-      console.error('Error parsing saved budgets:', e);
-    }
 function saveAllState() {
   localStorage.setItem('finsightSavings', JSON.stringify(state.savings || []));
   localStorage.setItem('finsightBudgets', JSON.stringify(state.budgets || []));
